@@ -53,3 +53,17 @@ receipt:
   framing: transfer test, never "the claim is true / false"
   verdicts: [transfers, partially, does_not_transfer, untestable]
   must_state: [claimed, measured ratio with 90% interval, horizon mismatch, weeks after weights]
+
+# What /scan looks for. Window set by Yuri on Nov 13, 2026: the last 3 to 4 months.
+scan:
+  window_days: 120
+  domains:
+    - [arxiv.org]
+    - [huggingface.co, github.com]
+    - [zenodo.org]
+    - []          # open web
+  queries:
+    - time series foundation model release
+    - electricity load forecasting foundation model benchmark
+    - zero-shot forecasting with covariates weather
+    - pre-registered forecasting backtest energy demand

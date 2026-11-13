@@ -17,8 +17,10 @@ design the backtest mirrors.
 - Thu Nov 12 / Fri Nov 13, 2026: infrastructure only (data, harness, baselines,
   foundation-model rows, spec, scorecard schema, rough `/judge` prototype).
 - Sat Nov 14 (hackathon): the You.com-powered agent.
-- Do NOT write any You.com integration, `/scan` or `/run-candidate` code before
-  Saturday. If a task seems to need it, stop and ask.
+- `/scan`, `/judge` and `/run-candidate` are built now on Claude's own search and
+  fetch (Yuri, Nov 13), as prior work, so they can be compared with You.com.
+- Do NOT write any You.com integration before Saturday. If a task seems to need it,
+  stop and ask.
 - The dashboard is exempt (Yuri, Nov 13): it may be built now as prior work, as a
   static web page in `dashboard/` that reads the results files. No Streamlit.
 
@@ -81,9 +83,10 @@ results/               leaderboard.parquet, per-window forecasts
 eval/items.yaml        11 labelled candidates for testing the judge
 notes/                 moran.md and other reading notes
 schemas/               scorecard JSON schema (Friday)
-scorecards/ evidence/  judge output and the search evidence ledger (Friday)
+scorecards/ evidence/ candidates/   agent output, kept per provider (claude, youcom)
+tools/                 ledger.py, validate_scorecard.py, receipt.py
 dashboard/            static web page: index.html, build_data.py -> data.js, us.js (state outlines)
-.claude/skills/        judge (Friday); scan, run-candidate (Saturday)
+.claude/skills/        scan, judge, run-candidate; providers.md maps them to search tools
 ```
 
 ## Conventions

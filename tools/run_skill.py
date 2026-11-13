@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
 import subprocess
 import sys
 import time
@@ -63,7 +64,9 @@ def main() -> None:
     if a.provider not in TOOLS:
         sys.exit("the youcom provider is wired on Saturday (CLAUDE.md phase gate)")
     started = datetime.now(UTC)
-    run_id = f"{started:%Y%m%dT%H%M%S}_{a.skill}_{a.provider}"
+    # The first argument and a random suffix keep runs started in the same second apart.
+    what = "".join(c if c.isalnum() else "-" for c in (a.args[0] if a.args else "all"))[:40]
+    run_id = f"{started:%Y%m%dT%H%M%S}_{a.skill}_{a.provider}_{what}_{secrets.token_hex(2)}"
     prompt = " ".join([f"/{a.skill}", *a.args, a.provider]) + (f"\n\n{a.note}" if a.note else "")
     cmd = [
         "claude",

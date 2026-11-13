@@ -199,6 +199,7 @@ a { color: var(--model); }
       <tr><td>Same hour last week</td><td>Copies the load from 168 hours earlier. The floor any method must beat.</td><td>Nothing</td><td>No</td></tr>
       <tr><td>Regression</td><td>24 small straight-line fits, one per hour of the day: last week's load, day of week, holidays.</td><td>The past year of this zone, refitted every Monday</td><td>No</td></tr>
       <tr><td>Regression + temperature <span class="pill flag">baseline</span></td><td>The same fits plus temperature and its square, so both heat and cold can raise load.</td><td>The past year of this zone</td><td>Yes</td></tr>
+      <tr><td>Vanilla benchmark <span class="pill flag">field standard</span></td><td>One regression with no lagged load: month, day of week by hour, and a curved temperature response that varies by month and by hour. Shown with and without a trend term.</td><td>The past two years of this zone</td><td>Yes</td></tr>
       <tr><td>LightGBM + temperature</td><td>Hundreds of small decision trees on exactly the regression's inputs. Can find patterns a straight line cannot.</td><td>The past year of this zone</td><td>Yes</td></tr>
       <tr><td>Chronos-2 <span class="pill flag">challenger</span></td><td>A neural network pretrained on a very large collection of other time series. It reads 12 weeks of our load and continues the pattern. Nothing is trained on our data.</td><td>Other series, before Oct 2025</td><td>Optional: past and coming week</td></tr>
       <tr><td>TimesFM 2.5</td><td>Another pretrained network. It has no weather input, so temperature is added outside it by a straight-line fit, with the network forecasting what is left.</td><td>Other series, before Oct 2025</td><td>Only through that outside fit</td></tr>
@@ -219,6 +220,12 @@ a { color: var(--model); }
   <p>A pre-registered study of Great Britain's demand, published this week, found that once both get the same weather, Chronos-2's error is <strong>0.97</strong> of a regression's, a rough tie. We ran the same question on PJM, a week ahead, on <span id="n-weeks"></span> weeks the model cannot have seen in training.</p>
   <div class="receipt" id="receipt"></div>
   <p class="note">Error ratio: the model's average error divided by the regression's. Below 1 the model is better. The shaded band is our 10% bar, fixed before scoring: inside it the two are a practical tie. Whiskers are 90% ranges. Source of the claim: <a href="https://zenodo.org/records/24161799">Zenodo record 24161799</a>.</p>
+  <div class="panel stack">
+    <h3>A second check: against the field's standard benchmark</h3>
+    <p>After scoring, we searched review papers and forecasting competitions for the load-forecasting field's own standard baseline. It is a different regression, known as Tao's Vanilla Benchmark: no lagged load, a curved temperature response that varies by month and hour, two years of history, plus a trend. It beats our original regression by about 20% in both zones.</p>
+    <div class="facts" id="vs-standard"></div>
+    <p class="note">Chronos-2 with temperature divided by the Vanilla benchmark with trend, forecast weather, 90% ranges. Added as a secondary result under protocol-v1.1 and scored once. The verdicts above are unchanged because their baseline was fixed in advance, but against the standard benchmark the tie reported for Great Britain largely reappears.</p>
+  </div>
   <div class="panel stack">
     <h3>Where in the week the lead comes from</h3>
     <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
@@ -290,6 +297,8 @@ a { color: var(--model); }
       <tr><td>Coverage</td><td>2 PJM zones</td><td>All PJM zones, then the other six operators. The data source already covers them.</td></tr>
       <tr><td>Models</td><td>3 pretrained models, 4 simple ones</td><td>Any model with public weights. The library we use wraps 16.</td></tr>
       <tr><td>Claims</td><td>One study, checked by hand-started runs</td><td>A weekly scan that judges and runs new claims by itself.</td></tr>
+      <tr><td>Newest models</td><td>Cannot be tested fairly if published inside the test year</td><td>Score forward on many zones, and test on simulated load built from real history, once validated.</td></tr>
+      <tr><td>Baselines</td><td>One recent study, then the field's standard benchmark</td><td>Stronger classical methods: recency terms and additive models.</td></tr>
       <tr><td>Weather</td><td>Temperature</td><td>Wind, solar and humidity, as a new protocol version.</td></tr>
     </table>
   </div>
@@ -345,7 +354,7 @@ a { color: var(--model); }
     { tab: "story", at: "#zonemap", ms: 5000, text: "We forecast two PJM zones that behave differently: JC in New Jersey and DOM in Virginia." },
     { tab: "story", at: "#week", ms: 6000, text: "Every Monday, each method forecasts the next 168 hours. Here: a plain regression and Chronos-2, a pretrained model.", act: () => click("#wk-zone button:nth-child(2)", 3000) },
     { tab: "methods", at: "section[data-tab='methods'] table", ms: 5000, text: "Seven methods get the same history and the same temperature. The regression with temperature is the baseline." },
-    { tab: "receipt", at: "#receipt", ms: 7500, text: "A study this week found a tie in Great Britain: 0.97. On PJM we measured 0.73 on DOM, so the tie does not transfer. JC is undecided." },
+    { tab: "receipt", at: "#receipt", ms: 7500, text: "A study found a tie in Great Britain: 0.97. Against our first baseline we measured 0.73 on DOM. Against the field's standard benchmark it is 0.95: close to a tie again." },
     { tab: "leaderboard", at: "#board", ms: 6500, text: "Every model against the same baseline. Timestral is greyed: it was published after most test weeks, so it may have seen them.", act: () => click("#lb-zone button:nth-child(2)", 3200) },
     { tab: "candidates", at: "#cands", ms: 6000, text: "The scan agent reads arXiv, Hugging Face and Zenodo, and keeps new claims that cite a primary source.", act: () => type("#cand-q", "PJM", 2600) },
     { tab: "agents", at: ".steps", ms: 5000, text: "Find, judge, run, receipt: from a new claim to a measured answer, with every source cited." }
@@ -555,9 +564,14 @@ a { color: var(--model); }
     });
   })();
 
+  // ---------- against the field's standard benchmark
+  if (D.vs_standard) d3.select("#vs-standard").selectAll("div").data(["DOM", "JC"].filter(z => D.vs_standard[z])).join("div").attr("class", "fact")
+    .html(z => { const v = D.vs_standard[z], tie = v.lo >= lo && v.hi <= hi;
+      return "<b>" + f2(v.ratio) + "</b><span><strong>" + z + "</strong>, range " + f2(v.lo) + " to " + f2(v.hi) + ". " + (tie ? "A practical tie." : v.hi < lo ? "Model clearly better." : "Undecided.") + "</span>"; });
+
   // ---------- leaderboard
   let lbZone = "DOM", lbRegime = "forecast";
-  const order = ["chronos2_temperature", "timestral_temperature", "chronos2_temperature_gap48", "lightgbm_temperature", "lag_regression_temperature", "timesfm25_temperature", "timesfm25", "chronos2", "lag_regression", "seasonal_naive"];
+  const order = ["chronos2_temperature", "timestral_temperature", "chronos2_temperature_gap48", "vanilla_benchmark_trend", "vanilla_benchmark", "lightgbm_temperature", "lag_regression_temperature", "timesfm25_temperature", "timesfm25", "chronos2", "lag_regression", "seasonal_naive"];
   function drawBoard() {
     const rows = order.map(m => D.board.find(b => b.model === m && b.zone === lbZone && b.regime === lbRegime)).filter(Boolean)
       .sort((a, b) => a.ratio - b.ratio);
@@ -572,7 +586,7 @@ a { color: var(--model); }
       svg.append("text").attr("x", x(t)).attr("y", 16).attr("text-anchor", "middle").text(f2(t)); });
     rows.forEach((r, i) => {
       const cy = m.t + i * rowH + (narrow ? rowH - 14 : rowH / 2), flagged = r.group === "flagged";
-      const col = flagged ? "var(--ink-3)" : r.group === "baseline" ? "var(--base)" : (r.group === "fm" || r.group === "primary") ? "var(--model)" : "var(--ink-2)";
+      const col = flagged ? "var(--ink-3)" : r.group === "baseline" ? "var(--base)" : r.group === "standard" ? "var(--ink)" : (r.group === "fm" || r.group === "primary") ? "var(--model)" : "var(--ink-2)";
       const lab = svg.append("text").attr("x", narrow ? m.l : m.l - 14).attr("y", narrow ? cy - 18 : cy + 4).attr("text-anchor", narrow ? "start" : "end")
         .attr("style", "font-size:13px;fill:" + (flagged ? "var(--ink-3)" : "var(--ink)") + ";font-weight:" + (r.group === "primary" || r.group === "baseline" ? 600 : 400));
       lab.text(r.label + (r.note ? "  \u00b7  " + r.note : ""));

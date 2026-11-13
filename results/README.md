@@ -147,6 +147,40 @@ is not reported.
 It is the lowest error on the board in every zone and regime. That cannot be told apart
 from leakage with this window; see the open research task in `DECISIONS.md`.
 
+### Against the field's standard benchmark (protocol-v1.1, secondary)
+
+Added on Nov 13, 2026 after a search for the field's standard baselines
+(`BASELINES.md`). Tao's Vanilla Benchmark is one regression with no lagged load: month,
+day of week by hour, and a cubic in temperature by month and by hour, fitted on two
+years. Two forms were registered before scoring (`protocol-v1.1.yaml`): as written in
+Ziel and Liu (2016), and the same with a linear trend. Both were scored once at commit
+`5185461`. Intervals are 90%.
+
+| Forecast regime | DOM | JC |
+|---|---|---|
+| Vanilla vs. the lag regression with temperature | 1.386 (1.245 to 1.540) | 0.814 (0.717 to 0.914) |
+| Vanilla with trend vs. the lag regression with temperature | 0.772 (0.724 to 0.825) | 0.819 (0.722 to 0.919) |
+| **Chronos-2 + temperature vs. Vanilla with trend** | **0.946 (0.885 to 1.011)** | **0.997 (0.903 to 1.088)** |
+| Chronos-2 + temperature vs. Vanilla | 0.527 (0.484 to 0.570) | 1.003 (0.908 to 1.097) |
+| Chronos-2 + temperature, 48-hour gap, vs. Vanilla with trend | 0.988 (0.916 to 1.072) | 0.980 (0.887 to 1.068) |
+| LightGBM + temperature vs. Vanilla with trend | 1.228 (1.146 to 1.309) | 1.046 (0.999 to 1.092) |
+| Timestral + temperature vs. Vanilla with trend (not out-of-sample) | 0.850 (0.811 to 0.893) | 0.851 (0.795 to 0.910) |
+
+- **The frozen baseline is weaker than the field's standard.** Vanilla with trend has
+  23% less error than the lag regression with temperature on DOM and 18% less on JC.
+- **Against Vanilla with trend, Chronos-2's lead is gone on JC and small on DOM.** Read
+  with the same 10% bar: JC is a practical tie (the whole interval is inside 0.90 to
+  1.10); DOM is inconclusive (the interval reaches below 0.90). With actual weather the
+  point ratios are 1.085 on DOM and 1.007 on JC.
+- **The trend term decides DOM.** Without it Vanilla is the worst temperature model on
+  DOM, whose load is growing; on JC the two forms are the same. The trend form's
+  provenance is weaker (see `protocol-v1.1.yaml`), which is why both are shown.
+- **The primary outcome is unchanged** because the protocol fixed its baseline in
+  advance: DOM 0.730, JC 0.817 against the lag regression with temperature. What changes
+  is how much weight that outcome can bear: it shows Chronos-2 beats that regression,
+  not that it beats a standard load-forecasting regression. Against the standard one,
+  the GB study's "rough tie" largely reappears.
+
 ## Leaderboard
 
 Mean absolute error over each 168-hour window, averaged over 48 windows, in MW.
@@ -244,6 +278,8 @@ Details in `notes/foundationforecast.md`; values in `gate/crosscheck/chronos2_ff
 
 ## Not done
 
+- Stronger classical rungs: Vanilla with recency terms, an additive model (GAM),
+  tuned LightGBM (`notes/classical_baselines.md`).
 - A fair test of Timestral and other models whose weights fall inside the scored
   window (open research task in `DECISIONS.md`).
 - TimesFM 2.5 with a curved temperature term.

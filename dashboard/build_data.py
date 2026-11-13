@@ -24,6 +24,8 @@ LABELS = {
     "lag_regression": ("Regression, no weather", "simple", ""),
     "lag_regression_temperature": ("Regression + temperature", "baseline", "the baseline"),
     "lightgbm_temperature": ("LightGBM + temperature", "simple", ""),
+    "vanilla_benchmark": ("Vanilla benchmark", "simple", ""),
+    "vanilla_benchmark_trend": ("Vanilla benchmark with trend", "standard", "field standard"),
     "chronos2": ("Chronos-2, no weather", "fm", ""),
     "chronos2_temperature": ("Chronos-2 + temperature", "primary", "primary comparison"),
     "chronos2_temperature_gap48": ("Chronos-2 + temperature, 2-day data delay", "fm", ""),
@@ -166,6 +168,20 @@ def main() -> None:
         "weeks": weeks,
         "zones": zones,
         "primary_text": (res / "primary.md").read_text(),
+        # Chronos-2 with temperature against the field's standard benchmark (protocol-v1.1)
+        "vs_standard": {
+            r.unique_id: {
+                "ratio": round(r.ratio, 3),
+                "lo": round(r.ci90_low, 3),
+                "hi": round(r.ci90_high, 3),
+            }
+            for r in st[
+                (st["kind"] == "vs_vanilla_trend")
+                & (st["model_a"] == "chronos2_temperature")
+                & (st["regime"] == "forecast")
+                & (st["metric"] == "mae")
+            ].itertuples()
+        },
         # GB study, weather_study/RESULTS.md in Zenodo record 24161799 (notes/moran.md)
         "claim": {
             "ratio": 0.966,

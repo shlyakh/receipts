@@ -67,7 +67,9 @@ def main() -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("add", "show"):
         sp = sub.add_parser(name)
-        sp.add_argument("--provider", required=True, choices=["claude", "youcom", "manual"])
+        sp.add_argument(
+            "--provider", required=True, choices=["claude", "youcom", "manual", "feeds"]
+        )
         sp.add_argument("--candidate", required=True)
         if name == "add":
             sp.add_argument("--url", required=True)

@@ -93,6 +93,17 @@ scan:
     - [huggingface.co, github.com]
     - [zenodo.org]
     - []          # open web
+  # Direct listings read by tools/feeds.py: exact dates, complete for their site.
+  feeds:
+    arxiv:
+      categories: [stat.ML, cs.LG, eess.SP, stat.AP, eess.SY]
+      must_match: [forecast]                       # in title or abstract
+      any_of: [load, electricity, energy, demand, foundation model, zero-shot, covariate]
+    huggingface: {pipeline_tag: time-series-forecasting}
+    zenodo:
+      queries:
+        - 'forecast* AND (electricity OR load OR demand) AND (backtest OR benchmark OR "pre-registered" OR preregistered)'
+        - '"foundation model" AND forecast* AND "time series"'
   queries:
     - time series foundation model release
     - electricity load forecasting foundation model benchmark

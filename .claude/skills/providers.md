@@ -13,6 +13,9 @@ reasons only from the ledger.
 Outputs are kept apart per provider (`evidence/<provider>/`, `candidates/<provider>/`,
 `scorecards/<provider>/`) so the two can be compared on the same inputs.
 
+Independent of the provider, `tools/feeds.py` reads the arXiv, Hugging Face and Zenodo
+listings directly (`candidates/feeds/`). They give exact dates, which web search does not.
+
 Rules for every provider:
 - `linkedin.com` is never searched, fetched or cited. A LinkedIn URL may be stored as
   an identifier in `discovered_via` only.

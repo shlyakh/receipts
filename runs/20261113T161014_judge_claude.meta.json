@@ -3,25 +3,25 @@
  "skill": "judge",
  "provider": "claude",
  "args": [
-  "timestral"
+  "pjm-cold-spell-calibration-benchmark"
  ],
  "note": "The candidate is in candidates/claude/scan_2026-11-13_run3.jsonl (read only that row). Today is 2026-11-13. Do not read eval/, notes/, results/, other scorecards, DECISIONS.md, REFERENCE.md or README.md. Do not run git commands; write only the scorecard and, through tools/ledger.py, its ledger.",
  "model_requested": null,
- "git_commit": "49de471",
+ "git_commit": "eae79a8-dirty",
  "started_at": "2026-11-13T16:10:14+00:00",
- "wall_seconds": 209.8,
+ "wall_seconds": 316.0,
  "exit_code": 0,
- "session_id": "570513f8-9146-4456-a57e-a46684a2adf5",
+ "session_id": "09d79fe6-d62b-4ed1-9cd4-fde6d1c1299b",
  "is_error": false,
  "num_turns": 28,
- "total_cost_usd": 1.6984546,
+ "total_cost_usd": 2.2143655,
  "usage": {
-  "input_tokens": 26,
-  "cache_creation_input_tokens": 51487,
-  "cache_read_input_tokens": 612920,
-  "output_tokens": 17789,
+  "input_tokens": 34,
+  "cache_creation_input_tokens": 60753,
+  "cache_read_input_tokens": 926313,
+  "output_tokens": 25490,
   "output_tokens_details": {
-   "thinking_tokens": 1929
+   "thinking_tokens": 3486
   },
   "server_tool_use": {
    "web_search_requests": 0,
@@ -29,19 +29,19 @@
   },
   "service_tier": "standard",
   "cache_creation": {
-   "ephemeral_1h_input_tokens": 51487,
+   "ephemeral_1h_input_tokens": 60753,
    "ephemeral_5m_input_tokens": 0
   },
   "inference_geo": "global",
   "iterations": [
    {
     "input_tokens": 2,
-    "output_tokens": 1201,
-    "cache_read_input_tokens": 62805,
-    "cache_creation_input_tokens": 4905,
+    "output_tokens": 1120,
+    "cache_read_input_tokens": 72285,
+    "cache_creation_input_tokens": 4691,
     "cache_creation": {
      "ephemeral_5m_input_tokens": 0,
-     "ephemeral_1h_input_tokens": 4905
+     "ephemeral_1h_input_tokens": 4691
     },
     "type": "message"
    }
@@ -51,31 +51,31 @@
  },
  "model_usage": {
   "claude-fable-5-2": {
-   "inputTokens": 26,
-   "outputTokens": 17789,
-   "cacheReadInputTokens": 612920,
-   "cacheCreationInputTokens": 51487,
+   "inputTokens": 34,
+   "outputTokens": 25490,
+   "cacheReadInputTokens": 926313,
+   "cacheCreationInputTokens": 60753,
    "webSearchRequests": 0,
-   "costUSD": 1.6581440000000003,
+   "costUSD": 2.1771826,
    "contextWindow": 1000000,
    "maxOutputTokens": 128000,
-   "thinkingTokens": 1929,
+   "thinkingTokens": 3486,
    "cacheCreationEphemeral5mInputTokens": 0,
-   "cacheCreationEphemeral1hInputTokens": 51487,
+   "cacheCreationEphemeral1hInputTokens": 60753,
    "canonicalModel": "claude-fable-5-2",
    "provider": "firstParty",
    "costBasis": "list"
   },
   "claude-haiku-5-5": {
-   "inputTokens": 114076,
-   "outputTokens": 17806,
+   "inputTokens": 61894,
+   "outputTokens": 21987,
    "cacheReadInputTokens": 0,
    "cacheCreationInputTokens": 0,
    "webSearchRequests": 2,
-   "costUSD": 0.0403106,
+   "costUSD": 0.0371829,
    "contextWindow": 1000000,
    "maxOutputTokens": 128000,
-   "thinkingTokens": 9381,
+   "thinkingTokens": 11306,
    "cacheCreationEphemeral5mInputTokens": 0,
    "cacheCreationEphemeral1hInputTokens": 0,
    "canonicalModel": "claude-haiku-5-5",
@@ -85,9 +85,10 @@
  },
  "tool_calls": {
   "Read": 3,
-  "Grep": 1,
-  "Bash": 7,
+  "Grep": 3,
+  "Bash": 11,
   "WebFetch": 5,
-  "WebSearch": 1
+  "WebSearch": 1,
+  "Write": 1
  }
 }

@@ -1,0 +1,173 @@
+{
+  "candidate_id": "pjm-cold-spell-calibration-benchmark",
+  "title": "PJM Cold-Spell Calibration Benchmark: When Cold-Spell Calibration Fails to Transfer",
+  "spec_version": "spec-v1",
+  "discovered_via": {
+    "url": "https://zenodo.org/records/24010850",
+    "provider": "claude",
+    "retrieved_at": "2026-11-13T16:14:38Z"
+  },
+  "candidate_type": "benchmark",
+  "primary_sources": [
+    {
+      "url": "https://zenodo.org/records/24010850",
+      "kind": "zenodo",
+      "paraphrase": "Software record v1.0.0 (2026-11-06, MIT, DOI 10.5281/zenodo.24010850) by an independent researcher. Probabilistic PJM load benchmark over four cold events with three forecaster families and five conformal calibrators; says event coverage collapses, 0 of 18 cells pass the repair judgement, and retrospective evaluation overstates Mondrian coverage by 11.6 and 21.2 points.",
+      "evidence_id": "7b93e15ffe29"
+    },
+    {
+      "url": "https://github.com/DresdenGman/PJM-Cold-Calibration-Benchmark",
+      "kind": "github",
+      "paraphrase": "MIT repository with one commit (2026-11-06). Quantile gradient boosting, linear-tree LightGBM and a statistical location-scale model, no foundation models; PJM-wide load with ERA5 weather. README gives the event coverage gaps and the best single repair (adaptive conformal, 0.583 on 2014). The 2014 modelling table is not redistributed.",
+      "evidence_id": "f74e4a437f8d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/DresdenGman/PJM-Cold-Calibration-Benchmark/main/code/RESULTS_RUN1.md",
+      "kind": "github",
+      "paraphrase": "Run-1 report. J1 does not hold as written (the 2022 gap of 9.2 points misses the 10-point bar); J2 fails in all six horizon-by-learner cells; J3 gaps of +11.6 and +21.2 points for the two Mondrian calibrators on the day-ahead gradient-boosting model. Event windows are 72, 264 and 96 hours; bootstrap ranges are wide and called descriptive.",
+      "evidence_id": "f95cc7096e2c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/DresdenGman/PJM-Cold-Calibration-Benchmark/main/preregistration/FREEZE_PROTOCOL.md",
+      "kind": "github",
+      "paraphrase": "Protocol v2 with Amendment A1, stated as frozen on 2026-11-05 before results, with no hash or external registry. Defines the day-ahead horizon (data before 10:00 on the previous day, observed ERA5 weather, so a weather-oracle setup), the three learners, the calibrators and the judgements J1 to J3.",
+      "evidence_id": "790823554808"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/DresdenGman/PJM-Cold-Calibration-Benchmark/main/DATA_SOURCES.md",
+      "kind": "github",
+      "paraphrase": "Target is PJM-wide hourly load (PJM metered load for 2010-2014, EIA-930 balancing-authority demand for the 2018 and 2022 eras). Weather is ERA5 actuals averaged over 15 grid points, used at both horizons. Lists PJM's official day-ahead peak errors for the four events, up to -6.59% for Winter Storm Elliott.",
+      "evidence_id": "7d728830f00e"
+    }
+  ],
+  "claims": [
+    {
+      "text": "In the January 2014 polar-vortex window (72 h), the uncalibrated day-ahead gradient-boosting 90% interval covered 12.5% of hours, against 65.7% over the whole of 2014.",
+      "metric": "90% interval coverage, event window",
+      "value": 0.125,
+      "dataset": "PJM metered load, 2014",
+      "horizon": "day-ahead",
+      "baseline": "same model, full 2014 test year (0.657)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 3,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "The event-window coverage gap for the same model was 53.2 percentage points in the 2014 event.",
+      "metric": "coverage gap, era aggregate minus event window (pp)",
+      "value": 53.2,
+      "dataset": "PJM metered load, 2014",
+      "horizon": "day-ahead",
+      "baseline": "same model, full 2014 test year",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 3,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "The gap was 14.3 percentage points in the December 2017 to January 2018 cold snap (264 h).",
+      "metric": "coverage gap, era aggregate minus event window (pp)",
+      "value": 14.3,
+      "dataset": "EIA-930 PJM demand, winter 2017-18",
+      "horizon": "day-ahead",
+      "baseline": "same model, 2018-era winter test span",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 11,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "The gap was 9.2 percentage points in Winter Storm Elliott (96 h), below the pre-registered 10-point bar, so the collapse judgement does not hold as written for the primary model.",
+      "metric": "coverage gap, era aggregate minus event window (pp)",
+      "value": 9.2,
+      "dataset": "EIA-930 PJM demand, winter 2022-23",
+      "horizon": "day-ahead",
+      "baseline": "same model, 2022-era winter test span",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 4,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "No calibrator chosen without the target event passes the pre-registered repair judgement: 0 of 18 cells on the record, reported as all six horizon-by-learner cells in the results file.",
+      "metric": "cells passing the repair judgement",
+      "value": 0,
+      "dataset": "three modelled PJM cold events",
+      "horizon": "day-ahead and 1-hour",
+      "baseline": "proportionally expanded intervals",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 18,
+      "citation_idx": 0,
+      "ci90": null
+    },
+    {
+      "text": "The best single repair, adaptive conformal on the 2014 event, reached 0.583 coverage against a nominal 0.90.",
+      "metric": "90% interval coverage, event window",
+      "value": 0.583,
+      "dataset": "PJM metered load, 2014",
+      "horizon": "day-ahead",
+      "baseline": "uncalibrated intervals (0.125)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 3,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "Retrospective leave-one-event-out evaluation overstates event coverage of the guarantee-preserving Mondrian calibrator by 11.6 percentage points relative to chronological evaluation.",
+      "metric": "coverage gap, retrospective minus chronological (pp)",
+      "value": 11.6,
+      "dataset": "three modelled PJM cold events",
+      "horizon": "day-ahead",
+      "baseline": "chronological evaluation of the same calibrator",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 18,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "The same overstatement is 21.2 percentage points for the shrinkage Mondrian calibrator; the other calibrators show gaps near zero.",
+      "metric": "coverage gap, retrospective minus chronological (pp)",
+      "value": 21.2,
+      "dataset": "three modelled PJM cold events",
+      "horizon": "day-ahead",
+      "baseline": "chronological evaluation of the same calibrator",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 18,
+      "citation_idx": 2,
+      "ci90": null
+    },
+    {
+      "text": "PJM's official day-ahead forecast under-predicted the Winter Storm Elliott peak by 6.59% (8,878 MW), the largest of the four event errors listed.",
+      "metric": "peak load error (%)",
+      "value": -6.59,
+      "dataset": "PJM official day-ahead load forecast, December 2022",
+      "horizon": "day-ahead",
+      "baseline": null,
+      "baseline_same_inputs": "unknown",
+      "test_window_days": null,
+      "citation_idx": 4,
+      "ci90": null
+    }
+  ],
+  "relevance": {
+    "target_match": 3,
+    "horizon_match": 2,
+    "covariates_match": 3,
+    "rationale": "Hourly PJM electric load, but RTO-wide rather than zones JC and DOM, and scored on 90% interval coverage rather than point error. Primary horizon is day-ahead (about 15 to 38 h lead), not 168 h. Temperature and other ERA5 weather enter as known-future inputs, as realised values only, which matches our oracle regime and not the forecast regime."
+  },
+  "checks": {
+    "pre_registered": "unknown",
+    "training_overlap_risk": "unknown",
+    "independent_replication": "unknown",
+    "notes": "pre_registered: the source says the protocol was frozen on 2026-11-05 before results, but the only proof is the document's own timestamp; the repository has a single commit (2026-11-06) holding protocol and results together, and there is no hash or external registry, so the order cannot be checked. The primary model's collapse judgement (J1) does not hold as written in the results file, while the Zenodo abstract says coverage collapses; the '0 of 18 cells' on the record is reported as six cells in the results file and the mapping between the two was not found. training_overlap_risk: no pretrained weights exist; all three forecasters are trained from scratch, so no weights date applies. The events (2014, 2017-18, 2022) all precede our scored window. independent_replication: two searches found no third-party use or discussion. evidence_strength: public code and derived data under MIT, test spans of 365, about 90 and about 90 days, calibrators compared on identical forecasts; it misses a verifiable pre-registration, the headline numbers rest on event windows of 3 to 11 days with wide descriptive bootstrap ranges (no confidence intervals given, so ci90 is null throughout), and the 2014 table must be rebuilt. Central model: sklearn quantile gradient boosting with conformal calibrators; the other learners are a linear-tree LightGBM and a spline location-scale model. Not verified: the archive contents were not downloaded or run; the 14 features are not listed in the pages read; run date and runtime are not stated."
+  },
+  "evidence_strength": "moderate",
+  "license": "MIT",
+  "license_ok_for_commercial": true,
+  "runnable_class": "not_runnable",
+  "label": "ACCEPT_STAGE3",
+  "label_reason": "Relevant and sourced: hourly PJM load with temperature-driven extremes, public MIT code, derived data and a written protocol. It cannot be re-measured on our benchmark with a model in runnable_models: the headline is interval coverage inside cold events from 2014 to 2022 for quantile models trained from scratch, which needs quantile outputs, coverage metrics and event windows our point-forecast harness does not have.",
+  "implementation_hint": "No model in runnable_models is involved, so there is no script or weights repository to point at. A stage-3 version would add quantile outputs and 90% coverage scoring to the harness and compare coverage in cold weeks of the scored window against all weeks, per zone and regime; Chronos-2 (models/chronos2.py, amazon/chronos-2) already produces quantiles and could serve as the forecaster. The candidate's own pipeline is code/run_seq.sh in its repository (Python 3.11, scikit-learn, LightGBM).",
+  "receipt": null
+}

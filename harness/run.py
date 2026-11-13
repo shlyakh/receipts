@@ -24,9 +24,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fetch import verify_manifest  # noqa: E402
 
 from harness.baselines import MODEL_PROTOCOL, MODELS  # noqa: E402
-from harness.data import ROOT, Data, load_protocol, origins  # noqa: E402
+from harness.data import ROOT, V12_REGIMES, Data, load_protocol, origins  # noqa: E402
 
 REGIMES = ["oracle", "forecast"]
+V12_DIR = "weather_v12"  # draft protocol-v1.2 rows: results/<set>/weather_v12/forecasts/
+V12_VERSION = "protocol-v1.2-draft"
 
 
 def git(*args: str) -> str:
@@ -58,27 +60,40 @@ def main() -> None:
     ap.add_argument("which", choices=["gate", "ordering_gate", "scored"])
     ap.add_argument("--limit", type=int, help="run only the first N origins (smoke test)")
     ap.add_argument("--models", nargs="*", default=list(MODELS))
+    ap.add_argument(
+        "--regimes",
+        nargs="*",
+        choices=REGIMES + list(V12_REGIMES),
+        default=REGIMES,
+        help="default: the v1 regimes. The draft v1.2 regimes must be run on their own and "
+        "write to a separate folder, so the v1 drop rule never sees them",
+    )
     args = ap.parse_args()
+    regimes = args.regimes
+    v12 = bool(set(regimes) & set(V12_REGIMES))
+    if v12 and not set(regimes) <= set(V12_REGIMES):
+        sys.exit("run the v1 and the draft v1.2 regimes separately")
 
     proto = load_protocol()
     verify_manifest()
     if args.which == "scored":
         if args.limit:
             sys.exit("--limit is for the gate set; the scored set is run whole, once")
+        if v12:
+            sys.exit("the v1.2 weather regimes are a draft: scored origins must not be run")
         require_frozen(proto)
 
     cutoffs = origins(proto, args.which)[: args.limit]
     data = Data()
     commit = git_commit()
-    out_dir = (
-        ROOT / "results" if args.which == "scored" else ROOT / "results" / args.which
-    ) / "forecasts"
+    out_dir = ROOT / "results" if args.which == "scored" else ROOT / "results" / args.which
+    out_dir = (out_dir / V12_DIR if v12 else out_dir) / "forecasts"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for name in args.models:
         fn, uses_weather = MODELS[name]
         frames = []
-        for regime in REGIMES:
+        for regime in regimes:
             for zone in proto["zones"]:
                 for cutoff in cutoffs:
                     hist = data.history(zone, cutoff)
@@ -102,11 +117,11 @@ def main() -> None:
                     )
         df = pd.concat(frames, ignore_index=True)
         df["git_commit"] = commit
-        df["protocol_version"] = MODEL_PROTOCOL.get(name, proto["version"])
+        df["protocol_version"] = V12_VERSION if v12 else MODEL_PROTOCOL.get(name, proto["version"])
         df["weather"] = "temperature" if uses_weather else "none"
         df.to_parquet(out_dir / f"{name}.parquet", index=False)
         print(
-            f"{name}: {len(cutoffs)} origins x {len(proto['zones'])} zones x {len(REGIMES)} regimes"
+            f"{name}: {len(cutoffs)} origins x {len(proto['zones'])} zones x {len(regimes)} regimes"
         )
 
 

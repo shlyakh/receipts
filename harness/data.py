@@ -19,6 +19,14 @@ ROOT = Path(__file__).resolve().parent.parent
 PROCESSED = ROOT / "data" / "processed"
 H = pd.Timedelta(hours=1)
 
+# Draft protocol-v1.2 regimes (not part of the frozen protocol; secondary rows only).
+V12_REGIMES = ("oracle_era5", "forecast_ifs", "forecast_aifs")
+V12_PARQUET = {
+    "oracle_era5": "weather_oracle_era5.parquet",
+    "forecast_ifs": "weather_forecast_ifs.parquet",
+    "forecast_aifs": "weather_forecast_aifs.parquet",
+}
+
 
 def load_protocol() -> dict:
     return yaml.safe_load((ROOT / "protocol.yaml").read_text())
@@ -90,6 +98,45 @@ class Data:
             future = pd.Series(
                 table.to_numpy()[np.arange(len(hz)), lead_day - 1], index=hz, dtype=float
             )
+        elif regime in V12_REGIMES:
+            return self._temperature_v12(zone, cutoff, regime)
         else:
             raise ValueError(f"unknown regime {regime!r}")
+        return pd.concat([past, future]).rename("T")
+
+    # ---- draft protocol-v1.2 weather regimes (drafts/protocol-v1.2_weather.yaml).
+    # Loaded on first use, so the v1 regimes and their tests never need these files.
+
+    def _load_v12(self) -> None:
+        if hasattr(self, "era5"):
+            return
+        era5 = pd.read_parquet(PROCESSED / V12_PARQUET["oracle_era5"])
+        self.era5 = {
+            z: g.set_index("ds")["temperature_2m"].sort_index()
+            for z, g in era5.groupby("unique_id")
+        }
+        self.forecast_v12 = {}
+        for regime in ("forecast_ifs", "forecast_aifs"):
+            fc = pd.read_parquet(PROCESSED / V12_PARQUET[regime])
+            self.forecast_v12[regime] = {
+                z: g.pivot(index="ds", columns="lead_day", values="temperature_2m").sort_index()
+                for z, g in fc.groupby("unique_id")
+            }
+
+    def _temperature_v12(self, zone: str, cutoff: pd.Timestamp, regime: str) -> pd.Series:
+        """ERA5 (the declared truth) up to the cutoff in every v1.2 regime. After it:
+        ERA5 for oracle_era5; for forecast_ifs / forecast_aifs, horizon day k uses that
+        model's previous_day{k} value, the same lead matching as the v1 forecast regime.
+        Missing values stay missing; the per-regime drop rule handles them."""
+        self._load_v12()
+        past = self.era5[zone].loc[:cutoff]
+        hz = horizon_index(cutoff)
+        if regime == "oracle_era5":
+            future = self.era5[zone].reindex(hz)
+        else:
+            lead_day = np.arange(len(hz)) // 24 + 1
+            table = self.forecast_v12[regime][zone].reindex(index=hz, columns=range(1, 8))
+            future = pd.Series(
+                table.to_numpy()[np.arange(len(hz)), lead_day - 1], index=hz, dtype=float
+            )
         return pd.concat([past, future]).rename("T")

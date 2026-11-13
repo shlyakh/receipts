@@ -424,6 +424,607 @@
   "data/raw/openmeteo/previous_runs_JC_toms_river_2026-11-09.json": {
    "sha256": "d8a0d93ba3854d25b1bbd79c678ecc94a15ca80115447dbda22d001f246cdc96",
    "bytes": 15052
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2024-02-01.json": {
+   "sha256": "85f3ffa0a9509dbef8e4c4b8547cab7cb599afefb93aba07298f53bfb23eecbb",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2024-05-03.json": {
+   "sha256": "58ebc28c214fb90e03dd9c8c6dddc7aa8f663885b3f6329f3978986126a7131b",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2024-08-03.json": {
+   "sha256": "b5465d93da8899b1dcc3dc9eabaa3794a590bd1de7029512c513428d716e056d",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2024-11-03.json": {
+   "sha256": "114de35824178c5674967fc8a455bb0fe935c4aa974fc17dbbe0158915d5075b",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2025-02-03.json": {
+   "sha256": "5f1b50e13d319be26f26c8ffa0d50e6983a9e8e396fec61590545ccfdbed7d3a",
+   "bytes": 133119
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2025-05-06.json": {
+   "sha256": "b5545657d9fb7248f91153edc27d0ba5de04f858c006b38b95c2f72b9d92422d",
+   "bytes": 137643
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2025-08-06.json": {
+   "sha256": "35c6839e38cd9aedfeac55cfb5c573c90a1288be218fc2c2b80bbcafc6fdb2c6",
+   "bytes": 136185
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2025-11-06.json": {
+   "sha256": "90ef9ed6d5d81755d11e45939845a9d66d873c6ad0e54f0020451d40d1cf5436",
+   "bytes": 130398
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2026-02-06.json": {
+   "sha256": "d04249b328474396a47a66116bb02615c512ffaca5ea8f9f368086b3e1a181e7",
+   "bytes": 132020
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2026-05-09.json": {
+   "sha256": "6d772f79d00d1d85d9a8e2ccb5fa10bce1f1988420d8c8d1ab42684c15691701",
+   "bytes": 137618
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2026-08-09.json": {
+   "sha256": "988c4ed53c261c9f71a789182b2ad5eb0fc3b81049a0dde2e6b7ec2d00bf895c",
+   "bytes": 136219
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_dulles_2026-11-09.json": {
+   "sha256": "6bad822dbeb550b6dbfcfaa96f8931e1b570eccfeebe438685c6ea573de3a027",
+   "bytes": 5021
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2024-02-01.json": {
+   "sha256": "59dd2856c8e7e21a2c658bdbdf8c22d25d10ba8a8a2f48cc4660b780d4c79d67",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2024-05-03.json": {
+   "sha256": "e9f3556b1b680133fe3717dc95692b09c4e764ae05910e25ed682f81f154bfe5",
+   "bytes": 137671
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2024-08-03.json": {
+   "sha256": "e4379f9be3a0c21d28fa5dfec0146609d7a1f118439ae0512501e6cb7ab3f6a0",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2024-11-03.json": {
+   "sha256": "8ed8f4c9941c55297ddbcdddc0293eb853c21a69112a4c108ecca91863628ef8",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2025-02-03.json": {
+   "sha256": "bcfa76cf6a2fc1178c5d015dea0a5268289ea4a4aa76b9db7b76d6c3c2e575f7",
+   "bytes": 134334
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2025-05-06.json": {
+   "sha256": "3d327572fe9519dd259c7ae6d947b1b460cbda23f91584bda48a3be6ac7b7c9d",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2025-08-06.json": {
+   "sha256": "a8b34f50d8b3daee9ef26143e54cde2cb8db8e4dd4be87f47d02a03376714580",
+   "bytes": 137163
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2025-11-06.json": {
+   "sha256": "5ba4af9af1bf4be2ce15d98b9ebd7291b8947b44c8fe9bd76af0b699684df3e1",
+   "bytes": 129104
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2026-02-06.json": {
+   "sha256": "2150a1c1c4aeaac14f69a8649a1995963c2038bd4c1f1847809573364927b622",
+   "bytes": 132877
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2026-05-09.json": {
+   "sha256": "b528fdf4820074c611c2dbf7010d4837b1f9de7a272d087258a4f96dc29eabd6",
+   "bytes": 137666
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2026-08-09.json": {
+   "sha256": "7592d41ed98e4474c70aa61f9570c2a71990663d9d4d9d09504d03c55a744a75",
+   "bytes": 137440
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_norfolk_2026-11-09.json": {
+   "sha256": "01baefc79d4da1bd395b38dbb6b0b208cdf09b041d47c8fa53c8897fef038b43",
+   "bytes": 5093
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2024-02-01.json": {
+   "sha256": "d86875279e6a7ef8805940c15e071948c20a405ce5e3c2a58e7f511bf741f7fd",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2024-05-03.json": {
+   "sha256": "d591313bb2a5b23b27136bb50dc61a127eb25112117cf45bf322be3a7867c629",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2024-08-03.json": {
+   "sha256": "0d9293d1df9929631d169b21a111089f2ed0e743679ee7752e2744ce8dd5b7d3",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2024-11-03.json": {
+   "sha256": "f2d3a9e43d2b161e12840d58c362a60c4abb2ad3109e85c78b474213e999e8ee",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2025-02-03.json": {
+   "sha256": "d685a8754f03f8d42b27483218daff2a5b395e10b540bde7f2fe57e61d2dada4",
+   "bytes": 134281
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2025-05-06.json": {
+   "sha256": "9369617cda3bf615ec6541b825cffc57e334f860719059f565de395ad2b5129c",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2025-08-06.json": {
+   "sha256": "4c99a9c64992f3b87621c365e89dd873da368f54faad8aaf5b1a85927c9710dc",
+   "bytes": 136741
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2025-11-06.json": {
+   "sha256": "9a97213f82b5ed4f78d1d68429cd521354922486ea7d1e39343cad1dc594e507",
+   "bytes": 129886
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2026-02-06.json": {
+   "sha256": "4902b497c20c30b2e5ea5f7a8f5ea93c9694f2400e886d665537ab74ef564260",
+   "bytes": 133057
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2026-05-09.json": {
+   "sha256": "6771eb74d7198efc8e8228bfa6d41ea298216b696d29ed51f6f90427ead4f61a",
+   "bytes": 137627
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2026-08-09.json": {
+   "sha256": "92549bb553f6241c8e6b899bc4af4afcf808f38bf6459348d346a0506376bafe",
+   "bytes": 136558
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_DOM_richmond_2026-11-09.json": {
+   "sha256": "9dbb4e4ca5f7917ec457099bd73f1ba7b439849016eb97a5b7d53d74890b1f0d",
+   "bytes": 5029
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2024-02-01.json": {
+   "sha256": "ddfcc978f55ce0180dfc4ed9c4f620fe4d9092b5584c45af0ab26733c8683ddf",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2024-05-03.json": {
+   "sha256": "9ae5e88d13420bf46cb84b10ca89d2b80385b01378fb525e2cfce4af45499790",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2024-08-03.json": {
+   "sha256": "c923323c299fbe6c29e95d5ecfa6c6b60c7a4cb4911f10831345f072608c3a1d",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2024-11-03.json": {
+   "sha256": "fcd011cfb58abf09c8147eeed1f5f94fad57d5d84e3a081ffd1a9f3fa7bba981",
+   "bytes": 137668
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2025-02-03.json": {
+   "sha256": "1c50a36b6650b88b239af7786541b8215343c5e968ce7a7e9948764534c62a92",
+   "bytes": 130938
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2025-05-06.json": {
+   "sha256": "9a69a017d38370d103789e8da016bc3b210bd62860a5859a74ea0a2e015a2f36",
+   "bytes": 137661
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2025-08-06.json": {
+   "sha256": "f728c15781073330a341a3d0b25b0f3a94e08bed32d77559d530fd99775910d3",
+   "bytes": 137150
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2025-11-06.json": {
+   "sha256": "75814ef558763ed5b293dde89eacf6b12adaa0f8dad88bb66650a6a07db1d5f3",
+   "bytes": 128729
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2026-02-06.json": {
+   "sha256": "b4896062c7f6ab7ee122b8fe30db8372290b7fbe865909ab7ee65639484a93a8",
+   "bytes": 129801
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2026-05-09.json": {
+   "sha256": "013d754272b0ad67217a0c5be6038f36a9e6b0da30b7b2a19cf7db8e8b9cf7d7",
+   "bytes": 137620
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2026-08-09.json": {
+   "sha256": "562e32140d3831e177772b885d404ba0976f6793301d8124aedfb7701d1b2c20",
+   "bytes": 137077
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_monmouth_shore_2026-11-09.json": {
+   "sha256": "7c18daca15dc821518a8d061c3470aa76c572b9fe64d99f72c668c49124e4adf",
+   "bytes": 5124
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2024-02-01.json": {
+   "sha256": "1d91d71932071539202df00fea4ef10c56298c1e05c6d5ba944e07b2e78b2cd2",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2024-05-03.json": {
+   "sha256": "a222922bfb0ae33b97b1e09accd07be541e66b7ee9d91c411ab7725ff81d5f12",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2024-08-03.json": {
+   "sha256": "f48123473252376792123a3d3dd90b99345017aa5e7be100ab0ffe4eaadb2abc",
+   "bytes": 137671
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2024-11-03.json": {
+   "sha256": "5d27cfee59e053e66e14f197deb592e8817c8a71f75587ffd5df182c9d191381",
+   "bytes": 137671
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2025-02-03.json": {
+   "sha256": "abf81a22c6d409f6be9b16c1a50b838b12960c3b97a43adcc3cc389267e521e1",
+   "bytes": 131290
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2025-05-06.json": {
+   "sha256": "bb1ef8963791089c62f70989d66b76b055a3c4ec6359c7f26ec42fc9544ec50d",
+   "bytes": 137358
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2025-08-06.json": {
+   "sha256": "5f0043ece5db01affd445e1b82798b7ebaedbe2efd33b432ae12125d53939e15",
+   "bytes": 135757
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2025-11-06.json": {
+   "sha256": "b4b9416b74ec15a67c280e99c557d5f9dba092019303519f3862a121764d77fb",
+   "bytes": 131625
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2026-02-06.json": {
+   "sha256": "0abbdafe1173417b2576e2eeeba1bbaeab2cbb9d2247d664c1535e06619fc14a",
+   "bytes": 130831
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2026-05-09.json": {
+   "sha256": "dfe0f6da7fac62d0f3fa523f1f68edce9c920e4f169cc0128528b88231a05139",
+   "bytes": 137515
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2026-08-09.json": {
+   "sha256": "72b446d9bc402d8e8ea51cf4fca383312bb3bc646aadd1ad0178ce24f7ffcf5b",
+   "bytes": 135869
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_morristown_2026-11-09.json": {
+   "sha256": "3a83d53b9607d749bcc6bab329167b5f26c85d006cebb06d37276d6f5ffbbe6d",
+   "bytes": 4959
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2024-02-01.json": {
+   "sha256": "7eaa6e44c13d17ee5adbce4d29682ae8d479911f101482f7c4ffe2e6759e8328",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2024-05-03.json": {
+   "sha256": "75c01afcefb12703f2c3b521a898756e3f3ea928db9ec0bb9b85bacfd1da080d",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2024-08-03.json": {
+   "sha256": "f06df051930dbc276a69e98b7f9f8315c9782909e383845242ddf1aa259f3a89",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2024-11-03.json": {
+   "sha256": "2edde91bc8d58fc8439b951c699de2ceb148f83f8e0b3800423a467ce53ea5bc",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2025-02-03.json": {
+   "sha256": "587d9181688dc71aed09f8995e94d499da60936f4719064df366aed4943117d0",
+   "bytes": 131973
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2025-05-06.json": {
+   "sha256": "b5c8fa9b674e41bd82406ad837955991803f697348a94f348d565e2f7eff2e62",
+   "bytes": 137652
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2025-08-06.json": {
+   "sha256": "bd3e58188d13be819159f8498f85cf2f747eb734a4bd730da7da4cf880602f25",
+   "bytes": 136649
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2025-11-06.json": {
+   "sha256": "2bf248cb8c2f033f6439d767c4ad86f0c9c71d7eece2a35e991ea7d38d30fd0b",
+   "bytes": 129540
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2026-02-06.json": {
+   "sha256": "17d624ce38ca941f8ab99c49e41d394a7df8346f37899b4575d93815733e435f",
+   "bytes": 130689
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2026-05-09.json": {
+   "sha256": "2f99a4d53386c8f309879d83cc2fbdc556b78ff10b89b70d814720cd2c669ce0",
+   "bytes": 137606
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2026-08-09.json": {
+   "sha256": "66ad646980edc676fe207e066a7b5de62b851d556f4b32fac688fba039a6ee48",
+   "bytes": 136486
+  },
+  "data/raw/openmeteo_models/ecmwf_aifs025_single/previous_runs_JC_toms_river_2026-11-09.json": {
+   "sha256": "b6f00323d7d800f9cd21a288c646e554123518dc72ea24f7b657797b95658720",
+   "bytes": 5043
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2024-02-01.json": {
+   "sha256": "8f38ae617293831abc0207b478776c245db74000e6b133c8f20aa32ddec42aae",
+   "bytes": 130887
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2024-05-03.json": {
+   "sha256": "20b023eb848ebaeef6340a798d6aacaf132198e7ef5689b6fe4de60da91afa59",
+   "bytes": 137582
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2024-08-03.json": {
+   "sha256": "2a66e16a8f236180d0d268d393c7493543a15410659748e7aac1292aa84fce56",
+   "bytes": 136310
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2024-11-03.json": {
+   "sha256": "a05eca2ef8c7c0c672b55b8efb6a920a5946ce6c04f34bf5fe7c329803af704c",
+   "bytes": 131576
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2025-02-03.json": {
+   "sha256": "3d781c4e1b0ac80991c988260eaa87625eb17ab70ca09cf7fc8a701264598848",
+   "bytes": 131630
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2025-05-06.json": {
+   "sha256": "8c4e0e8be2ab32b27d9f0b013a95bf20e9342b03d84c1c7f906270b8a8baded9",
+   "bytes": 137545
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2025-08-06.json": {
+   "sha256": "563b13caeda3a07f01f4de6d9482a932b98b1c2007309af4ffd6b2b8175dd9a4",
+   "bytes": 136212
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2025-11-06.json": {
+   "sha256": "44815d13911691dcb1397048e57f7e6b70fea5de3faeca95914897d71870a3f2",
+   "bytes": 131535
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2026-02-06.json": {
+   "sha256": "55e0ce08c05a58e47646a57a43148c2a75fa7264907a9e925f69e7307fb2bbb0",
+   "bytes": 132464
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2026-05-09.json": {
+   "sha256": "f1fdd148a7dd0e5af87c3beb4155a895eab9656b25acf0d2229ab85ca9789b4c",
+   "bytes": 137554
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2026-08-09.json": {
+   "sha256": "3ae438ebe8c329bddd388e4daceecf9e207eb3e54fa9956e734378c581350ac6",
+   "bytes": 136519
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_dulles_2026-11-09.json": {
+   "sha256": "6d9762972c929d34d072e12834ddda55f92c9fd441200a50c1c6801bf1f1145f",
+   "bytes": 5054
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2024-02-01.json": {
+   "sha256": "7012ba14262f23005f905e47c953be67b4301fc3854ed0a07a02aeeeaa287ea5",
+   "bytes": 132505
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2024-05-03.json": {
+   "sha256": "9b4640fff1e3f79946018e9690dd1d1044d057c3295a0d97c1b95373e51c12e5",
+   "bytes": 137669
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2024-08-03.json": {
+   "sha256": "b9d11351df97f664d40a260b1f093420d805736f67fdaedc58dc67a894fae152",
+   "bytes": 137181
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2024-11-03.json": {
+   "sha256": "549b659f13daeae9b01b1c49a100e4ffa6892d041a62b7671b93da8d29f5db76",
+   "bytes": 130895
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2025-02-03.json": {
+   "sha256": "de615fb0a8ad8e08956627196e4e90fffbbe2164bd32e4dc187669dda3a84502",
+   "bytes": 132674
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2025-05-06.json": {
+   "sha256": "46f95342b980f92b115d68c8b98e190f2c827c063e5dd18b5afc168dcb04dd3c",
+   "bytes": 137670
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2025-08-06.json": {
+   "sha256": "64a5e575c64f7ca43e21952082b8c391dcd2cd3bda865bd3043b3cfb6b56c41e",
+   "bytes": 137076
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2025-11-06.json": {
+   "sha256": "0fd19df2f5f92536070d5db94288c12ef2dc79b1fe64e87afde5f02463b8fc11",
+   "bytes": 129521
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2026-02-06.json": {
+   "sha256": "8f0fbc46882ba20c9c77672383f7882ff3fa92cffff31c86514f3a0fcb59de6c",
+   "bytes": 133276
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2026-05-09.json": {
+   "sha256": "19c82fc1379aa945763f299346c0fc2ae572ac1b5a9fee14ff94e35b63cd0ce3",
+   "bytes": 137658
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2026-08-09.json": {
+   "sha256": "94e3790c5efda7147f7bd2a0197bb7e2ee4c8ad60bb865b90aa9d1f923538915",
+   "bytes": 137466
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_norfolk_2026-11-09.json": {
+   "sha256": "42a49e61c610cccd9eed740f718caa96ea60c0248268094db98b3a1699daf453",
+   "bytes": 5121
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2024-02-01.json": {
+   "sha256": "ea9697fbc2c386a394b22f88c56e1170ab9a876256024a05292c46b6d136a9e5",
+   "bytes": 132193
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2024-05-03.json": {
+   "sha256": "437adc458986efd38ab6f05d7fd357eddf301a5c002a198a29d051e593afedf8",
+   "bytes": 137658
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2024-08-03.json": {
+   "sha256": "029ac04d1502899ee2da92d328d05d7e271fe37252298248559134f7243ab8d4",
+   "bytes": 136747
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2024-11-03.json": {
+   "sha256": "31f7ec1e6b0dfc0204ad5dc65af0550cd7fc0d7bf65787d506dacc19d3772aa8",
+   "bytes": 130738
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2025-02-03.json": {
+   "sha256": "3c637df6c85d35c871a3b7a96075a5fd60127dcc8a3bdf54e0bad4a651f253e4",
+   "bytes": 132321
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2025-05-06.json": {
+   "sha256": "758cf8b7a1ba1d4ad211d5d0cfe039c1ca4497afe4bdcb8e422a7d4869505bfa",
+   "bytes": 137663
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2025-08-06.json": {
+   "sha256": "ce59c6f51bc15651a5642ce3ad714641f52c4b08408abb1301486d7261120be7",
+   "bytes": 136727
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2025-11-06.json": {
+   "sha256": "7bb4da439cfefbe81a3ec2c5117b6f9e1cc3e3c5e0e6f50e21c27a5a5905367f",
+   "bytes": 130506
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2026-02-06.json": {
+   "sha256": "0a429bd899d63a26625dd47c0515fcfbcba7585d2fe7c92b41eeb67694826e72",
+   "bytes": 133153
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2026-05-09.json": {
+   "sha256": "b8302d23a0981cf226543bf3fe2251f1af96867f3fd06626ff84870a34351beb",
+   "bytes": 137606
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2026-08-09.json": {
+   "sha256": "baaf0c4f0f08c76b0370c45c11def1b9f5a43b20d20c293e417de64cabc5e4c0",
+   "bytes": 136807
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_DOM_richmond_2026-11-09.json": {
+   "sha256": "84c8381a942fd37c1c90760b892a25f4577398d5849d6627053eb8d2f6afe0ff",
+   "bytes": 5069
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2024-02-01.json": {
+   "sha256": "58157116303d0152453df8459a01ce5fe110e6fc22c820d7a93c1f5a3b0c043d",
+   "bytes": 127888
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2024-05-03.json": {
+   "sha256": "217bf05ea42f7eaa556c5a60179da29cb68894da7cc5ac258649a003006196dc",
+   "bytes": 137440
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2024-08-03.json": {
+   "sha256": "c3d25704bb87030bf549a7d493b76cd7a2b83e3c5a4dc5a706427865944e4dac",
+   "bytes": 137135
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2024-11-03.json": {
+   "sha256": "777ddfea6753b5d47c7db97118407e1beb2b855d64ddbbce077396b8e3a80857",
+   "bytes": 130557
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2025-02-03.json": {
+   "sha256": "ab8bc66df97ad0aafa787b9b33f47cef88f336b0ab0dbc3dd83b546683bfe89a",
+   "bytes": 129421
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2025-05-06.json": {
+   "sha256": "efe7042102dd0bea35a19ca8d8e10f68c551213882dfd707a567b61ae004a5e8",
+   "bytes": 137588
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2025-08-06.json": {
+   "sha256": "9b8adf46b5fe95e74555eb01d09cf3d9312bf75958333ca942e9a69f5afcef90",
+   "bytes": 136971
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2025-11-06.json": {
+   "sha256": "1f937a1a68fee2b69c14d2c54d792174deaf8c7f72f0eebcd1859ea2d4c80bc9",
+   "bytes": 130271
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2026-02-06.json": {
+   "sha256": "79c5b37e4ea6d13603cc859172232a225e8e268728c0ad8192209d0bfbc78df8",
+   "bytes": 129751
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2026-05-09.json": {
+   "sha256": "df25f5e53fd53b3c67a46c5114451cb7ab190576bba331469e9478d532bef61b",
+   "bytes": 137559
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2026-08-09.json": {
+   "sha256": "48e604630ed4e4030f5138c9dd5114fbd0e7487606dae0bbf7da752c86cd56c4",
+   "bytes": 137142
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_monmouth_shore_2026-11-09.json": {
+   "sha256": "3556776c746a9639221aff136d8476a662b67d31ccde6f89b1ab3d3790353522",
+   "bytes": 5071
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2024-02-01.json": {
+   "sha256": "9075faec05877b44f979dda61782005a819bd9ac1ea60e6c5860fa2e8882346c",
+   "bytes": 129554
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2024-05-03.json": {
+   "sha256": "e292c2760e03fadbc7689fd8855c19fa3077e19c99320b40cf61ee9c06775ae3",
+   "bytes": 137194
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2024-08-03.json": {
+   "sha256": "c31a73b45c12509681f9248a2f0f7224c812518b7fa08b2a5fe33f001d448276",
+   "bytes": 136288
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2024-11-03.json": {
+   "sha256": "2fea6838ef3c0338201f783a960aa8005475b0f6e91a35935006b034059b3dc0",
+   "bytes": 131914
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2025-02-03.json": {
+   "sha256": "72df2c83e07e46624ca634115c5c2e3271acb8c2bf04c064b3228e140ba193f0",
+   "bytes": 130790
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2025-05-06.json": {
+   "sha256": "393403c100774ffacf4136fa3dab98a67d65db445ef05ccb5a5bae764c4abce1",
+   "bytes": 137085
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2025-08-06.json": {
+   "sha256": "b8b815a0ef9cb4fdfe55a14dcb83c12deaff2a03e325d34bade32d719d3e9797",
+   "bytes": 135701
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2025-11-06.json": {
+   "sha256": "d92aeda4021516ee1a431017e1d863e2896d0147daad1bc5ccd5edc8db2572e1",
+   "bytes": 132853
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2026-02-06.json": {
+   "sha256": "99edcc37f698f68d77dbee62dcfe8618a0e3b7c719d0ff3fdf654b5b3b71f38a",
+   "bytes": 131452
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2026-05-09.json": {
+   "sha256": "4d24f5264ab7054930a043d935832ad943985fa6eba7856163df80934034f743",
+   "bytes": 137175
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2026-08-09.json": {
+   "sha256": "a624720e790a8a09d1098b862f52a777a7f3f494c2c51a593124f6c529839503",
+   "bytes": 136031
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_morristown_2026-11-09.json": {
+   "sha256": "743288f4456222f356d5d4aadf0a2d64a005f64f99ab106d016d192563e8e1e5",
+   "bytes": 4948
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2024-02-01.json": {
+   "sha256": "7ea4f3d399c8ea5e747c45642cb1c009cefa731abb5066f22304bcb23de06190",
+   "bytes": 129944
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2024-05-03.json": {
+   "sha256": "de175106e99447f38a30fe52e781a21420ac5d0b71b99a3c2c3941c96440a6a5",
+   "bytes": 137365
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2024-08-03.json": {
+   "sha256": "e03172c5a58b855c1619a0e634a81a0595011e1bc870f52178860176226184e2",
+   "bytes": 136458
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2024-11-03.json": {
+   "sha256": "232b3c58c5933e4f85d7ebc9a842ea145b66325b3220be9a994229dc616d5a34",
+   "bytes": 131387
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2025-02-03.json": {
+   "sha256": "dca93c8a8c822d40fe5e07941eec2d5ca4b8dd628dbbc94aea4480a7059962d3",
+   "bytes": 130821
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2025-05-06.json": {
+   "sha256": "6d212587850fe62b922ec029c8f1a7bd91a523ce6181603c1a8e028889c149b0",
+   "bytes": 137503
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2025-08-06.json": {
+   "sha256": "c2f63aae7b41d03838df5bc6cf58b34acf9f1be1dd929b05db811e7ebb6dc4b7",
+   "bytes": 136261
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2025-11-06.json": {
+   "sha256": "029773584ec8035a812e56f3715c2666b60c349fbfb42813e8c784c7c2815b73",
+   "bytes": 131820
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2026-02-06.json": {
+   "sha256": "1dd891922291589f90321b27d0b9e96562477f5942a0f0d1c0fd45c07092ff38",
+   "bytes": 131465
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2026-05-09.json": {
+   "sha256": "74efda90cfa25377e0392642f3d8e61ffff7d00cf19e2e2965c616b2cfaf1f22",
+   "bytes": 137482
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2026-08-09.json": {
+   "sha256": "d398a3c7c45a7e3233b936d1426afd95858b36827757a5d0b27d44127774c476",
+   "bytes": 136299
+  },
+  "data/raw/openmeteo_models/ecmwf_ifs025/previous_runs_JC_toms_river_2026-11-09.json": {
+   "sha256": "4a0b156c30c924b4dc420e83813455f2b3daf749b52ec9e361c420b1b7eab257",
+   "bytes": 4999
+  },
+  "data/raw/openmeteo_models/era5/archive_DOM_dulles.json": {
+   "sha256": "1c281ef471013f5c4c1e4decd2106d49ded5312d227b27f7ca603d10227574cc",
+   "bytes": 1774385
+  },
+  "data/raw/openmeteo_models/era5/archive_DOM_norfolk.json": {
+   "sha256": "8bf864440d420dffd62e7d6fed2e116ac6153654bc9a23d1a3aa24b5f9b2623c",
+   "bytes": 1777026
+  },
+  "data/raw/openmeteo_models/era5/archive_DOM_richmond.json": {
+   "sha256": "011d5e22ae0b1106817b02887f3c682d8dee39eeb658fe0ef26eeb00788041b9",
+   "bytes": 1776497
+  },
+  "data/raw/openmeteo_models/era5/archive_JC_monmouth_shore.json": {
+   "sha256": "b95388164868daf7ae07afca7f9aaa96722ce680b45c7044e7cb485629308087",
+   "bytes": 1772881
+  },
+  "data/raw/openmeteo_models/era5/archive_JC_morristown.json": {
+   "sha256": "8d2bef5341b42f35a5d3895e32c86748ae554fb74104c8ffa6803b65dd42db5e",
+   "bytes": 1772517
+  },
+  "data/raw/openmeteo_models/era5/archive_JC_toms_river.json": {
+   "sha256": "80255e00e3c61957db20a059d0e252a86f075531e4ea0369b241501be26a48c1",
+   "bytes": 1773039
   }
- }
+ },
+ "v12_added_at": "2026-11-13T19:10:47+00:00"
 }

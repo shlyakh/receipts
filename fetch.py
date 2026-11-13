@@ -5,6 +5,10 @@ Usage (from the repo root):
     uv run --project core python fetch.py process    # data/processed/*.parquet
     uv run --project core python fetch.py verify     # check raw files against the manifest
 
+Draft protocol-v1.2 weather sources (additive; the commands above are unchanged):
+    uv run --project core python fetch.py download-v12  # ERA5, IFS 0.25, AIFS raw files
+    uv run --project core python fetch.py process-v12   # their parquet files + coverage
+
 Zones, stations and date ranges come from protocol.yaml.
 """
 
@@ -36,6 +40,23 @@ LEAD_DAYS = range(1, 8)
 MAX_FILL_RUN = 3
 FLAG_FACTOR = 3.0
 PREVIOUS_RUNS_CHUNK_DAYS = 92
+
+# ---- Draft protocol-v1.2 weather sources (drafts/protocol-v1.2_weather.yaml). Additive:
+# the v1 commands above never read or write these files. Every request names its model
+# explicitly (`models=`), so a later change in Open-Meteo's best_match cannot alter a
+# refetch. Temperature only (decision 17). Same stations, date ranges, chunks and
+# lead-matching rule (previous_day{k}) as the v1 forecast regime. Raw files live in
+# data/raw/openmeteo_models/<model>/ so the v1 globs in process_weather never see them.
+RAW_MODELS = RAW / "openmeteo_models"
+V12_VARS = ["temperature_2m"]
+V12_TRUTH_MODEL = "era5"  # Open-Meteo archive, ERA5 0.25 deg reanalysis
+# regime name -> Previous Runs model id (verified against the live API on 2026-11-13)
+V12_FORECAST_MODELS = {"forecast_ifs": "ecmwf_ifs025", "forecast_aifs": "ecmwf_aifs025_single"}
+V12_PARQUET = {
+    "oracle_era5": "weather_oracle_era5.parquet",
+    "forecast_ifs": "weather_forecast_ifs.parquet",
+    "forecast_aifs": "weather_forecast_aifs.parquet",
+}
 
 
 def load_protocol() -> dict:
@@ -301,6 +322,198 @@ def process() -> None:
     print("oracle", oracle.shape, "forecast", forecast.shape)
 
 
+# ------------------------------------------------- draft protocol-v1.2 weather sources
+
+
+def download_v12(proto: dict) -> list[Path]:
+    """ERA5 actuals and lead-matched IFS 0.25 / AIFS Single forecasts. Existing files are
+    kept, so a rerun only fills in what is missing. Returns the files written."""
+    w = proto["weather"]
+    written = []
+    chunks = date_chunks(
+        w["previous_runs"]["start_date"], w["previous_runs"]["end_date"], PREVIOUS_RUNS_CHUNK_DAYS
+    )
+    prev_vars = [f"{v}_previous_day{k}" for v in V12_VARS for k in LEAD_DAYS]
+    for zone, stations in w["stations"].items():
+        for s in stations:
+            base = {"latitude": s["lat"], "longitude": s["lon"], "timezone": "GMT"}
+            out = RAW_MODELS / V12_TRUTH_MODEL
+            out.mkdir(parents=True, exist_ok=True)
+            path = out / f"archive_{zone}_{s['name']}.json"
+            if not path.exists():
+                arch = get_json(
+                    w["archive"]["endpoint"],
+                    base
+                    | {
+                        "models": V12_TRUTH_MODEL,
+                        "hourly": ",".join(V12_VARS),
+                        "start_date": w["archive"]["start_date"],
+                        "end_date": w["archive"]["end_date"],
+                    },
+                )
+                path.write_text(json.dumps(arch))
+                written.append(path)
+                print(f"{V12_TRUTH_MODEL} {zone} {s['name']}: {len(arch['hourly']['time'])} hours")
+                time.sleep(10)
+            for model in V12_FORECAST_MODELS.values():
+                out = RAW_MODELS / model
+                out.mkdir(parents=True, exist_ok=True)
+                for a, b in chunks:
+                    path = out / f"previous_runs_{zone}_{s['name']}_{a}.json"
+                    if path.exists():
+                        continue
+                    prev = get_json(
+                        w["previous_runs"]["endpoint"],
+                        base
+                        | {
+                            "models": model,
+                            "hourly": ",".join(prev_vars),
+                            "start_date": a,
+                            "end_date": b,
+                        },
+                    )
+                    path.write_text(json.dumps(prev))
+                    written.append(path)
+                    print(f"{model} {zone} {s['name']} {a}: {len(prev['hourly']['time'])} hours")
+                    time.sleep(5)
+    return written
+
+
+def add_to_manifest() -> None:
+    """Add raw files that are not yet listed. Listed entries are never rewritten: the
+    existing manifest is verified first (ignoring only the unlisted files), so a changed
+    raw file cannot be re-hashed into acceptance."""
+    data = json.loads(MANIFEST.read_text())
+    listed = data["files"]
+    for rel, meta in listed.items():
+        if sha256(ROOT / rel) != meta["sha256"]:
+            raise RuntimeError(f"hash mismatch, manifest not updated: {rel}")
+    new = sorted(p for p in RAW.rglob("*.json") if str(p.relative_to(ROOT)) not in listed)
+    for p in new:
+        listed[str(p.relative_to(ROOT))] = {"sha256": sha256(p), "bytes": p.stat().st_size}
+    data["files"] = dict(sorted(listed.items()))
+    data["v12_added_at"] = datetime.now(UTC).isoformat(timespec="seconds")
+    MANIFEST.write_text(json.dumps(data, indent=1) + "\n")
+    print(f"manifest: added {len(new)} files, {len(listed)} listed")
+
+
+def _zone_mean(frames: list[pd.DataFrame]) -> pd.DataFrame:
+    # skipna=False: a zone value exists only when every station has one (as in v1).
+    return sum(frames) / len(frames)
+
+
+def process_v12(proto: dict) -> dict[str, pd.DataFrame]:
+    """Zone series for the draft v1.2 regimes, same layout as the v1 parquet files.
+
+    weather_oracle_era5:   unique_id, ds, temperature_2m            (ERA5)
+    weather_forecast_ifs:  unique_id, ds, lead_day, temperature_2m  (ecmwf_ifs025)
+    weather_forecast_aifs: unique_id, ds, lead_day, temperature_2m  (ecmwf_aifs025_single)
+    """
+    out = {"oracle_era5": []} | {r: [] for r in V12_FORECAST_MODELS}
+    for zone, stations in proto["weather"]["stations"].items():
+        era5 = _zone_mean(
+            [
+                _station_frame(RAW_MODELS / V12_TRUTH_MODEL / f"archive_{zone}_{s['name']}.json")
+                for s in stations
+            ]
+        ).reset_index()
+        era5.insert(0, "unique_id", zone)
+        out["oracle_era5"].append(era5)
+        for regime, model in V12_FORECAST_MODELS.items():
+            p = _zone_mean(
+                [
+                    pd.concat(
+                        _station_frame(f)
+                        for f in sorted(
+                            (RAW_MODELS / model).glob(f"previous_runs_{zone}_{s['name']}_*.json")
+                        )
+                    )
+                    for s in stations
+                ]
+            )
+            for k in LEAD_DAYS:
+                cols = {f"{v}_previous_day{k}": v for v in V12_VARS}
+                part = p[list(cols)].rename(columns=cols).reset_index()
+                part.insert(0, "unique_id", zone)
+                part.insert(2, "lead_day", k)
+                out[regime].append(part)
+    tables = {r: pd.concat(f, ignore_index=True) for r, f in out.items()}
+    # A chunk the source does not cover arrives as all nulls (object dtype): make it NaN.
+    for df in tables.values():
+        df[V12_VARS] = df[V12_VARS].astype(float)
+    return tables
+
+
+def coverage_v12(proto: dict, tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Per origin, zone and regime: missing temperature hours a model would need.
+
+    history_missing: ERA5 hours missing in the 730 days up to the cutoff (the longest
+    training window, Vanilla's). horizon_missing: missing hours of the regime's horizon
+    series (ERA5 for oracle_era5; the lead-matched value for the forecast regimes)."""
+    tz = proto["timezone"]
+    era5 = {
+        z: g.set_index("ds")["temperature_2m"].sort_index()
+        for z, g in tables["oracle_era5"].groupby("unique_id")
+    }
+    fc = {
+        r: {
+            z: g.pivot(index="ds", columns="lead_day", values="temperature_2m").sort_index()
+            for z, g in tables[r].groupby("unique_id")
+        }
+        for r in V12_FORECAST_MODELS
+    }
+    rows = []
+    h = pd.Timedelta(hours=1)
+    for which in ("ordering_gate", "gate", "scored"):
+        for d in proto["origins"][which]:
+            c = pd.Timestamp(f"{d} 00:00", tz=tz).tz_convert("UTC")
+            hz = pd.date_range(c + h, periods=proto["horizon_hours"], freq="h")
+            past = pd.date_range(c - pd.Timedelta(days=730) + h, c, freq="h")
+            for zone in proto["zones"]:
+                hist_missing = int(era5[zone].reindex(past).isna().sum())
+                horizon = {"oracle_era5": era5[zone].reindex(hz).to_numpy()}
+                lead = np.arange(len(hz)) // 24
+                for r in V12_FORECAST_MODELS:
+                    tab = fc[r][zone].reindex(index=hz, columns=list(LEAD_DAYS)).to_numpy()
+                    horizon[r] = tab[np.arange(len(hz)), lead]
+                for r, v in horizon.items():
+                    miss = np.isnan(v)
+                    rows.append(
+                        {
+                            "origin_set": which,
+                            "origin": d,
+                            "unique_id": zone,
+                            "regime": r,
+                            "history_missing": hist_missing,
+                            "horizon_missing": int(miss.sum()),
+                            "horizon_missing_by_day": ",".join(
+                                str(int(miss[24 * k : 24 * (k + 1)].sum())) for k in range(7)
+                            ),
+                            "complete": hist_missing == 0 and not miss.any(),
+                        }
+                    )
+    return pd.DataFrame(rows)
+
+
+def process_v12_cmd() -> None:
+    verify_manifest()
+    proto = load_protocol()
+    tables = process_v12(proto)
+    for regime, df in tables.items():
+        df.to_parquet(PROCESSED / V12_PARQUET[regime], index=False)
+        print(regime, df.shape, "missing:", int(df["temperature_2m"].isna().sum()))
+    cov = coverage_v12(proto, tables)
+    cov.to_csv(PROCESSED / "weather_v12_coverage.csv", index=False)
+    bad = cov[~cov["complete"]]
+    print(
+        cov.groupby(["origin_set", "regime", "unique_id"])["complete"]
+        .agg(["sum", "size"])
+        .to_string()
+    )
+    if len(bad):
+        print("\nincomplete origins:\n" + bad.to_string(index=False))
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "download":
@@ -313,6 +526,12 @@ if __name__ == "__main__":
         write_manifest()
     elif cmd == "process":
         process()
+    elif cmd == "download-v12":
+        verify_manifest()  # refuse to add files on top of a manifest that already fails
+        download_v12(load_protocol())
+        add_to_manifest()
+    elif cmd == "process-v12":
+        process_v12_cmd()
     elif cmd == "verify":
         verify_manifest()
         print("raw files match fetch_manifest.json")

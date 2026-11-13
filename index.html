@@ -75,6 +75,19 @@ th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--lin
 th { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
 td { color: var(--ink-2); } td:first-child { color: var(--ink); font-weight: 500; }
 .scroll { overflow-x: auto; }
+.cands { display: flex; flex-direction: column; gap: 10px; }
+.cand { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 12px; }
+.cand .rank { font-family: var(--display); font-size: 18px; color: var(--ink-3); font-variant-numeric: tabular-nums; grid-row: span 4; }
+.cand .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.cand a.t { font-weight: 600; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+.cand a.t:hover { text-decoration: underline; }
+.cand p { font-size: 14px; max-width: 80ch; }
+.cand p.why { color: var(--ink-3); font-size: 13px; }
+input[type="search"] { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); min-width: 0; width: 200px; }
+input[type="search"]:focus-visible { outline: 2px solid var(--model); outline-offset: 2px; }
+details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+details[open] summary { margin-bottom: 12px; }
+#hits td { font-size: 13px; overflow-wrap: anywhere; } #hits td:first-child { white-space: nowrap; font-weight: 400; }
 ul.plain { margin: 0; padding-left: 18px; color: var(--ink-2); max-width: 70ch; display: flex; flex-direction: column; gap: 6px; }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; padding: 6px 9px; border-radius: 6px; line-height: 1.4; z-index: 20; max-width: 260px; font-variant-numeric: tabular-nums; }
 a { color: var(--model); }
@@ -210,6 +223,24 @@ a { color: var(--model); }
     <div class="panel"><span class="pill good">Working</span><h3>3. Run</h3><p>If the model can be run, forecast the same scored weeks under the frozen protocol, with pinned weights.</p></div>
     <div class="panel"><span class="pill good">Working</span><h3>4. Receipt</h3><p>Claimed against measured, with a range, the mismatch in setup, and how many weeks the model cannot have seen.</p></div>
   </div>
+</section>
+
+<section>
+  <span class="eyebrow">What the scan found</span>
+  <h2>New forecasting claims from the last <span id="scan-days"></span> days</h2>
+  <p>The scan reads three public listings (arXiv papers, Hugging Face models, Zenodo records), runs web searches, and keeps items that are dated, about forecasting, and point at a primary source. Nothing here has been judged yet. Closest to our problem first.</p>
+  <div class="facts" id="scan-funnel"></div>
+  <div class="controls">
+    <div class="seg" id="cand-src" role="group" aria-label="Found by"></div>
+    <label class="ctl" for="cand-q">Filter <input id="cand-q" type="search" placeholder="e.g. load, Chronos, PJM"></label>
+    <span class="note" id="cand-count"></span>
+  </div>
+  <div class="cands" id="cands"></div>
+  <details class="panel">
+    <summary>Every page the scan looked at, with the reason it was kept or dropped</summary>
+    <div class="scroll"><table id="hits"></table></div>
+  </details>
+  <p class="note">Claims are the agent's one-line paraphrase. Open the link for the source itself. File: <span id="scan-file"></span>.</p>
 </section>
 
 <section>
@@ -391,6 +422,48 @@ a { color: var(--model); }
         .on("mousemove", ev => showTip(ev, "<b>" + zone + ", day " + d.day + "</b><br>ratio " + f3(d.ratio) + "<br>90% range " + f3(d.lo) + " to " + f3(d.hi))).on("mouseleave", hideTip);
     });
   });
+
+  // ---------- scan results
+  (function scanResults() {
+    const S = D.scan && D.scan.claude; if (!S) return;
+    const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const fromFeed = c => /feed:/.test(c.query || ""), fromSearch = c => !/^feed:[a-z]+$/.test((c.query || "").trim());
+    const listed = Object.values(D.feed_counts).reduce((a, b) => a + b, 0);
+    const short = S.hits.filter(h => /feed:/.test(h.note)).length;
+    d3.select("#scan-days").text(D.scan_window_days);
+    d3.select("#scan-file").text(S.file);
+    d3.select("#scan-funnel").selectAll("div").data([
+      [fmt(listed), "items in the three listings (" + Object.entries(D.feed_counts).map(([k, v]) => k + " " + v).join(", ") + ")"],
+      [short, "shortlisted from the listings by title"],
+      [S.hits.length - short, "more pages from web search"],
+      [S.candidates.length, "kept as candidates"]]).join("div").attr("class", "fact").html(d => "<b>" + d[0] + "</b><span>" + d[1] + "</span>");
+    const typeLabel = { model_release: "model release", library_feature: "library", practitioner_backtest: "backtest", paper: "paper", benchmark: "benchmark", vendor_claim: "vendor claim" };
+    let src = "all", q = "";
+    function draw() {
+      const rows = S.candidates.map((c, i) => ({ ...c, rank: i + 1 })).filter(c =>
+        (src === "all" || (src === "feed" ? fromFeed(c) : fromSearch(c))) &&
+        (!q || (c.title + " " + c.claim + " " + c.why_relevant + " " + c.candidate_id).toLowerCase().includes(q)));
+      d3.select("#cand-count").text(rows.length + " of " + S.candidates.length + " shown");
+      d3.select("#cands").selectAll("div.cand").data(rows, c => c.candidate_id).join("div").attr("class", "cand").html(c =>
+        "<span class='rank'>" + c.rank + "</span>" +
+        "<div class='meta'><span>" + esc(c.published_at) + "</span><span class='pill flag'>" + esc(typeLabel[c.candidate_type] || c.candidate_type) + "</span><span>" + esc(new URL(c.primary_url).hostname.replace("www.", "")) + "</span><span>found by " + (fromFeed(c) ? (fromSearch(c) ? "listing and search" : "listing") : "search") + "</span></div>" +
+        "<a class='t' href='" + esc(c.primary_url) + "'>" + esc(c.title) + "</a>" +
+        "<p>" + esc(c.claim) + "</p><p class='why'>" + esc(c.why_relevant) + "</p>");
+    }
+    seg("cand-src", [{ label: "All", value: "all" }, { label: "From listings", value: "feed" }, { label: "From search", value: "search" }], src, v => { src = v; draw(); });
+    d3.select("#cand-q").on("input", function () { q = this.value.trim().toLowerCase(); draw(); });
+    draw();
+    const t = d3.select("#hits");
+    t.append("tr").selectAll("th").data(["Outcome", "Date", "Page", "Reason"]).join("th").text(d => d);
+    const order = { KEPT: 0, FOLDED: 1, DROPPED: 2 };
+    S.hits.slice().sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3)).forEach(h => {
+      const tr = t.append("tr");
+      tr.append("td").html("<span class='pill " + (h.status === "KEPT" ? "good" : "flag") + "'>" + esc(h.status.toLowerCase()) + "</span>");
+      tr.append("td").text(h.published_at);
+      tr.append("td").html("<a href='" + esc(h.url) + "'>" + esc(h.title || h.url) + "</a>");
+      tr.append("td").text(h.note.replace(/^(KEPT|FOLDED[^.:]*|DROPPED)[.:]?\s*/i, ""));
+    });
+  })();
 
   // ---------- leaderboard
   let lbZone = "DOM", lbRegime = "forecast";

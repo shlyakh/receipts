@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -117,7 +118,43 @@ def main() -> None:
             "stations": proto["weather"]["stations"][zone],
         }
 
+    # What the scan found: the latest candidates file per provider, and every hit with
+    # the reason it was kept or dropped (paraphrased notes only).
+    scan = {}
+    for prov_dir in sorted((ROOT / "candidates").iterdir()):
+        files = sorted(prov_dir.glob("scan_*.jsonl"))
+        if not files:
+            continue
+        latest = files[-1]
+        stem = latest.stem.replace("scan_", "scan-").replace("_run", "-run")
+        ledger = ROOT / "evidence" / prov_dir.name / f"{stem}.jsonl"
+        hits = [json.loads(x) for x in ledger.read_text().splitlines()] if ledger.exists() else []
+        scan[prov_dir.name] = {
+            "file": str(latest.relative_to(ROOT)),
+            "candidates": [json.loads(x) for x in latest.read_text().splitlines()],
+            "hits": [
+                {
+                    "url": h["url"],
+                    "title": h["title"],
+                    "published_at": h["published_at"],
+                    "status": h["note"].split(".")[0].split(":")[0].split(" ")[0].upper(),
+                    "note": h["note"],
+                }
+                for h in hits
+            ],
+        }
+    feeds_files = sorted((ROOT / "candidates" / "feeds").glob("feeds_*.jsonl"))
+    feed_counts = {}
+    if feeds_files:
+        for x in feeds_files[-1].read_text().splitlines():
+            src = json.loads(x)["source"]
+            feed_counts[src] = feed_counts.get(src, 0) + 1
+    spec = yaml.safe_load((ROOT / "spec.yaml").read_text())
+
     out = {
+        "scan": scan,
+        "feed_counts": feed_counts,
+        "scan_window_days": spec["scan"]["window_days"],
         "built_from_commit": lb["git_commit"].dropna().unique().tolist(),
         "protocol": "protocol-v1",
         "bar": proto["primary_comparison"]["bar"],

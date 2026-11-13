@@ -24,14 +24,17 @@ Details for every step (query templates, formula, coordinates) are in `REFERENCE
    - Oracle regime: Open-Meteo archive, hourly `temperature_2m`, per station.
    - Forecast regime: Open-Meteo Previous Runs, lead-day 1 to 7 temperature.
      Verify the variable names and how far back the archive goes.
+   - Check whether wind speed and solar radiation are available the same way in both
+     regimes. If yes, pull them too. If not, temperature only; record which.
    - Average stations to one series per zone.
    - Output `weather_oracle.parquet` and `weather_forecast.parquet`.
    - Write SHA-256 of every raw file to `fetch_manifest.json`.
 
 4. **Freeze the protocol (20 min)**
    - Write `protocol.yaml`: zones, h=168, origins, regimes, station list, training
-     window, metrics, the "worth switching" bar, and one pre-written sentence per
-     possible outcome.
+     window, weather variables, metrics, bootstrap seed and draws, the "worth
+     switching" bar, one pre-written sentence per possible outcome, and the
+     train-on-reanalysis / predict-on-forecast caveat (see `REFERENCE.md`).
    - Origins: 52 consecutive Mondays 00:00 America/New_York. The last origin is the
      latest Monday whose full 168 hours of actuals are already in the data.
    - If the forecast-weather archive does not cover all 52 origins, record the
@@ -40,24 +43,27 @@ Details for every step (query templates, formula, coordinates) are in `REFERENCE
 
 5. **Harness and baselines (60 min)**
    - Backtest loop over origins from `protocol.yaml`.
-   - Rows: seasonal-naive (repeat last 168 h); weather regression (Vanilla + recency,
-     trailing 2-year fit, refit at every origin); weather regression + `y_lag168`.
+   - Rows, in this order:
+     1. seasonal-naive (same hour 168 h earlier)
+     2. lag regression, no weather (per-hour fits, trailing 365 days)
+     3. lag regression + weather: the headline comparator
+     4. Vanilla + recency weather regression (trailing 2-year fit), if time allows
+   - Rows 1 and 2 use no weather, so they are identical in both regimes.
    - Metrics per row: MAPE, MAE, RMSE, MASE (scaled by seasonal-naive-168), and
-     error ratio vs. the weather regression.
+     error ratio vs. row 3. Bootstrap intervals can wait until Friday.
    - Smoke-test on 2 origins, then run all, both regimes.
    - Output `results/leaderboard.parquet` and per-window forecasts.
 
-6. **If time remains: LightGBM row** on exactly the regression's input columns
-   (no load lags).
+6. **If time remains: LightGBM row** on exactly row 3's input columns.
 
 ## Acceptance criteria
 
 - [ ] `protocol.yaml` exists, is tagged `protocol-v1`, and the tag is pushed.
 - [ ] `fetch_manifest.json` hashes match the raw files.
-- [ ] Leaderboard has 3 model rows x 2 zones x 2 regimes, each with n_windows stated.
-- [ ] Weather regression beats seasonal-naive clearly in the oracle regime for both
-      zones. If it does not, the likely causes are timezone alignment or feature
-      bugs: investigate before adding anything else.
+- [ ] Leaderboard has rows 1 to 3 for both zones and both regimes, each with n_windows stated.
+- [ ] Row 2 beats row 1, and row 3 beats row 2 in the oracle regime, for both zones.
+      If not, the likely causes are timezone alignment or feature bugs: investigate
+      before adding anything else.
 - [ ] A short `results/README.md` states the numbers and anything surprising.
 
 ## Out of scope tonight

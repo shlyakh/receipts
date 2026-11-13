@@ -7,7 +7,10 @@ them on our own benchmark ("claimed vs. measured").
 Benchmark: PJM hourly load, zones JC and DOM, week-ahead (168 h).
 
 Read `DECISIONS.md` (fixed choices) and `REFERENCE.md` (endpoints, formulas, schemas)
-before writing code. The current task brief is `TONIGHT.md`.
+before writing code. Task briefs, in order: `TONIGHT.md` (Thu), `FRIDAY.md` (Fri),
+`HACKATHON.md` (Sat). Do one brief at a time; do not start the next until the
+current one's acceptance criteria pass. `notes/moran.md` describes the study whose
+design the backtest mirrors.
 
 ## Phase gate
 
@@ -37,6 +40,11 @@ before writing code. The current task brief is `TONIGHT.md`.
    checked against the installed package or the live API before use. Say what you
    found.
 8. **Secrets** live in `.env` (git-ignored). Never print, log, or commit them.
+9. **Third-party material.** Write our own code. Do not copy code from
+   `AndyMoran/gb-weather-private` (no licence stated). Do not commit the text of
+   other people's posts or articles; store URLs and short paraphrased claims.
+10. **LinkedIn** is reached only through search-indexed snippets. No login, no
+    crawling, no fetching post pages.
 
 ## Environment
 
@@ -59,6 +67,9 @@ data/processed/        parquet: load, weather_oracle, weather_forecast
 results/               leaderboard.parquet, per-window forecasts
 eval/items.yaml        11 labelled candidates for testing the judge
 notes/                 moran.md and other reading notes
+schemas/               scorecard JSON schema (Friday)
+scorecards/ evidence/  judge output and the search evidence ledger (Friday)
+.claude/skills/        judge (Friday); scan, run-candidate (Saturday)
 ```
 
 ## Conventions

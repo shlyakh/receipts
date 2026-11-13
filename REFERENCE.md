@@ -31,6 +31,10 @@ https://api.eia.gov/v2/electricity/rto/region-sub-ba-data/data/
   `previous_day7` = the value forecast N days before the valid time. Reported to be
   archived from January 2024. Horizon day k uses `previous_dayk`.
 - Optional extra variable: `dew_point_2m`.
+- Wind and solar: the GB study uses temperature, wind speed and solar radiation
+  (see `notes/moran.md`). Check whether Previous Runs serves `wind_speed_10m` and
+  `shortwave_radiation` at lead days 1 to 7. If yes, pull all three; if not, use
+  temperature only and say so in `protocol.yaml`.
 
 Station points (a judgment call, not an official PJM mapping; write the final list
 into `protocol.yaml`):
@@ -74,12 +78,67 @@ FEATS = ["trend","month","dow","hour","hol","T",
          "T_lag1","T_lag2","T_lag3","T_ma24","T_ma24_lag24"]
 ```
 
+## Lag regression (adapted from the GB study): the headline comparator
+
+The GB study's regression is one least-squares fit per clock slot with lagged
+demand, calendar terms and weather terms (`notes/moran.md`). Adapted to a 168-hour
+horizon: the 2-day lag is not available across the horizon, the 7-day lag always is.
+
+- One OLS fit per local hour of day (24 fits), refit at every origin on the trailing
+  365 days of complete data before the cutoff.
+- Base terms: intercept; `y_lag168`; six day-of-week indicators (Monday base);
+  US federal holiday; 24 Dec to 2 Jan indicator.
+- Weather terms: `Tc` (temperature minus its mean over the fit rows), `Tc**2`, and
+  if wind and solar are available: `wind`, `Tc*wind`, `solar`. Drop a variable from
+  an hour's fit when it has almost no range there (solar at night).
+- Two rows: without weather terms ("lag regression") and with them ("lag regression
+  + weather"). The second is the baseline every model is compared against. The
+  ratio between the two is the regression's weather gain.
+- Seasonal naive = the same hour 168 hours earlier.
+- Write our own implementation. A second, independent implementation that agrees to
+  0.1 MW on three sample origins is a cheap and convincing check.
+
+```python
+import numpy as np
+
+def fit_predict_hour(train, test, weather_cols):
+    # train/test: rows for ONE local hour of day; columns y, y_lag168, dow, hol, yearend, T, ...
+    def design(df, tbar):
+        X = [np.ones(len(df)), df.y_lag168.to_numpy()]
+        X += [(df.dow == k).to_numpy(float) for k in range(1, 7)]
+        X += [df.hol.to_numpy(float), df.yearend.to_numpy(float)]
+        if "T" in weather_cols:
+            tc = df["T"].to_numpy() - tbar
+            X += [tc, tc**2]
+            if "wind" in weather_cols:
+                X += [df.wind.to_numpy(), tc * df.wind.to_numpy()]
+        if "solar" in weather_cols:
+            X += [df.solar.to_numpy()]
+        return np.column_stack(X)
+    tbar = train["T"].mean() if "T" in weather_cols else 0.0
+    b, *_ = np.linalg.lstsq(design(train, tbar), train.y.to_numpy(), rcond=None)
+    return design(test, tbar) @ b
+```
+
+The Vanilla + recency model above stays as a second, lag-free weather baseline.
+
+Known caveat to write into `protocol.yaml`: in the forecast regime the regression
+trains on reanalysis and predicts with forecast weather. The GB study puts that
+mismatch at 100 to 200 MW in its cool months.
+
 ## Metrics and headline statistic
 
 - MAPE, MAE, RMSE, MASE (scaled by in-sample seasonal-naive-168).
 - Probabilistic models: pinball loss at q = 0.1 .. 0.9 and 80% interval coverage.
-- Headline: error ratio vs. the weather regression, with a week-block bootstrap 90%
-  interval. Pre-set a "worth switching" bar (suggested 5%) in the protocol.
+- Headline: error ratio vs. the lag regression with weather. Per-window error = MAE
+  over the 168 hours; ratio = mean window error of A / mean window error of B.
+- Intervals: bootstrap over whole weeks (each origin is one block), 2,000 draws,
+  fixed seed in `protocol.yaml`, the same resampled weeks for both arms; 90%
+  percentile intervals.
+- Also report each forecaster's weather gain: with weather / without weather.
+- Pre-set a "worth switching" bar in the protocol (the GB study used 10%) and write
+  one result sentence per possible outcome before scoring.
+- A window that cannot be built for one forecaster is dropped for all, and listed.
 
 ## Foundation models (Friday)
 
@@ -119,6 +178,11 @@ Candidate rows and notes:
 | TimesFM 2.5 | `google/timesfm-2.5-200m-pytorch` | treat as univariate | |
 | TimesFM-3 | `google/timesfm-3.0-pytorch` | past + known-future | non-commercial weights |
 | Kumo Forecast | `nvidia/Kumo-Forecast` | none | point only; intervals via conformal; native horizon 72, so 168 h is a rollout |
+
+Direct-adapter settings used in the GB study (`notes/moran.md`): Chronos-2 with
+weather as both past and future covariates, no cross-learning, median as the point
+forecast (`chronos-forecasting` 2.3.2); Timestral with known covariates and
+symmetric averaging; TimesFM 2.5 through `forecast_with_covariates`.
 
 Speed-ups: batch both zones in one call; cap context at 2,048 to 4,096 hours; score
 26 windows first; calibrate conformal intervals once, not per cutoff.
@@ -202,6 +266,9 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
 - `Chronos2Pipeline.predict_df` argument names (written from memory).
 - Hugging Face ids for TiRex-2 and TimesFM 2.5.
 - All runtime estimates. Time one window per model first.
-- The GB study's weather-run numbers (its Zenodo record could not be opened).
+- The GB study's weather-run numbers quoted on LinkedIn. Its plan and code were read
+  (`notes/moran.md`); the scored weather results were not found. The weather-free
+  results are verified.
+- Whether Open-Meteo Previous Runs serves wind and solar at each lead day.
 - PJM load is widely shared public data: treat training-overlap risk as unknown to
   high for every foundation model.

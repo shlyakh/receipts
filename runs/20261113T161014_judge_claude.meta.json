@@ -1,0 +1,93 @@
+{
+ "run_id": "20261113T161014_judge_claude",
+ "skill": "judge",
+ "provider": "claude",
+ "args": [
+  "timestral"
+ ],
+ "note": "The candidate is in candidates/claude/scan_2026-11-13_run3.jsonl (read only that row). Today is 2026-11-13. Do not read eval/, notes/, results/, other scorecards, DECISIONS.md, REFERENCE.md or README.md. Do not run git commands; write only the scorecard and, through tools/ledger.py, its ledger.",
+ "model_requested": null,
+ "git_commit": "49de471",
+ "started_at": "2026-11-13T16:10:14+00:00",
+ "wall_seconds": 209.8,
+ "exit_code": 0,
+ "session_id": "570513f8-9146-4456-a57e-a46684a2adf5",
+ "is_error": false,
+ "num_turns": 28,
+ "total_cost_usd": 1.6984546,
+ "usage": {
+  "input_tokens": 26,
+  "cache_creation_input_tokens": 51487,
+  "cache_read_input_tokens": 612920,
+  "output_tokens": 17789,
+  "output_tokens_details": {
+   "thinking_tokens": 1929
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 51487,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1201,
+    "cache_read_input_tokens": 62805,
+    "cache_creation_input_tokens": 4905,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4905
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_usage": {
+  "claude-fable-5-2": {
+   "inputTokens": 26,
+   "outputTokens": 17789,
+   "cacheReadInputTokens": 612920,
+   "cacheCreationInputTokens": 51487,
+   "webSearchRequests": 0,
+   "costUSD": 1.6581440000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1929,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 51487,
+   "canonicalModel": "claude-fable-5-2",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-haiku-5-5": {
+   "inputTokens": 114076,
+   "outputTokens": 17806,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 2,
+   "costUSD": 0.0403106,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 9381,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 0,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "tool_calls": {
+  "Read": 3,
+  "Grep": 1,
+  "Bash": 7,
+  "WebFetch": 5,
+  "WebSearch": 1
+ }
+}

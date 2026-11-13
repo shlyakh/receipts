@@ -1,0 +1,253 @@
+{
+ "candidate_id": "timestral",
+ "title": "Timestral",
+ "spec_version": "spec-v1",
+ "discovered_via": {
+  "url": "https://arxiv.org/abs/2610.37585",
+  "provider": "claude",
+  "retrieved_at": "2026-11-13T16:12:51Z"
+ },
+ "candidate_type": "model_release",
+ "primary_sources": [
+  {
+   "url": "https://huggingface.co/mistralai/Timestral-209M",
+   "kind": "hf_card",
+   "paraphrase": "Model card of the 209M checkpoint, largest of four sizes. Zero-shot probabilistic forecasts (21 quantiles), past-only and known-future covariates, context up to 32,768 steps, runs on CPU. Lists vendor-reported GIFT-Eval, TIME and fev-bench scores against Chronos-2, t0-gamma, TimesFM-3 and Toto-2.0. Training data not stated.",
+   "evidence_id": "966584a0f435"
+  },
+  {
+   "url": "https://arxiv.org/abs/2610.37585",
+   "kind": "arxiv",
+   "paraphrase": "Tech report (v1, 2026-10-27). Says the family sets a new state of the art on GIFT-Eval, TIME and fev-bench, with the 209M and 123M models in the top two places on every metric. Known-future covariates are native. Pretrained on synthetic data, post-trained on unnamed real plus synthetic data.",
+   "evidence_id": "c67dec328ad2"
+  },
+  {
+   "url": "https://mistral.ai/news/timestral/",
+   "kind": "blog",
+   "paraphrase": "Release post (2026-10-15). Says the 209M model ranks first among pretrained zero-shot models on the three benchmarks with a single checkpoint, and that a one-day-ahead forecast takes 113 ms on an 8-thread server CPU. No electricity-load example.",
+   "evidence_id": "51edf4c64381"
+  },
+  {
+   "url": "https://github.com/mistralai/timestral",
+   "kind": "github",
+   "paraphrase": "Inference code under Apache 2.0, one commit, no tags. forecast() accepts known_covariates covering context plus horizon, and past_covariates. No benchmark reproduction scripts described in the README.",
+   "evidence_id": "07890b11a885"
+  },
+  {
+   "url": "https://huggingface.co/api/models/mistralai/Timestral-209M/tree/main?expand=true",
+   "kind": "hf_card",
+   "paraphrase": "File listing of the weights repository: model.safetensors was last changed in commit 7394bc19c4b48dfb9c0872689eed058d3216331a on 2026-10-15; the head of main (9874d252) changed only the README.",
+   "evidence_id": "11a8513cc3d8"
+  },
+  {
+   "url": "https://huggingface.co/mistralai/Timestral-209M/raw/main/LICENSE",
+   "kind": "hf_card",
+   "paraphrase": "Modified MIT licence over the weights: MIT-style grant with attribution, withdrawn for organisations whose global monthly revenue exceeded 20 million USD in the preceding month unless they obtain a commercial licence from Mistral.",
+   "evidence_id": "467bd297c889"
+  },
+  {
+   "url": "https://arxiv.org/html/2610.37585v1",
+   "kind": "arxiv",
+   "paraphrase": "Full text of the report. No named real training datasets, no statement on overlap with benchmark test sets, no with/without-covariate comparison, no energy-specific breakdown. IND-Eval (energy, manufacturing, transport) is reported in aggregate only.",
+   "evidence_id": "8ea8a4f05d1b"
+  }
+ ],
+ "claims": [
+  {
+   "text": "The 209M and 123M models take the top two places on every metric of GIFT-Eval, TIME and fev-bench among zero-shot models.",
+   "metric": "rank",
+   "value": 1,
+   "dataset": "GIFT-Eval, TIME, fev-bench",
+   "horizon": null,
+   "baseline": "other pretrained zero-shot models on the leaderboards",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M scores MASE 0.658 on GIFT-Eval; Chronos-2 scores 0.698.",
+   "metric": "MASE",
+   "value": 0.658,
+   "dataset": "GIFT-Eval",
+   "horizon": null,
+   "baseline": "Chronos-2 (0.698)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M scores CRPS 0.446 on GIFT-Eval; Chronos-2 scores 0.485.",
+   "metric": "CRPS",
+   "value": 0.446,
+   "dataset": "GIFT-Eval",
+   "horizon": null,
+   "baseline": "Chronos-2 (0.485)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M scores MASE 0.626 on TIME; Chronos-2 scores 0.662.",
+   "metric": "MASE",
+   "value": 0.626,
+   "dataset": "TIME",
+   "horizon": null,
+   "baseline": "Chronos-2 (0.662)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M scores CRPS 0.522 on TIME; Chronos-2 scores 0.556.",
+   "metric": "CRPS",
+   "value": 0.522,
+   "dataset": "TIME",
+   "horizon": null,
+   "baseline": "Chronos-2 (0.556)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M reaches an SQL skill score of 50.39 on fev-bench; Chronos-2 reaches 47.28.",
+   "metric": "SQL skill score",
+   "value": 50.39,
+   "dataset": "fev-bench",
+   "horizon": null,
+   "baseline": "Chronos-2 (47.28)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "Timestral-209M reaches a MASE skill score of 39.49 on fev-bench; Chronos-2 reaches 35.50.",
+   "metric": "MASE skill score",
+   "value": 39.49,
+   "dataset": "fev-bench",
+   "horizon": null,
+   "baseline": "Chronos-2 (35.50)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "On IND-Eval (energy, manufacturing, transport; aggregate only) Timestral-209M scores a normalised MASE of 0.646.",
+   "metric": "nMASE",
+   "value": 0.646,
+   "dataset": "IND-Eval",
+   "horizon": null,
+   "baseline": "Seasonal Naive (normaliser)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 6,
+   "ci90": null
+  },
+  {
+   "text": "On IND-Eval Timestral-209M scores a normalised CRPS of 0.435.",
+   "metric": "nCRPS",
+   "value": 0.435,
+   "dataset": "IND-Eval",
+   "horizon": null,
+   "baseline": "Seasonal Naive (normaliser)",
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 6,
+   "ci90": null
+  },
+  {
+   "text": "A one-day-ahead forecast from three weeks of 15-minute history takes 113 ms with the 209M model on an 8-thread server CPU; no GPU is needed.",
+   "metric": "latency_ms",
+   "value": 113,
+   "dataset": null,
+   "horizon": "1 day (96 steps of 15 minutes)",
+   "baseline": null,
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 2,
+   "ci90": null
+  },
+  {
+   "text": "The models accept known-future covariates natively, passed to forecast() alongside the target history.",
+   "metric": null,
+   "value": null,
+   "dataset": null,
+   "horizon": null,
+   "baseline": null,
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 3,
+   "ci90": null
+  }
+ ],
+ "relevance": {
+  "target_match": 1,
+  "horizon_match": 1,
+  "covariates_match": 3,
+  "rationale": "A general-purpose forecasting model: its evidence is on mixed-domain benchmarks, with no hourly electric-load result (target 1). The benchmark horizons were not found in the sources read; the only stated example is one day ahead at 15-minute steps, and the model can emit 1,024 steps in one pass, which covers our 168 hours (horizon 1). It takes numeric known-future covariates, so temperature can be supplied as our spec requires, although no source tests it with weather (covariates 3, on capability)."
+ },
+ "checks": {
+  "pre_registered": "no",
+  "training_overlap_risk": "high",
+  "independent_replication": "unknown",
+  "notes": "pre_registered: no; the sources are a vendor release post, model card and tech report, none describing a plan fixed before the results. training_overlap_risk: the weights file model.safetensors was committed on 2026-10-15 (commit 7394bc19, read from the Hugging Face file listing); of the 52 scored weeks (2025-11-10 to 2026-11-02) only 3 start after that date (2026-10-19, 10-26, 11-02), fewer than half, so high. The report does not name its real post-training data or a data cutoff, so whether PJM or EIA load is in it could not be verified. independent_replication: unknown; two searches found no independent result on electricity load and no leakage audit. One article said to rerun the 209M model on GIFT-Eval could not be fetched (HTTP 403) and is not counted; a third-party leaderboard listing and commentary pages surfaced by search were not opened. evidence_strength: moderate; the numbers are public and tied to open weights and code and to public leaderboards, but they are vendor-reported, not pre-registered, the test-window length was not found, and whether the compared models received the same covariates is not stated. No interval is given for any number. Not verified: the leaderboard ranks themselves (leaderboard pages not opened), the CPU latency on our laptop, the 60-minute runtime limit for 52 windows, and the date of the GitHub commit. Licence: Modified MIT with a revenue cap of 20 million USD per month; commercial use is conditional, so license_ok_for_commercial is left null and flagged here."
+ },
+ "evidence_strength": "moderate",
+ "license": "Modified MIT (Mistral; rights withdrawn above 20 million USD monthly revenue without a commercial licence)",
+ "license_ok_for_commercial": null,
+ "runnable_class": "ff_native_exog",
+ "label": "ACCEPT_RUN",
+ "label_reason": "A covariate-aware model release with open weights, code, a model card and a tech report, and it is already listed as runnable with temperature in our spec. Its published evidence is general-benchmark only and its weights date leaves 3 of 52 scored weeks after it, so the run must carry that label.",
+ "implementation_hint": "Run models_ff/run_ff.py with mistralai/Timestral-209M (ff_native_exog, temperature as known-future covariate), pinned at revision 9874d252ab0aae16f7f7c999f98f98d6ad7d8365 (weights file from commit 7394bc19c4b48dfb9c0872689eed058d3216331a, 2026-10-15). Report n_windows_after_weights = 3. Smaller checkpoints (123M, 28M, 5M) exist if CPU runtime is a problem.",
+ "receipt": {
+  "claimed": "On general benchmarks the release reports Timestral-209M ahead of Chronos-2 among zero-shot models (for example MASE 0.658 against 0.698 on GIFT-Eval).",
+  "measured": [
+   {
+    "zone": "DOM",
+    "regime": "forecast",
+    "error_ratio": 0.656,
+    "ci90": [
+     0.608,
+     0.709
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "forecast",
+    "error_ratio": 0.698,
+    "ci90": [
+     0.599,
+     0.802
+    ]
+   },
+   {
+    "zone": "DOM",
+    "regime": "oracle",
+    "error_ratio": 0.486,
+    "ci90": [
+     0.442,
+     0.537
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "oracle",
+    "error_ratio": 0.543,
+    "ci90": [
+     0.468,
+     0.631
+    ]
+   }
+  ],
+  "horizon_mismatch": "The claim is about general multi-domain benchmarks against other pretrained models; ours is hourly load on two PJM zones, a week ahead, with temperature, against a regression with temperature. Only 1 of the 48 scored weeks starts after the weights were published.",
+  "n_windows": 48,
+  "n_windows_after_weights": 1,
+  "verdict": "untestable"
+ }
+}

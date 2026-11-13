@@ -47,7 +47,7 @@ def calendar(index: pd.DatetimeIndex, tz: str = "America/New_York") -> pd.DataFr
     return pd.DataFrame(
         {
             "hour": local.hour,
-            "dow": local.dayofweek,  # Monday = 0
+            "dow": local.day_of_week,  # Monday = 0
             "hol": dates.map(lambda d: d in us).astype(float).to_numpy(),
             "yearend": (((month == 12) & (day >= 24)) | ((month == 1) & (day <= 2))).astype(float),
         },

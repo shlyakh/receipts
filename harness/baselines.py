@@ -74,9 +74,41 @@ def lag_regression_temperature(
     return _lag_regression(hist, temp, cutoff, weather=True)
 
 
+LGBM_FEATURES = ["y_lag168", "hour", "dow", "hol", "yearend", "T"]
+LGBM_PARAMS = {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "min_child_samples": 20,
+    "random_state": 20261112,
+    "deterministic": True,
+    "force_row_wise": True,
+    "n_jobs": 1,
+    "verbose": -1,
+}
+
+
+def lightgbm_temperature(
+    hist: pd.Series, temp: pd.Series | None, cutoff: pd.Timestamp
+) -> pd.Series:
+    """One gradient-boosted model per origin on exactly the regression's inputs."""
+    import lightgbm as lgb
+
+    if temp is None:
+        raise ValueError("lightgbm_temperature needs a temperature series")
+    df = lag_frame(hist, temp, cutoff)
+    train = df[df["is_train"]].dropna(subset=["y", "y_lag168", "T"])
+    test = df[~df["is_train"]]
+    model = lgb.LGBMRegressor(**LGBM_PARAMS).fit(train[LGBM_FEATURES], train["y"])
+    pred = pd.Series(model.predict(test[LGBM_FEATURES]), index=test.index)
+    # Same availability rule as the regression: no forecast without the 168-hour lag.
+    return pred.where(test["y_lag168"].notna())
+
+
 # name -> (function, uses_weather)
 MODELS = {
     "seasonal_naive": (seasonal_naive, False),
     "lag_regression": (lag_regression, False),
     "lag_regression_temperature": (lag_regression_temperature, True),
+    "lightgbm_temperature": (lightgbm_temperature, True),
 }

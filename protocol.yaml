@@ -99,7 +99,7 @@ information_set: >
 
 # ---------------------------------------------------------------- models
 baseline_model: lag_regression_temperature
-leaderboard_order: [seasonal_naive, lag_regression, lag_regression_temperature]
+leaderboard_order: [seasonal_naive, lag_regression, lag_regression_temperature, lightgbm_temperature]
 models:
   seasonal_naive: the value 168 hours earlier
   lag_regression: >
@@ -112,6 +112,10 @@ models:
     The lag regression plus temperature centred on its mean over the fit rows, and
     its square. Fitted on reanalysis temperature; predicts with the regime's
     series. Called the "temperature-only regression" in every receipt.
+  lightgbm_temperature: >
+    Secondary. One LightGBM model per origin on exactly the temperature regression's
+    inputs (168-hour lag, hour, day of week, holiday, year-end, temperature),
+    trailing 365 days, fixed parameters and seed (harness/baselines.py).
   foundation_models: >
     Called once per origin by the harness with load up to the cutoff and the same
     temperature series the regression gets. Weights pinned to a recorded revision.

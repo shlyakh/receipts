@@ -1,0 +1,192 @@
+# Backtest protocol. DRAFT until tagged protocol-v1; frozen afterwards (CLAUDE.md rule 5).
+version: protocol-v1
+status: draft            # set to "frozen" in the commit that is tagged
+
+# ---------------------------------------------------------------- problem
+target: PJM hourly load (EIA-930 sub-BA demand), MW
+zones: [JC, DOM]
+horizon_hours: 168
+timezone: America/New_York
+
+# ---------------------------------------------------------------- data
+load:
+  source: EIA Open Data API v2, electricity/rto/region-sub-ba-data
+  facets: {parent: PJM, subba: [JC, DOM]}
+  frequency: hourly          # period is UTC; verified against local-hourly on 2026-11-12
+  timestamp_convention: >
+    EIA-930 periods are treated as hour-ending in UTC. The UTC part was verified
+    against the API; hour-ending is EIA's documented convention and was not
+    verified independently.
+  start: "2019-01-01T00"
+  end: "2026-11-11T05"       # last period available when fetched
+  gap_rule: >
+    Missing or flagged hours in runs of 3 or fewer are filled by linear
+    interpolation. Longer runs stay missing. Every filled or flagged value is
+    logged in data/quality_log.csv.
+  flag_rule: >
+    Gross errors only. A value is flagged and treated as missing when it is <= 0, or
+    more than 3 times, or less than one third of, the median of the same zone's
+    values at the same hour of day over the surrounding 7 days.
+  known_gaps: >
+    EIA has no rows for the UTC day of each daylight-saving change (23 or 25 hours,
+    both zones). Windows that contain such a day, or need it as the 168-hour lag,
+    are dropped under window_drop_rule.
+
+weather:
+  provider: Open-Meteo (best_match model selection, timezone GMT)
+  variables_used: [temperature_2m]
+  variables_fetched_unused: [wind_speed_10m, shortwave_radiation, dew_point_2m]
+  variables_note: >
+    Temperature only is a deliberate choice for protocol-v1 (DECISIONS.md 17), not
+    an availability limit: all four variables are served at lead days 1 to 7.
+  zone_series: unweighted mean of the zone's stations
+  stations:
+    JC:
+      - {name: morristown, lat: 40.80, lon: -74.48}
+      - {name: monmouth_shore, lat: 40.19, lon: -74.06}
+      - {name: toms_river, lat: 39.95, lon: -74.20}
+    DOM:
+      - {name: richmond, lat: 37.54, lon: -77.43}
+      - {name: norfolk, lat: 36.85, lon: -76.29}
+      - {name: dulles, lat: 38.95, lon: -77.45}
+  archive:
+    endpoint: https://archive-api.open-meteo.com/v1/archive
+    start_date: "2019-01-01"
+    end_date: "2026-11-11"
+  previous_runs:
+    endpoint: https://previous-runs-api.open-meteo.com/v1/forecast
+    start_date: "2024-02-01"
+    end_date: "2026-11-11"
+
+regimes:
+  oracle: >
+    Archive (reanalysis) temperature for every hour, before and after the cutoff.
+  forecast: >
+    Archive temperature up to and including the cutoff. For horizon day k
+    (hours cutoff+24(k-1)+1 .. cutoff+24k, k = 1..7) the Previous Runs value
+    temperature_2m_previous_day{k}: the forecast whose lead is k days before
+    the valid time, so its run started at or before the cutoff.
+  publication_latency_caveat: >
+    previous_day{k} is matched by forecast lead, not by publication time. A run
+    that started shortly before the cutoff may not have been public at the cutoff,
+    so the last few hours of each horizon day can use a forecast a real user would
+    not yet have had.
+
+# ---------------------------------------------------------------- origins
+# Each origin is Monday 00:00 America/New_York, given as the local date. The harness
+# converts it to UTC. The last scored origin is the latest Monday whose 168 hours of
+# actuals were in the data when it was fetched.
+origins:
+  # Gate origins are used to check the code before the tag and are never scored.
+  # The last two touch the 2025-11-02 data gap, so they exercise the drop rule.
+  gate: ["2025-09-29", "2025-10-06", "2025-10-13", "2025-10-20", "2025-10-27", "2025-11-03"]
+  scored: ["2025-11-10", "2025-11-17", "2025-11-24", "2025-12-01", "2025-12-08", "2025-12-15",
+           "2025-12-22", "2025-12-29", "2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26",
+           "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09",
+           "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-20",
+           "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01",
+           "2026-06-08", "2026-06-15", "2026-06-22", "2026-06-29", "2026-07-06", "2026-07-13",
+           "2026-07-20", "2026-07-27", "2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24",
+           "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28", "2026-10-05",
+           "2026-10-12", "2026-10-19", "2026-10-26", "2026-11-02"]
+  forecast_regime_coverage: all 58 gate and scored origins (Previous Runs is complete from 2025-10)
+
+information_set: >
+  Idealised. At a cutoff every model may see load up to and including the cutoff and
+  reanalysis temperature up to the cutoff. Real EIA load arrives 1 to 2 days late.
+  This favours models that use recent context over the lag regression, whose only
+  load input at prediction time is 168 hours old.
+
+# ---------------------------------------------------------------- models
+baseline_model: lag_regression_temperature
+leaderboard_order: [seasonal_naive, lag_regression, lag_regression_temperature]
+models:
+  seasonal_naive: the value 168 hours earlier
+  lag_regression: >
+    24 least-squares fits, one per local hour of day, refit at every origin on the
+    rows of the trailing 365 days that have load and its 168-hour lag. Terms:
+    intercept, load 168 hours earlier, six day-of-week indicators (Monday base),
+    US federal holiday, 24 Dec to 2 Jan indicator. Calendar terms use the local
+    time at the start of the hour.
+  lag_regression_temperature: >
+    The lag regression plus temperature centred on its mean over the fit rows, and
+    its square. Fitted on reanalysis temperature; predicts with the regime's
+    series. Called the "temperature-only regression" in every receipt.
+  foundation_models: >
+    Called once per origin by the harness with load up to the cutoff and the same
+    temperature series the regression gets. Weights pinned to a recorded revision.
+window_drop_rule: >
+  A window whose forecast or actuals are incomplete for any forecaster is dropped for
+  every forecaster in that zone, in both regimes, and listed in dropped_windows.csv.
+
+# ---------------------------------------------------------------- statistics
+metrics: [MAE, MAPE, RMSE, MASE, error_ratio_vs_baseline, mae_per_horizon_day]
+mase_scale: MAE of the 168-hour seasonal naive over the 365 days before the cutoff
+window_error: mean absolute error over the 168 forecast hours, MW
+error_ratio: mean window error of model A / mean window error of model B
+bootstrap:
+  unit: whole weeks (each origin is one block)
+  draws: 2000
+  seed: 20261112
+  paired: the same resampled weeks for both arms
+  interval: 90 percent, percentile
+
+primary_comparison:
+  arm_a: Chronos-2 with temperature (past and known-future covariate)
+  arm_b: lag_regression_temperature
+  regime: forecast
+  reported: per zone (two primary numbers)
+  bar: 0.10
+  verdict_rule:
+    worth_switching: the whole 90% interval of the ratio is below 0.90
+    practical_tie: the whole interval is inside 0.90 to 1.10
+    regression_clearly_better: the whole interval is above 1.10
+    inconclusive: anything else
+  # One sentence per outcome, written before scoring. {zone}, {ratio}, {low}, {high}
+  # are filled in afterwards. Each is followed by the leakage statement.
+  outcome_sentences:
+    worth_switching: >
+      On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
+      {ratio} of the temperature-only lag regression's (90% interval {low} to
+      {high}). The whole interval is below 0.90, so the model clears the 10% bar.
+    practical_tie: >
+      On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
+      {ratio} of the temperature-only lag regression's (90% interval {low} to
+      {high}). The whole interval lies between 0.90 and 1.10, so the two are a
+      practical tie and the GB claim transfers to this zone.
+    regression_clearly_better: >
+      On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
+      {ratio} of the temperature-only lag regression's (90% interval {low} to
+      {high}). The whole interval is above 1.10, so the regression is clearly
+      better and the model is not worth running here.
+    inconclusive: >
+      On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
+      {ratio} of the temperature-only lag regression's (90% interval {low} to
+      {high}). The interval crosses the 10% bar, so 52 weeks cannot separate a tie
+      from a real difference.
+  leakage_statement: >
+    {n_after} of {n} scored weeks start after the date of the pinned weights.
+    Earlier years of the same public series may be in the model's training data.
+
+# Secondary results. Reported with the label "secondary"; none can change the
+# outcome sentence.
+secondary:
+  - the primary comparison in the oracle regime
+  - per-horizon-day ratio, day 1 to day 7
+  - weather gain per forecaster (error with temperature / error without)
+  - other foundation models against the baseline
+  - seasonal naive and the lag regression without temperature
+  - Chronos-2 with a 48-hour data gap (context ends 48 hours before the cutoff,
+    216-hour forecast, scored on the same 168 hours)
+  - for a model whose weights postdate part of the window, the ratio on the weeks
+    after the weights
+
+caveats:
+  - Transfer test, not a replication. The GB study is day-ahead with 2-day and 7-day
+    lags, three weather variables and about 1,000 daily origins.
+  - Idealised information set (see information_set).
+  - The regression is fitted on reanalysis temperature and predicts with forecast
+    temperature in the forecast regime. The GB study puts that mismatch at 100 to
+    200 MW in its cool months; its size here is not measured.
+  - Forecast lead is matched by run start, not publication time (see regimes).
+  - EIA-930 data is operator-reported, not settlement quality.

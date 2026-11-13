@@ -32,6 +32,26 @@ def git(*a: str) -> str:
     return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
 
+def parse(stream: Path) -> tuple[dict, dict]:
+    """The final result line and a count of tool calls, from a saved stream."""
+    result, tools = {}, {}
+    for line in stream.read_text().splitlines():
+        try:
+            m = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(m, dict):
+            continue
+        if m.get("type") == "result":
+            result = m
+        message = m.get("message")
+        content = message.get("content") if isinstance(message, dict) else None
+        for block in content if isinstance(content, list) else []:
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                tools[block["name"]] = tools.get(block["name"], 0) + 1
+    return result, tools
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("skill", choices=["scan", "judge", "run-candidate"])
@@ -66,17 +86,7 @@ def main() -> None:
         code = subprocess.run(
             cmd, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=f, stderr=subprocess.PIPE, env=env
         ).returncode
-    result, tools = {}, {}
-    for line in stream.read_text().splitlines():
-        try:
-            m = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if m.get("type") == "result":
-            result = m
-        for block in (m.get("message") or {}).get("content") or []:
-            if isinstance(block, dict) and block.get("type") == "tool_use":
-                tools[block["name"]] = tools.get(block["name"], 0) + 1
+    result, tools = parse(stream)
     dirty = "-dirty" if git("status", "--porcelain", "--untracked-files=no") else ""
     meta = {
         "run_id": run_id,

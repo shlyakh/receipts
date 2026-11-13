@@ -37,3 +37,10 @@ paraphrase, not a quotation. Used in `dashboard/index.html` (Methods tab).
   fetch; the GEFCom2012 paper (doi 10.1016/j.ijforecast.2013.07.001) is behind a paywall.
   Secondary papers describe a trend term, which is what BASELINES.md already records. The
   page wording ("found only in search summaries") is unchanged.
+
+## Update, 2026-11-13
+
+- Vanilla trend term: now verified. Hong, Pinson and Fan (2014), section 2.3
+  (https://doi.org/10.1016/j.ijforecast.2013.07.001), read from a copy supplied by Yuri,
+  lists a trend among the benchmark's main effects. See `notes/hong2014_gefcom2012.md`.
+  The Methods tab and `BASELINES.md` are updated.

@@ -56,9 +56,13 @@ Full notes with sources: `notes/classical_baselines.md`.
   https://arxiv.org/abs/1603.01376): the Vanilla equation, the 24-month training
   window, the absence of holiday terms and lagged load, and the use of an averaged
   temperature series.
-- Not verified from an opened page: that the original GEFCom2012 form includes a linear
-  trend (found in search summaries only). Both forms were therefore registered and
-  scored.
+- Verified on 2026-11-13 from the competition paper (Hong, Pinson and Fan 2014,
+  section 2.3, https://doi.org/10.1016/j.ijforecast.2013.07.001; see
+  `notes/hong2014_gefcom2012.md`): the original GEFCom2012 benchmark includes a linear
+  trend. When the rows were registered this was known from search summaries only, which
+  is why both forms were registered and scored. The trend form is the faithful one; the
+  no-trend form is a variant. The original also used 4.5 years of history and the
+  best-fitting single weather station, where ours uses 730 days and a station average.
 - A decision made at the gate stage, before scoring: the gate origins showed the form
   without trend far behind on DOM. That prompted registering the trend form as a second
   row. It was not chosen after seeing scored results.

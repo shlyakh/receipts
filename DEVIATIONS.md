@@ -24,3 +24,7 @@ new version file.
   window-drop rule for these regimes is scoped per regime (AIFS lacks three scored
   weeks). The primary comparison, its sentences and every v1 and v1.1 row are unchanged.
   Gate runs first; the scored origins are run once, after the tag `protocol-v1.2`.
+- **2026-11-13, source verified (no protocol change):** the linear trend in
+  `vanilla_benchmark_trend` (protocol-v1.1), recorded at registration as found in search
+  summaries only, is confirmed by the competition paper (Hong, Pinson and Fan 2014,
+  section 2.3). No definition, row or result changes. See `notes/hong2014_gefcom2012.md`.

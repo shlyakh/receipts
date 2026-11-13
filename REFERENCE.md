@@ -30,11 +30,10 @@ https://api.eia.gov/v2/electricity/rto/region-sub-ba-data/data/
 - Forecast regime: Previous Runs API, `temperature_2m_previous_day1` ..
   `previous_day7` = the value forecast N days before the valid time. Reported to be
   archived from January 2024. Horizon day k uses `previous_dayk`.
-- Optional extra variable: `dew_point_2m`.
-- Wind and solar: the GB study uses temperature, wind speed and solar radiation
-  (see `notes/moran.md`). Check whether Previous Runs serves `wind_speed_10m` and
-  `shortwave_radiation` at lead days 1 to 7. If yes, pull all three; if not, use
-  temperature only and say so in `protocol.yaml`.
+- `protocol-v1` uses temperature only (decision 17). The GB study also uses wind
+  speed and solar radiation (see `notes/moran.md`). If Previous Runs serves
+  `wind_speed_10m`, `shortwave_radiation` and `dew_point_2m` at lead days 1 to 7,
+  download and hash them for a later protocol version, but do not use them.
 
 Station points (a judgment call, not an official PJM mapping; write the final list
 into `protocol.yaml`):
@@ -71,12 +70,9 @@ def fit_predict(train, test):   # train: trailing 2 years before cutoff; test: 1
   active regime's temperature series (observed before the cutoff, regime series
   after it).
 - Second row: same formula plus `y_lag168`.
-- LightGBM row: same columns as features, no load lags.
-
-```python
-FEATS = ["trend","month","dow","hour","hol","T",
-         "T_lag1","T_lag2","T_lag3","T_ma24","T_ma24_lag24"]
-```
+- This model is a secondary, lag-free baseline. The LightGBM row does NOT use its
+  columns: it uses exactly the lag regression's inputs (next section), namely
+  `y_lag168`, hour, day of week, holiday, year-end indicator and `T`.
 
 ## Lag regression (adapted from the GB study): the headline comparator
 
@@ -88,12 +84,13 @@ horizon: the 2-day lag is not available across the horizon, the 7-day lag always
   365 days of complete data before the cutoff.
 - Base terms: intercept; `y_lag168`; six day-of-week indicators (Monday base);
   US federal holiday; 24 Dec to 2 Jan indicator.
-- Weather terms: `Tc` (temperature minus its mean over the fit rows), `Tc**2`, and
-  if wind and solar are available: `wind`, `Tc*wind`, `solar`. Drop a variable from
-  an hour's fit when it has almost no range there (solar at night).
+- Weather terms in `protocol-v1`: `Tc` (temperature minus its mean over the fit
+  rows) and `Tc**2` only. The code below also handles `wind`, `Tc*wind` and `solar`
+  for a later protocol version; pass `weather_cols=["T"]` for v1.
 - Two rows: without weather terms ("lag regression") and with them ("lag regression
-  + weather"). The second is the baseline every model is compared against. The
-  ratio between the two is the regression's weather gain.
+  + temperature"). The second is the baseline every model is compared against;
+  call it the "temperature-only regression" in any receipt. The ratio between the
+  two is the regression's weather gain.
 - Seasonal naive = the same hour 168 hours earlier.
 - Write our own implementation. A second, independent implementation that agrees to
   0.1 MW on three sample origins is a cheap and convincing check.
@@ -130,8 +127,18 @@ mismatch at 100 to 200 MW in its cool months.
 
 - MAPE, MAE, RMSE, MASE (scaled by in-sample seasonal-naive-168).
 - Probabilistic models: pinball loss at q = 0.1 .. 0.9 and 80% interval coverage.
-- Headline: error ratio vs. the lag regression with weather. Per-window error = MAE
-  over the 168 hours; ratio = mean window error of A / mean window error of B.
+- Headline: error ratio vs. the lag regression with temperature. Per-window error =
+  MAE over the 168 hours; ratio = mean window error of A / mean window error of B.
+- Primary comparison (decision 15): Chronos-2 with temperature vs. that regression,
+  forecast regime, per zone. Verdict from the whole 90% interval against 0.90 and
+  1.10: worth switching / practical tie (claim transfers) / regression clearly
+  better / inconclusive. All other results are secondary.
+- Per-lead-day ratio (secondary): the same ratio computed on the 24 hours of
+  horizon day k, for k = 1 .. 7. Day 1 is closest to the GB study's setting.
+- 48-hour-gap row (secondary): Chronos-2 with its context ending 48 hours before
+  the cutoff, forecasting 216 hours, scored on the same 168.
+- Leakage per model: pin the weights revision; report `n_windows_after_weights`
+  and, where that is below `n_windows`, the ratio on the post-weights windows.
 - Intervals: bootstrap over whole weeks (each origin is one block), 2,000 draws,
   fixed seed in `protocol.yaml`, the same resampled weeks for both arms; 90%
   percentile intervals.
@@ -198,7 +205,8 @@ covariates:
   required: [temperature_2m]
   known_future: true
   regimes: [oracle, forecast]
-baseline_to_beat: weather_regression_vanilla_recency
+baseline_to_beat: lag_regression_temperature
+primary_comparison: {model: chronos-2, regime: forecast, bar: 0.10}
 runnable_class:
   sources: [huggingface, pypi, foundationforecast]
   cpu_ok: true
@@ -206,6 +214,8 @@ runnable_class:
 license_policy: {prefer: [Apache-2.0, MIT], flag_noncommercial: true}
 metrics: [MAPE, MAE, RMSE, MASE, pinball, coverage80, error_ratio_vs_regression]
 min_evidence: {test_window_days: 90, primary_source_required: true}
+missing_source_rule: cap at PARTIAL unless candidate_type is model_release and runnable
+excluded_sources: [linkedin.com]
 ```
 
 ## Scorecard schema (Friday)
@@ -237,12 +247,17 @@ min_evidence: {test_window_days: 90, primary_source_required: true}
   "receipt": {
     "claimed": "str",
     "measured": {"error_ratio": "num", "ci90": ["num", "num"], "coverage80": "num"},
-    "verdict": "holds|partially|fails|untestable"
+    "horizon_mismatch": "str",
+    "n_windows_after_weights": "int",
+    "verdict": "transfers|partially|does_not_transfer|untestable"
   }
 }
 ```
 
-Rule for the judge: when no primary source can be found, say so. Never invent one.
+Rules for the judge: when no primary source can be found, say so. Never invent one.
+A claim with no primary source has an empty `citation_idx` and caps the label at
+`PARTIAL` (see `missing_source_rule`). A LinkedIn URL may appear in
+`discovered_via` as an identifier; it is never fetched and never a citation.
 
 ## Swappable search (Friday / Saturday)
 
@@ -266,9 +281,15 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
 - `Chronos2Pipeline.predict_df` argument names (written from memory).
 - Hugging Face ids for TiRex-2 and TimesFM 2.5.
 - All runtime estimates. Time one window per model first.
-- The GB study's weather-run numbers quoted on LinkedIn. Its plan and code were read
-  (`notes/moran.md`); the scored weather results were not found. The weather-free
+- The GB study's weather-run ratios (0.97x, 1.07x). The weather gains are in the
+  description of Zenodo record 24161799; the ratios should be in the zip's
+  `weather_study/RESULTS.md`, not yet opened (`notes/moran.md`). The weather-free
   results are verified.
-- Whether Open-Meteo Previous Runs serves wind and solar at each lead day.
-- PJM load is widely shared public data: treat training-overlap risk as unknown to
-  high for every foundation model.
+- Whether Open-Meteo Previous Runs serves wind, solar and dew point at each lead
+  day (only matters for a later protocol version).
+- Weight dates. Chronos-2 (believed Oct 2025) and TimesFM 2.5 (believed Sep 2025)
+  would both predate the whole scored window; check the pinned revisions' dates.
+  Models released during 2026 overlap the window in part.
+- Residual overlap for every model: earlier years of the same public series may be
+  in training, so a model may know these zones' typical shape.
+- That the Zenodo record is findable through You.com search (Friday smoke test).

@@ -33,9 +33,22 @@ Window 1 Jan 2024 to 31 Oct 2026, 1,035 days. Error ratio to the regression
 - On days after each model's release the edges shrink (Chronos-2 0.965, interval
   crossing 1).
 
-NOT verified: the weather-study numbers quoted in the LinkedIn post (0.97x, 1.07x,
-62% of the gap, 34/32/23/6% gains). The scored results were not in either repo
-as read. Treat them as the claim to test, not as established.
+Weather-study results: partly verified on Nov 12, 2026 (evening). Zenodo record
+24161799, "Weather and zero-shot forecasting models: backtest results for GB
+electricity demand (part 1 of 2)", published Nov 12, 2026, version
+`weather-results-backtest`: https://zenodo.org/records/24161799
+
+- Read from the record's description only (through a summarising fetch; the 9.4 MB
+  zip was not opened): a pre-registered backtest over 960 days, 16 Mar 2024 to
+  31 Oct 2026; weather cut mean daily error by 34% for the regression, 32% for
+  Chronos-2, 23% for Timestral and 6% for TimesFM 2.5; the models' edge over the
+  weather-free regression largely disappears once weather is included. A live
+  check to 31 Mar 2027 is planned as part 2.
+- Still NOT verified: the 0.97x and 1.07x ratios and "62% of the gap" quoted in the
+  post. They should be in `weather_study/RESULTS.md` inside the zip. Open it on
+  Friday and confirm before quoting any figure.
+- The zip is a release of `gb-foundation-model-tests` (MIT). Once confirmed, cite
+  this record for the weather study's design in place of the no-licence repo.
 
 ## The regression
 
@@ -107,6 +120,12 @@ Context length in the weather-free study: 2,688 half-hours (8 weeks) for every m
 | 48 slot models | 24 hour-of-day models |
 | Blocks of 7 days | Resample whole weeks |
 | Bank holidays, Christmas window | US federal holidays, same 24 Dec to 2 Jan window |
+| Temperature, wind, solar | Temperature only in `protocol-v1` (decision 17) |
+| 1,035 or 960 daily origins | 52 weekly origins, so wider intervals |
+
+Because of these differences our result is a transfer test, not a replication
+(decision 12). Horizon day 1 of our per-lead-day breakdown is the closest
+comparison to the study's setting.
 
 Latest commit in the weather repo specifies an exploratory run that gives Chronos-2
 and Timestral the regression's calendar terms as covariates, with and without

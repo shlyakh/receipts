@@ -43,8 +43,17 @@ design the backtest mirrors.
 9. **Third-party material.** Write our own code. Do not copy code from
    `AndyMoran/gb-weather-private` (no licence stated). Do not commit the text of
    other people's posts or articles; store URLs and short paraphrased claims.
-10. **LinkedIn** is reached only through search-indexed snippets. No login, no
-    crawling, no fetching post pages.
+10. **LinkedIn** is not a source (decision 21). No login, no crawling, no fetching
+    post pages, no snippets as evidence. A stored LinkedIn URL is an identifier
+    only. If a task seems to need LinkedIn content, stop and ask.
+11. **One primary comparison.** `protocol.yaml` names it (Chronos-2 with temperature
+    vs. the lag regression with temperature, forecast regime, per zone). Every
+    other result is labelled secondary and never changes the outcome sentence.
+12. **Gate, tag, then score once.** Before `protocol-v1` is tagged, code runs only
+    on the gate origins listed in the protocol. The 52 scored origins are run once,
+    after the tag.
+13. **Pin model weights.** Load every foundation model at a recorded Hugging Face
+    revision; the leaderboard row carries the revision and its date.
 
 ## Environment
 
@@ -76,7 +85,10 @@ scorecards/ evidence/  judge output and the search evidence ledger (Friday)
 
 - Long format: `unique_id, ds, y`; timestamps stored in UTC, converted once.
 - Every leaderboard row carries: model, zone, regime, n_windows, metrics, runtime,
-  git commit, protocol version.
+  git commit, protocol version, and for foundation models the weights revision,
+  its date and `n_windows_after_weights`.
+- The receipt is a transfer test: say "transfers / does not transfer", never
+  "the claim is true / false". Name the baseline "temperature-only regression".
 - Small commits with plain messages. Run the harness on 2 windows before any full run.
 - When something cannot be done as specified, stop and report; do not substitute a
   different method silently.

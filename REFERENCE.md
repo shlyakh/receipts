@@ -280,10 +280,8 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
   Check with `python -c "import foundationforecast.models as m; print(dir(m))"`.
 - `Chronos2Pipeline.predict_df` argument names (written from memory).
 - All runtime estimates. Time one window per model first.
-- The GB study's weather-run ratios (0.97x, 1.07x). The weather gains are in the
-  description of Zenodo record 24161799; the ratios should be in the zip's
-  `weather_study/RESULTS.md`, not yet opened (`notes/moran.md`). The weather-free
-  results are verified.
+- VERIFIED Nov 13, 2026 from the Zenodo zip: the GB study's with-weather ratios are
+  Chronos-2 0.966, Timestral 1.074, TimesFM 2.5 1.453 (details in `notes/moran.md`).
 - Whether Open-Meteo Previous Runs serves wind, solar and dew point at each lead
   day (only matters for a later protocol version).
 - VERIFIED Nov 13, 2026 from the Hugging Face API: all eight model ids in the table

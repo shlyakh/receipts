@@ -44,9 +44,17 @@ electricity demand (part 1 of 2)", published Nov 12, 2026, version
   Chronos-2, 23% for Timestral and 6% for TimesFM 2.5; the models' edge over the
   weather-free regression largely disappears once weather is included. A live
   check to 31 Mar 2027 is planned as part 2.
-- Still NOT verified: the 0.97x and 1.07x ratios and "62% of the gap" quoted in the
-  post. They should be in `weather_study/RESULTS.md` inside the zip. Open it on
-  Friday and confirm before quoting any figure.
+- VERIFIED on Nov 13, 2026 from `weather_study/RESULTS.md` inside the Zenodo zip (MIT
+  licence, repository commit `58b87d0`). Error divided by the regression's, both with
+  the same weather, day-ahead, 960 days, 90% intervals: Chronos-2 0.966 (0.931 to
+  1.001), Timestral 1.074 (1.034 to 1.115), TimesFM 2.5 1.453 (1.394 to 1.510). Weather
+  gains: regression 34%, Chronos-2 32%, Timestral 23%, TimesFM 2.5 6%. Weather closed
+  62% of Chronos-2's gap to NESO's forecast.
+- The study notes that TimesFM 2.5 takes weather through a linear fit on its own
+  context, not through the network, and that it gained nothing in autumn. Our result
+  agrees: with temperature it stays behind the regression on both PJM zones.
+- Release dates the study uses: TimesFM 2.5 15 Sep 2025, Chronos-2 30 Oct 2025,
+  Timestral 15 Oct 2026. It treats Timestral as having no usable unseen backtest.
 - The zip is a release of `gb-foundation-model-tests` (MIT). Once confirmed, cite
   this record for the weather study's design in place of the no-licence repo.
 

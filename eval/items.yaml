@@ -32,7 +32,7 @@ items:
     label_proposed: ACCEPT_RUN
     label_yuri:
     reason: Directly replicable on PJM at 168 h. Day-ahead vs week-ahead is the horizon mismatch to note. Headline demo item.
-    unverified: Numbers in the post were not confirmed against the Zenodo record.
+    verified: Ratios and gains confirmed against the Zenodo record on Nov 13, 2026 (notes/moran.md).
 
   - id: item-03
     title: open-predico, open-source repo for energy forecasting competitions

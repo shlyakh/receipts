@@ -8,7 +8,23 @@ Benchmark: PJM hourly electricity load, zones JC and DOM, week-ahead (168 hours)
 
 ## Status
 
-Planning and handoff documents only. No code yet.
+As of Thu Nov 12, 2026 (night):
+
+- Data: EIA load for JC and DOM and Open-Meteo weather, hashed in `fetch_manifest.json`.
+- Protocol: `protocol.yaml`, frozen at git tag `protocol-v1` (commit `912a902`) after
+  all gate checks passed.
+- Harness and baselines: seasonal naive, lag regression, lag regression with
+  temperature, LightGBM with temperature. Scored once on 48 of 52 windows; numbers in
+  `results/README.md`.
+- Not yet: foundation models, bootstrap intervals, spec, schema, judge (Friday).
+
+Run from the repo root with the `core/` environment:
+
+```
+uv run --project core python fetch.py verify
+uv run --project core pytest tests -q
+uv run --project core python -m harness.run scored && uv run --project core python -m harness.score scored
+```
 
 ## Prior work disclosure
 

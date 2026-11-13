@@ -1,0 +1,395 @@
+<title>Receipts for Forecasting Papers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: one scrolling story in a single column, 1040px max; maps and charts sit beside short text and stack on phones. */
+:root {
+  --bg: #f6f8fa; --panel: #ffffff; --ink: #10202c; --ink-2: #4a5b68; --ink-3: #7b8a96;
+  --line: #d9e0e6; --grid: #e7ecf0; --band: #e9eff4;
+  --model: #2a78d6; --base: #eb6834; --actual: #10202c;
+  --map-none: #e3e8ec; --map-iso: #b9c6d0; --map-pjm: #2a78d6; --map-stroke: #ffffff;
+  --good: #0f7a4d; --warn: #9a6200; --good-bg: #dff3ea; --warn-bg: #fbeed3; --flag-bg: #eceff2;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
+  --line: #2b3945; --grid: #23303b; --band: #1f2b36;
+  --model: #3987e5; --base: #d95926; --actual: #eaf0f4;
+  --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
+  --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
+  --line: #2b3945; --grid: #23303b; --band: #1f2b36;
+  --model: #3987e5; --base: #d95926; --actual: #eaf0f4;
+  --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
+  --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 600; }
+h3 { font-size: 17px; font-weight: 600; }
+p { margin: 0; max-width: 65ch; color: var(--ink-2); }
+p strong, li strong { color: var(--ink); font-weight: 600; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.lede { font-size: 19px; color: var(--ink); }
+section { display: flex; flex-direction: column; gap: 18px; }
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; align-items: start; }
+.split > * { min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.note { font-size: 13px; color: var(--ink-3); max-width: 75ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.fact b { display: block; font-family: var(--display); font-size: 26px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.fact span { font-size: 13px; color: var(--ink-2); }
+.controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.seg button { font: inherit; font-size: 13px; padding: 6px 12px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg button:focus-visible, select:focus-visible { outline: 2px solid var(--model); outline-offset: 2px; }
+select { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+label.ctl { font-size: 13px; color: var(--ink-2); display: inline-flex; gap: 8px; align-items: center; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--body); fill: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.flag { background: var(--flag-bg); color: var(--ink-2); }
+.receipt { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.receipt .panel { display: flex; flex-direction: column; gap: 10px; }
+.big { font-family: var(--display); font-size: 40px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.kv { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.kv b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.steps .panel { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.steps p { font-size: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+td { color: var(--ink-2); } td:first-child { color: var(--ink); font-weight: 500; }
+.scroll { overflow-x: auto; }
+ul.plain { margin: 0; padding-left: 18px; color: var(--ink-2); max-width: 70ch; display: flex; flex-direction: column; gap: 6px; }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; padding: 6px 9px; border-radius: 6px; line-height: 1.4; z-index: 20; max-width: 260px; font-variant-numeric: tabular-nums; }
+a { color: var(--model); }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } .wrap { gap: 40px; } }
+</style>
+
+<div class="wrap">
+
+<header class="stack">
+  <span class="eyebrow">Prototype · built from scored results, protocol-v1</span>
+  <h1>Receipts for Forecasting Papers</h1>
+  <p class="lede">Every week a new model claims to forecast better. This agent reads the claim, checks its sources, runs the model on our own electricity data, and hands back a receipt: what was claimed, and what we measured.</p>
+</header>
+
+<section>
+  <span class="eyebrow">The grid</span>
+  <h2>Electricity has to be forecast before it is made</h2>
+  <div class="split">
+    <div class="stack">
+      <p>Power cannot be stored cheaply at grid scale, so supply must match demand every hour. Grid operators decide days ahead which power plants will run. They decide from a forecast of demand, called <strong>load</strong>.</p>
+      <p>Seven regional operators run the wholesale grid for most of the United States. <strong>PJM</strong> is the largest: about 65 million people across 13 states and Washington DC.</p>
+      <p>A forecast that is too low means expensive last-minute power. One that is too high means plants paid to stand by. A few percent of error is real money, which is why every new forecasting model gets attention.</p>
+      <p class="note">Map shaded by state for readability. Real operator territories cut across state lines: PJM also covers parts of Illinois, Indiana, Michigan, Kentucky, North Carolina and Tennessee.</p>
+    </div>
+    <div class="panel"><svg id="usmap" viewBox="0 0 975 610" role="img" aria-label="Map of US grid operators with PJM highlighted"></svg></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Our benchmark</span>
+  <h2>Two PJM zones that behave differently</h2>
+  <div class="split">
+    <div class="panel"><svg id="zonemap" role="img" aria-label="Map of the mid-Atlantic with the weather stations used for the JC and DOM zones"></svg></div>
+    <div class="stack">
+      <p>PJM is split into about twenty delivery zones. We forecast two of them, one hour at a time, a full week ahead.</p>
+      <div class="facts">
+        <div class="fact"><b id="jc-mean"></b><span><strong>JC</strong>, Jersey Central, New Jersey. Average load; peak <span id="jc-peak"></span>. Residential, driven by summer heat.</span></div>
+        <div class="fact"><b id="dom-mean"></b><span><strong>DOM</strong>, Dominion, Virginia. Average load; peak <span id="dom-peak"></span>. Large and growing, with heavy data-centre demand.</span></div>
+      </div>
+      <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather stations per zone (the dots). We test twice, once with the weather that actually happened and once with the forecast that was available at the time.</p>
+      <p class="note">Load: EIA hourly data. Weather: Open-Meteo. States are shaded; each zone covers part of its state, and zone boundaries are not drawn in this prototype.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The task</span>
+  <h2>Every Monday at midnight, forecast the next 168 hours</h2>
+  <p>Each line below is one forecast made before the week began. The baseline is a plain regression on last week's load, the calendar and temperature. The challenger is Chronos-2, a pretrained model used without any training on our data.</p>
+  <div class="panel stack">
+    <div class="controls">
+      <div class="seg" id="wk-zone" role="group" aria-label="Zone"></div>
+      <label class="ctl" for="wk-select">Week starting <select id="wk-select"></select></label>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--actual)"></i>Actual load</span>
+      <span><i style="background:var(--base)"></i>Regression + temperature</span>
+      <span><i style="background:var(--model)"></i>Chronos-2 + temperature</span>
+    </div>
+    <svg id="week" viewBox="0 0 960 320" role="img" aria-label="Hourly load for one week: actual, regression forecast and Chronos-2 forecast"></svg>
+    <p class="note" id="wk-note"></p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The receipt</span>
+  <h2>A study said the model and the regression tie. Does that hold here?</h2>
+  <p>A pre-registered study of Great Britain's demand, published this week, found that once both get the same weather, Chronos-2's error is <strong>0.97</strong> of a regression's, a rough tie. We ran the same question on PJM, a week ahead, on <span id="n-weeks"></span> weeks the model cannot have seen in training.</p>
+  <div class="receipt" id="receipt"></div>
+  <p class="note">Error ratio: the model's average error divided by the regression's. Below 1 the model is better. The shaded band is our 10% bar, fixed before scoring: inside it the two are a practical tie. Whiskers are 90% ranges. Source of the claim: <a href="https://zenodo.org/records/24161799">Zenodo record 24161799</a>.</p>
+  <div class="panel stack">
+    <h3>Where in the week the lead comes from</h3>
+    <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+      <div><div class="note">DOM, error ratio by forecast day</div><svg id="day-DOM" viewBox="0 0 440 200" role="img" aria-label="DOM error ratio by day"></svg></div>
+      <div><div class="note">JC, error ratio by forecast day</div><svg id="day-JC" viewBox="0 0 440 200" role="img" aria-label="JC error ratio by day"></svg></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Leaderboard</span>
+  <h2>Every model against the same baseline</h2>
+  <div class="controls">
+    <div class="seg" id="lb-zone" role="group" aria-label="Zone"></div>
+    <div class="seg" id="lb-regime" role="group" aria-label="Weather"></div>
+  </div>
+  <div class="panel"><svg id="board" role="img" aria-label="Error ratio of each model against the regression with temperature"></svg></div>
+  <p class="note">Dots left of 1.00 beat the regression with temperature. Models without weather give the same forecast under either weather setting. A greyed row was scored on weeks the model may have been trained on.</p>
+  <div class="panel scroll"><table id="board-table"></table></div>
+</section>
+
+<section>
+  <span class="eyebrow">What the agents do</span>
+  <h2>From a new claim to a receipt, without a person in the loop</h2>
+  <div class="steps">
+    <div class="panel"><span class="pill flag">Saturday</span><h3>1. Find</h3><p>Search arXiv, Hugging Face, GitHub and Zenodo for forecasting claims published this week.</p></div>
+    <div class="panel"><span class="pill warn">Rules ready</span><h3>2. Judge</h3><p>Read the primary source, extract the claim with a citation, and score it against our problem. No source, no pass.</p></div>
+    <div class="panel"><span class="pill good">Working</span><h3>3. Run</h3><p>If the model can be run, forecast the same scored weeks under the frozen protocol, with pinned weights.</p></div>
+    <div class="panel"><span class="pill good">Working</span><h3>4. Receipt</h3><p>Claimed against measured, with a range, the mismatch in setup, and how many weeks the model cannot have seen.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Why trust it</span>
+  <h2>The rules were fixed before the scores existed</h2>
+  <ul class="plain">
+    <li><strong>Frozen protocol.</strong> Weeks, baseline, the 10% bar and the wording of each verdict were tagged before any scored run.</li>
+    <li><strong>Scored once.</strong> Each model ran once on the scored weeks; debugging used separate earlier weeks.</li>
+    <li><strong>Same inputs.</strong> Every model sees the same load history and the same temperature.</li>
+    <li><strong>Unseen weeks stated.</strong> Each row says how many weeks start after the model's weights were published.</li>
+    <li><strong>A transfer test, not a verdict on the study.</strong> The study forecast one day ahead with more weather inputs; we forecast a week ahead with temperature only.</li>
+  </ul>
+</section>
+
+<section>
+  <span class="eyebrow">Where this goes</span>
+  <h2>From two zones to a product</h2>
+  <div class="panel scroll">
+    <table>
+      <tr><th></th><th>Today</th><th>Next</th></tr>
+      <tr><td>Coverage</td><td>2 PJM zones</td><td>All PJM zones, then the other six operators. The data source already covers them.</td></tr>
+      <tr><td>Models</td><td>3 pretrained models, 4 simple ones</td><td>Any model with public weights. The library we use wraps 16.</td></tr>
+      <tr><td>Claims</td><td>One study, checked by hand-started runs</td><td>A weekly scan that judges and runs new claims by itself.</td></tr>
+      <tr><td>Weather</td><td>Temperature</td><td>Wind, solar and humidity, as a new protocol version.</td></tr>
+    </table>
+  </div>
+  <p class="note">Nothing in the "Next" column is built. It is listed to show the design does not depend on these two zones.</p>
+</section>
+
+</div>
+<div id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="us.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const D = window.DATA, US = window.US;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmt = d3.format(","), f2 = d3.format(".2f"), f3 = d3.format(".3f");
+  const tip = document.getElementById("tip");
+  function showTip(ev, html) { tip.innerHTML = html; tip.hidden = false;
+    const x = Math.min(ev.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+    tip.style.left = Math.max(8, x) + "px"; tip.style.top = (ev.clientY + 14) + "px"; }
+  function hideTip() { tip.hidden = true; }
+  function seg(id, options, value, onChange) {
+    const el = d3.select("#" + id);
+    el.selectAll("button").data(options).join("button").attr("type", "button").text(d => d.label)
+      .attr("aria-pressed", d => String(d.value === value))
+      .on("click", (ev, d) => { el.selectAll("button").attr("aria-pressed", o => String(o.value === d.value)); onChange(d.value); });
+  }
+
+  // ---------- maps
+  const ISO = { CAISO: [6], ERCOT: [48], NYISO: [36], "ISO-NE": [9, 23, 25, 33, 44, 50],
+    PJM: [10, 11, 24, 34, 39, 42, 51, 54], MISO: [5, 17, 18, 19, 22, 26, 27, 28, 29, 38, 55], SPP: [20, 31, 40, 46] };
+  const isoOf = {}; Object.entries(ISO).forEach(([k, ids]) => ids.forEach(i => isoOf[i] = k));
+  const states = topojson.feature(US, US.objects.states).features;
+  const path = d3.geoPath();
+  const proj = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+
+  (function usMap() {
+    const svg = d3.select("#usmap");
+    svg.selectAll("path").data(states).join("path").attr("d", path)
+      .attr("fill", d => { const k = isoOf[+d.id]; return k === "PJM" ? "var(--map-pjm)" : k ? "var(--map-iso)" : "var(--map-none)"; })
+      .attr("stroke", "var(--map-stroke)").attr("stroke-width", 1)
+      .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.properties.name + "</b><br>" + (isoOf[+d.id] || "No regional operator (mostly)")))
+      .on("mouseleave", hideTip);
+    const off = { "ISO-NE": [38, -6], NYISO: [-8, -4], PJM: [-6, 6] };
+    Object.keys(ISO).forEach(k => {
+      const merged = topojson.merge(US, US.objects.states.geometries.filter(g => ISO[k].includes(+g.id)));
+      const c = path.centroid(merged), o = off[k] || [0, 0];
+      svg.append("text").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle")
+        .attr("style", "font-size:" + (k === "PJM" ? 20 : 15) + "px;font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
+    });
+  })();
+
+  (function zoneMap() {
+    const keep = [34, 42, 24, 10, 11, 51, 54, 37, 36, 39, 21, 47, 9];
+    const region = states.filter(s => keep.includes(+s.id));
+    const focus = states.filter(s => [34, 42, 24, 10, 11, 51].includes(+s.id));
+    const b = path.bounds({ type: "FeatureCollection", features: focus }), pad = 14;
+    const x0 = b[0][0] - pad, y0 = b[0][1] - pad, w = b[1][0] - b[0][0] + 2 * pad, h = b[1][1] - b[0][1] + 2 * pad;
+    const svg = d3.select("#zonemap").attr("viewBox", [x0, y0, w, h].join(" "));
+    const u = w / 420;
+    svg.selectAll("path").data(region).join("path").attr("d", path)
+      .attr("fill", d => [34, 51].includes(+d.id) ? "var(--map-iso)" : "var(--map-none)")
+      .attr("stroke", "var(--map-stroke)").attr("stroke-width", u);
+    Object.entries(D.zones).forEach(([zone, z]) => {
+      const pts = z.stations.map(s => ({ ...s, xy: proj([s.lon, s.lat]) }));
+      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4.5 * u)
+        .attr("fill", "var(--map-pjm)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
+        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace("_", " ") + "</b><br>weather station for " + zone))
+        .on("mouseleave", hideTip);
+      const cx = d3.mean(pts, p => p.xy[0]), cy = d3.min(pts, p => p.xy[1]);
+      svg.append("text").attr("x", cx + (zone === "JC" ? 16 * u : -34 * u)).attr("y", cy + (zone === "JC" ? 2 * u : 22 * u))
+        .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink)").text(zone);
+    });
+  })();
+
+  d3.select("#jc-mean").text(fmt(D.zones.JC.mean_mw) + " MW"); d3.select("#jc-peak").text(fmt(D.zones.JC.peak_mw) + " MW");
+  d3.select("#dom-mean").text(fmt(D.zones.DOM.mean_mw) + " MW"); d3.select("#dom-peak").text(fmt(D.zones.DOM.peak_mw) + " MW");
+  d3.select("#n-weeks").text(D.n_windows);
+
+  // ---------- sample week
+  let wkZone = "DOM", wkIdx = 0;
+  const BASE = "lag_regression_temperature", MODEL = "chronos2_temperature";
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  function drawWeek() {
+    const wk = D.weeks[wkIdx][wkZone], svg = d3.select("#week"); svg.selectAll("*").remove();
+    const m = { l: 56, r: 12, t: 26, b: 28 }, W = 960, H = 320;
+    const all = wk.actual.concat(wk[BASE], wk[MODEL]);
+    const x = d3.scaleLinear([0, 167], [m.l, W - m.r]);
+    const y = d3.scaleLinear(d3.extent(all), [H - m.b, m.t]).nice();
+    y.ticks(5).forEach(t => { svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", "var(--grid)");
+      svg.append("text").attr("x", m.l - 8).attr("y", y(t) + 4).attr("text-anchor", "end").text(fmt(t)); });
+    dayNames.forEach((d, i) => { svg.append("text").attr("x", x(i * 24 + 12)).attr("y", H - 8).attr("text-anchor", "middle").text(d);
+      if (i) svg.append("line").attr("x1", x(i * 24)).attr("x2", x(i * 24)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--grid)"); });
+    svg.append("text").attr("x", m.l - 8).attr("y", 12).attr("text-anchor", "end").text("MW");
+    const line = d3.line().x((d, i) => x(i)).y(d => y(d));
+    [[BASE, "var(--base)"], [MODEL, "var(--model)"], ["actual", "var(--actual)"]].forEach(([k, c]) =>
+      svg.append("path").attr("d", line(wk[k])).attr("fill", "none").attr("stroke", c).attr("stroke-width", 2).attr("stroke-linejoin", "round"));
+    const cross = svg.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--ink-3)").attr("stroke-dasharray", "3 3").attr("visibility", "hidden");
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", W - m.l - m.r).attr("height", H - m.t - m.b).attr("fill", "transparent")
+      .on("mousemove", ev => { const i = Math.max(0, Math.min(167, Math.round(x.invert(d3.pointer(ev)[0]))));
+        cross.attr("x1", x(i)).attr("x2", x(i)).attr("visibility", "visible");
+        showTip(ev, "<b>" + dayNames[Math.floor(i / 24)] + " " + String(i % 24).padStart(2, "0") + ":00</b><br>Actual " + fmt(wk.actual[i]) + " MW<br>Regression " + fmt(wk[BASE][i]) + " MW<br>Chronos-2 " + fmt(wk[MODEL][i]) + " MW"); })
+      .on("mouseleave", () => { cross.attr("visibility", "hidden"); hideTip(); });
+    const mae = k => d3.mean(wk.actual.map((a, i) => Math.abs(a - wk[k][i])));
+    d3.select("#wk-note").text("This week's average error: regression " + fmt(Math.round(mae(BASE))) + " MW, Chronos-2 " + fmt(Math.round(mae(MODEL))) + " MW. Both used forecast weather. One week proves nothing by itself; the receipt below averages " + D.n_windows + ".");
+  }
+  seg("wk-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], wkZone, v => { wkZone = v; drawWeek(); });
+  d3.select("#wk-select").on("change", function () { wkIdx = +this.value; drawWeek(); })
+    .selectAll("option").data(D.weeks).join("option").attr("value", (d, i) => i).text(d => d.start);
+  drawWeek();
+
+  // ---------- receipt
+  const bar = D.bar, lo = 1 - bar, hi = 1 + bar;
+  function verdict(r) { return r.hi < lo ? ["Does not transfer: model clearly better", "good"]
+    : (r.lo >= lo && r.hi <= hi) ? ["Transfers: practical tie", "flag"]
+    : r.lo > hi ? ["Does not transfer: regression clearly better", "warn"] : ["Inconclusive", "warn"]; }
+  const sentences = {}; D.primary_text.split("\n").forEach(l => { const m = l.match(/^\*\*(\w+): [^*]+\*\*\s*(.*)$/); if (m) sentences[m[1]] = m[2]; });
+  ["DOM", "JC"].forEach(zone => {
+    const r = D.board.find(b => b.model === MODEL && b.zone === zone && b.regime === "forecast");
+    const [vtxt, vcls] = verdict(r);
+    const card = d3.select("#receipt").append("div").attr("class", "panel");
+    card.append("div").attr("class", "controls").html("<h3>" + zone + "</h3><span class='pill " + vcls + "'>" + vtxt + "</span>");
+    card.append("div").attr("class", "big").text(f2(r.ratio));
+    card.append("div").attr("class", "kv").html("<span>Measured ratio, 90% range <b>" + f2(r.lo) + " to " + f2(r.hi) + "</b></span><span>Claimed in GB <b>" + f2(D.claim.ratio) + "</b></span><span>Unseen weeks <b>" + r.n_after + " of " + r.n + "</b></span>");
+    const svg = card.append("svg").attr("viewBox", "0 0 440 92").attr("role", "img").attr("aria-label", zone + " measured ratio against the claimed ratio");
+    const x = d3.scaleLinear([0.6, 1.2], [14, 426]);
+    svg.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", 12).attr("height", 48).attr("fill", "var(--band)");
+    [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].forEach(t => { svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", 60).attr("y2", 65).attr("stroke", "var(--ink-3)");
+      svg.append("text").attr("x", x(t)).attr("y", 80).attr("text-anchor", "middle").text(f2(t)); });
+    svg.append("line").attr("x1", 14).attr("x2", 426).attr("y1", 60).attr("y2", 60).attr("stroke", "var(--ink-3)");
+    svg.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", 12).attr("y2", 60).attr("stroke", "var(--ink-3)").attr("stroke-dasharray", "3 3");
+    svg.append("line").attr("x1", x(D.claim.lo)).attr("x2", x(D.claim.hi)).attr("y1", 24).attr("y2", 24).attr("stroke", "var(--ink-3)").attr("stroke-width", 2);
+    svg.append("circle").attr("cx", x(D.claim.ratio)).attr("cy", 24).attr("r", 5).attr("fill", "var(--panel)").attr("stroke", "var(--ink-3)").attr("stroke-width", 2);
+    svg.append("text").attr("x", x(D.claim.hi) + 8).attr("y", 28).text("claimed, GB");
+    svg.append("line").attr("x1", x(r.lo)).attr("x2", x(r.hi)).attr("y1", 46).attr("y2", 46).attr("stroke", "var(--model)").attr("stroke-width", 2);
+    svg.append("circle").attr("cx", x(r.ratio)).attr("cy", 46).attr("r", 6).attr("fill", "var(--model)").attr("stroke", "var(--panel)").attr("stroke-width", 2);
+    svg.append("text").attr("x", x(r.hi) + 10).attr("y", 50).text("measured");
+    card.append("p").attr("class", "note").text(sentences[zone] || "");
+
+    const dsvg = d3.select("#day-" + zone), days = D.per_day[zone];
+    const dx = d3.scalePoint(days.map(d => d.day), [48, 420]).padding(0.4), dy = d3.scaleLinear([0.4, 1.2], [168, 10]);
+    dsvg.append("rect").attr("x", 40).attr("width", 390).attr("y", dy(hi)).attr("height", dy(lo) - dy(hi)).attr("fill", "var(--band)");
+    [0.4, 0.6, 0.8, 1.0, 1.2].forEach(t => { dsvg.append("line").attr("x1", 40).attr("x2", 430).attr("y1", dy(t)).attr("y2", dy(t)).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)").attr("stroke-dasharray", t === 1 ? "3 3" : null);
+      dsvg.append("text").attr("x", 34).attr("y", dy(t) + 4).attr("text-anchor", "end").text(f2(t)); });
+    dsvg.append("path").attr("d", d3.line().x(d => dx(d.day)).y(d => dy(d.ratio))(days)).attr("fill", "none").attr("stroke", "var(--model)").attr("stroke-width", 2);
+    days.forEach(d => {
+      dsvg.append("line").attr("x1", dx(d.day)).attr("x2", dx(d.day)).attr("y1", dy(d.lo)).attr("y2", dy(d.hi)).attr("stroke", "var(--model)").attr("stroke-width", 2).attr("opacity", 0.45);
+      dsvg.append("circle").attr("cx", dx(d.day)).attr("cy", dy(d.ratio)).attr("r", 5).attr("fill", "var(--model)").attr("stroke", "var(--panel)").attr("stroke-width", 2);
+      dsvg.append("text").attr("x", dx(d.day)).attr("y", 190).attr("text-anchor", "middle").text("Day " + d.day);
+      dsvg.append("rect").attr("x", dx(d.day) - 22).attr("y", 10).attr("width", 44).attr("height", 160).attr("fill", "transparent")
+        .on("mousemove", ev => showTip(ev, "<b>" + zone + ", day " + d.day + "</b><br>ratio " + f3(d.ratio) + "<br>90% range " + f3(d.lo) + " to " + f3(d.hi))).on("mouseleave", hideTip);
+    });
+  });
+
+  // ---------- leaderboard
+  let lbZone = "DOM", lbRegime = "forecast";
+  const order = ["chronos2_temperature", "timestral_temperature", "chronos2_temperature_gap48", "lightgbm_temperature", "lag_regression_temperature", "timesfm25_temperature", "timesfm25", "chronos2", "lag_regression", "seasonal_naive"];
+  function drawBoard() {
+    const rows = order.map(m => D.board.find(b => b.model === m && b.zone === lbZone && b.regime === lbRegime)).filter(Boolean)
+      .sort((a, b) => a.ratio - b.ratio);
+    const rh = 34, m = { l: 380, r: 60, t: 26, b: 8 }, W = 960, H = m.t + rows.length * rh + m.b;
+    const narrow = window.innerWidth < 640; if (narrow) m.l = 14;
+    const rowH = narrow ? 50 : rh, HH = m.t + rows.length * rowH + m.b;
+    const svg = d3.select("#board").attr("viewBox", "0 0 " + W + " " + HH); svg.selectAll("*").remove();
+    const max = Math.max(2.2, d3.max(rows, r => r.hi || r.ratio) + 0.05);
+    const x = d3.scaleLinear([0.4, max], [m.l, W - m.r]);
+    svg.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", m.t).attr("height", rows.length * rowH).attr("fill", "var(--band)");
+    x.ticks(8).forEach(t => { svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", m.t).attr("y2", m.t + rows.length * rowH).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)").attr("stroke-dasharray", t === 1 ? "3 3" : null);
+      svg.append("text").attr("x", x(t)).attr("y", 16).attr("text-anchor", "middle").text(f2(t)); });
+    rows.forEach((r, i) => {
+      const cy = m.t + i * rowH + (narrow ? rowH - 14 : rowH / 2), flagged = r.group === "flagged";
+      const col = flagged ? "var(--ink-3)" : r.group === "baseline" ? "var(--base)" : (r.group === "fm" || r.group === "primary") ? "var(--model)" : "var(--ink-2)";
+      const lab = svg.append("text").attr("x", narrow ? m.l : m.l - 14).attr("y", narrow ? cy - 18 : cy + 4).attr("text-anchor", narrow ? "start" : "end")
+        .attr("style", "font-size:13px;fill:" + (flagged ? "var(--ink-3)" : "var(--ink)") + ";font-weight:" + (r.group === "primary" || r.group === "baseline" ? 600 : 400));
+      lab.text(r.label + (r.note ? "  ·  " + r.note : ""));
+      if (r.lo != null) svg.append("line").attr("x1", x(r.lo)).attr("x2", x(r.hi)).attr("y1", cy).attr("y2", cy).attr("stroke", col).attr("stroke-width", 2).attr("opacity", 0.55);
+      svg.append("circle").attr("cx", x(r.ratio)).attr("cy", cy).attr("r", r.group === "primary" ? 7 : 5.5).attr("fill", flagged ? "var(--panel)" : col).attr("stroke", flagged ? col : "var(--panel)").attr("stroke-width", 2);
+      svg.append("text").attr("x", x(r.hi || r.ratio) + 10).attr("y", cy + 4).text(f2(r.ratio));
+      svg.append("rect").attr("x", 0).attr("y", m.t + i * rowH).attr("width", W).attr("height", rowH).attr("fill", "transparent")
+        .on("mousemove", ev => showTip(ev, "<b>" + r.label + "</b><br>error " + fmt(Math.round(r.mae)) + " MW (" + r.mape.toFixed(1) + "%)<br>ratio " + f3(r.ratio) + (r.lo != null ? ", 90% range " + f3(r.lo) + " to " + f3(r.hi) : "") + (r.n_after != null ? "<br>" + r.n_after + " of " + r.n + " weeks after its weights" : "")))
+        .on("mouseleave", hideTip);
+    });
+    const t = d3.select("#board-table"); t.selectAll("*").remove();
+    t.append("tr").selectAll("th").data(["Model", "Avg error, MW", "Error %", "Ratio", "90% range", "Unseen weeks"]).join("th").text(d => d);
+    rows.forEach(r => t.append("tr").selectAll("td").data([r.label + (r.note ? " (" + r.note + ")" : ""), fmt(Math.round(r.mae)), r.mape.toFixed(1), f2(r.ratio),
+      r.lo != null ? f2(r.lo) + " to " + f2(r.hi) : "baseline", r.n_after != null ? r.n_after + " of " + r.n : "n/a"]).join("td").text(d => d));
+  }
+  seg("lb-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], lbZone, v => { lbZone = v; drawBoard(); });
+  seg("lb-regime", [{ label: "Forecast weather", value: "forecast" }, { label: "Actual weather", value: "oracle" }], lbRegime, v => { lbRegime = v; drawBoard(); });
+  drawBoard();
+  window.addEventListener("resize", drawBoard);
+})();
+</script>

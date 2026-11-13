@@ -1,4 +1,20 @@
 unique_id,cutoff,model,regime
+DOM,2026-03-02 05:00:00+00:00,chronos2,forecast
+DOM,2026-10-26 04:00:00+00:00,chronos2,forecast
+DOM,2026-03-02 05:00:00+00:00,chronos2,oracle
+DOM,2026-10-26 04:00:00+00:00,chronos2,oracle
+JC,2026-03-02 05:00:00+00:00,chronos2,forecast
+JC,2026-10-26 04:00:00+00:00,chronos2,forecast
+JC,2026-03-02 05:00:00+00:00,chronos2,oracle
+JC,2026-10-26 04:00:00+00:00,chronos2,oracle
+DOM,2026-03-02 05:00:00+00:00,chronos2_temperature,forecast
+DOM,2026-10-26 04:00:00+00:00,chronos2_temperature,forecast
+DOM,2026-03-02 05:00:00+00:00,chronos2_temperature,oracle
+DOM,2026-10-26 04:00:00+00:00,chronos2_temperature,oracle
+JC,2026-03-02 05:00:00+00:00,chronos2_temperature,forecast
+JC,2026-10-26 04:00:00+00:00,chronos2_temperature,forecast
+JC,2026-03-02 05:00:00+00:00,chronos2_temperature,oracle
+JC,2026-10-26 04:00:00+00:00,chronos2_temperature,oracle
 DOM,2026-03-02 05:00:00+00:00,lag_regression,forecast
 DOM,2026-03-09 04:00:00+00:00,lag_regression,forecast
 DOM,2026-10-26 04:00:00+00:00,lag_regression,forecast

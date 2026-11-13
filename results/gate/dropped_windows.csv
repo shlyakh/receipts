@@ -39,3 +39,7 @@ JC,2025-10-27 04:00:00+00:00,seasonal_naive,forecast
 JC,2025-11-03 05:00:00+00:00,seasonal_naive,forecast
 JC,2025-10-27 04:00:00+00:00,seasonal_naive,oracle
 JC,2025-11-03 05:00:00+00:00,seasonal_naive,oracle
+DOM,2025-10-27 04:00:00+00:00,timesfm25,forecast
+DOM,2025-10-27 04:00:00+00:00,timesfm25,oracle
+JC,2025-10-27 04:00:00+00:00,timesfm25,forecast
+JC,2025-10-27 04:00:00+00:00,timesfm25,oracle

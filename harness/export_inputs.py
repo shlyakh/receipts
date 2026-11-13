@@ -20,6 +20,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fetch import verify_manifest  # noqa: E402
+
 from harness.data import ROOT, Data, load_protocol, origins  # noqa: E402
 from harness.run import REGIMES, require_frozen  # noqa: E402
 

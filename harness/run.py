@@ -22,6 +22,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fetch import verify_manifest  # noqa: E402
+
 from harness.baselines import MODELS  # noqa: E402
 from harness.data import ROOT, Data, load_protocol, origins  # noqa: E402
 

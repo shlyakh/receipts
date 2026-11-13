@@ -5,5 +5,19 @@
   "weights_files": {
    "model.safetensors": "2025-10-30T14:58:57+00:00"
   }
+ },
+ "google/timesfm-2.5-200m-pytorch": {
+  "revision": "1d952420fba87f3c6dee4f240de0f1a0fbc790e3",
+  "weights_date": "2025-10-01T22:16:35+00:00",
+  "weights_files": {
+   "model.safetensors": "2025-10-01T22:16:35+00:00"
+  }
+ },
+ "mistralai/Timestral-209M": {
+  "revision": "9874d252ab0aae16f7f7c999f98f98d6ad7d8365",
+  "weights_date": "2026-10-15T15:22:40+00:00",
+  "weights_files": {
+   "model.safetensors": "2026-10-15T15:22:40+00:00"
+  }
  }
 }

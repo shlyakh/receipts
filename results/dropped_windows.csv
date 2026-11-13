@@ -79,3 +79,11 @@ JC,2026-03-02 05:00:00+00:00,seasonal_naive,oracle
 JC,2026-03-09 04:00:00+00:00,seasonal_naive,oracle
 JC,2026-10-26 04:00:00+00:00,seasonal_naive,oracle
 JC,2026-11-02 05:00:00+00:00,seasonal_naive,oracle
+DOM,2026-03-02 05:00:00+00:00,timesfm25,forecast
+DOM,2026-10-26 04:00:00+00:00,timesfm25,forecast
+DOM,2026-03-02 05:00:00+00:00,timesfm25,oracle
+DOM,2026-10-26 04:00:00+00:00,timesfm25,oracle
+JC,2026-03-02 05:00:00+00:00,timesfm25,forecast
+JC,2026-10-26 04:00:00+00:00,timesfm25,forecast
+JC,2026-03-02 05:00:00+00:00,timesfm25,oracle
+JC,2026-10-26 04:00:00+00:00,timesfm25,oracle

@@ -288,7 +288,8 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
   day (only matters for a later protocol version).
 - VERIFIED Nov 13, 2026 from the Hugging Face API: all eight model ids in the table
   above resolve and none is gated. Weights-file commit dates: Chronos-2 2025-10-30,
-  TimesFM 2.5 2025-10-01, TimesFM-3 2026-08-24. Not yet checked per file: Timestral,
+  TimesFM 2.5 2025-10-01, TimesFM-3 2026-08-24. Timestral-209M 2026-10-15 (single squashed commit).
+  Not yet checked per file:
   t0-gamma, TiRex-2, Kumo Forecast (their repos changed in autumn 2026).
 - Residual overlap for every model: earlier years of the same public series may be
   in training, so a model may know these zones' typical shape.

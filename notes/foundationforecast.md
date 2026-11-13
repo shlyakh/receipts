@@ -52,6 +52,15 @@ on JC, a relative difference below 5e-7: single-precision noise across two libra
 stacks. The library reproduces the direct adapter. Side-by-side values are in
 `results/gate/crosscheck/chronos2_ff.parquet`. It is not a leaderboard row.
 
+### Other models through the library (`models_ff/run_ff.py`)
+
+- TimesFM 2.5: the wrapper is univariate (no `X_df`). Runs at 2,048 hours of context,
+  about 0.3 s per series on CPU. Missing hours in the context (the EIA clock-change
+  gaps) produce finite forecasts. Scored once on Nov 13, 2026.
+- Timestral-209M: accepts `X_df`; library defaults are symmetric averaging and clipping
+  at zero. About 0.5 s per series. Run on the gate origins only. Its repository has a
+  single squashed weights commit dated 2026-10-15, so no earlier revision can be pinned.
+
 ## Hugging Face ids
 
 All eight ids in `REFERENCE.md` resolve and none is gated. Pins and weights dates for

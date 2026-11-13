@@ -4,7 +4,8 @@ Scored once on Thu Nov 12, 2026, at commit `912a902`, the commit tagged `protoco
 52 Monday origins from 2025-11-10 to 2026-11-02, 168-hour horizon, zones JC and DOM.
 
 Baselines were scored on Thu Nov 12, 2026 at commit `912a902`. Chronos-2 was scored
-once on Fri Nov 13, 2026 at commit `2029bad`, against the same unchanged protocol.
+once on Fri Nov 13, 2026 at commit `2029bad`, and TimesFM 2.5 once on the same day at
+commit `760adc7`, both against the same unchanged protocol.
 
 ## Primary comparison
 
@@ -76,6 +77,24 @@ at its strongest. Full table with intervals: `stats.csv`.
   alone.
 - Forecast weather costs Chronos-2 more than it costs the regression in both zones.
 
+### TimesFM 2.5 (univariate, secondary)
+
+Run through FoundationForecast, whose TimesFM 2.5 wrapper has no covariate path, so the
+row uses load history only. Weights `google/timesfm-2.5-200m-pytorch` revision
+`1d952420`, file committed 2025-10-01; 48 of 48 scored weeks start after that date.
+
+| Comparison, forecast regime | DOM | JC |
+|---|---|---|
+| TimesFM 2.5 vs. the temperature-only regression | 1.328 (1.169 to 1.502) | 1.117 (0.969 to 1.274) |
+| TimesFM 2.5 vs. Chronos-2 without weather | 0.990 (0.910 to 1.077) | 1.027 (0.967 to 1.089) |
+
+- Without weather the two foundation models are indistinguishable. Both lose to a
+  regression that has temperature on DOM, and neither beats it on JC.
+- On horizon day 1 TimesFM 2.5 is slightly ahead of the regression (0.94 on DOM, 0.90
+  on JC); from day 2 it is behind (1.41 to 1.50 on DOM, 1.07 to 1.22 on JC).
+- This is the weather-free pattern the GB study reports: a foundation model without
+  weather does not beat a regression that has it.
+
 ## Leaderboard
 
 Mean absolute error over each 168-hour window, averaged over 48 windows, in MW.
@@ -89,27 +108,31 @@ Ratio is against the lag regression with temperature in the same zone and regime
 | LightGBM + temperature | DOM | forecast | 952 | 5.6 | 0.62 | 0.95 |
 | Chronos-2, no weather | DOM | forecast | 1,349 | 7.9 | 0.89 | 1.34 |
 | Chronos-2 + temperature | DOM | forecast | 734 | 4.3 | 0.48 | 0.73 |
+| TimesFM 2.5, univariate | DOM | forecast | 1,336 | 7.8 | 0.88 | 1.33 |
 | Seasonal naive | DOM | oracle | 1,619 | 9.5 | 1.06 | 2.07 |
 | Lag regression | DOM | oracle | 1,533 | 8.8 | 1.00 | 1.96 |
 | Lag regression + temperature | DOM | oracle | 782 | 4.5 | 0.51 | 1.00 |
 | LightGBM + temperature | DOM | oracle | 736 | 4.4 | 0.48 | 0.94 |
 | Chronos-2, no weather | DOM | oracle | 1,349 | 7.9 | 0.89 | 1.72 |
 | Chronos-2 + temperature | DOM | oracle | 519 | 3.1 | 0.34 | 0.66 |
+| TimesFM 2.5, univariate | DOM | oracle | 1,336 | 7.8 | 0.88 | 1.71 |
 | Seasonal naive | JC | forecast | 377 | 13.8 | 1.03 | 1.41 |
 | Lag regression | JC | forecast | 350 | 13.1 | 0.96 | 1.31 |
 | Lag regression + temperature | JC | forecast | 267 | 10.2 | 0.74 | 1.00 |
 | LightGBM + temperature | JC | forecast | 229 | 8.7 | 0.63 | 0.86 |
 | Chronos-2, no weather | JC | forecast | 290 | 10.5 | 0.80 | 1.09 |
 | Chronos-2 + temperature | JC | forecast | 218 | 8.0 | 0.60 | 0.82 |
+| TimesFM 2.5, univariate | JC | forecast | 298 | 10.8 | 0.82 | 1.12 |
 | Seasonal naive | JC | oracle | 377 | 13.8 | 1.03 | 1.58 |
 | Lag regression | JC | oracle | 350 | 13.1 | 0.96 | 1.46 |
 | Lag regression + temperature | JC | oracle | 239 | 9.3 | 0.66 | 1.00 |
 | LightGBM + temperature | JC | oracle | 179 | 7.0 | 0.49 | 0.75 |
 | Chronos-2, no weather | JC | oracle | 290 | 10.5 | 0.80 | 1.21 |
 | Chronos-2 + temperature | JC | oracle | 167 | 6.3 | 0.46 | 0.70 |
+| TimesFM 2.5, univariate | JC | oracle | 298 | 10.8 | 0.82 | 1.25 |
 
-Seasonal naive, the lag regression and Chronos-2 without weather use no weather, so
-their rows are the same in both regimes. Full precision, per-horizon-day errors and run metadata are in
+Seasonal naive, the lag regression, Chronos-2 without weather and TimesFM 2.5 use no
+weather, so their rows are the same in both regimes. Full precision, per-horizon-day errors and run metadata are in
 `leaderboard.parquet` and `leaderboard.csv`; per-window errors in `windows.parquet`;
 hourly forecasts in `forecasts/`.
 
@@ -158,5 +181,12 @@ Details in `notes/foundationforecast.md`; values in `gate/crosscheck/chronos2_ff
 ## Not done
 
 - Chronos-2 with a 48-hour data gap (pre-registered secondary).
-- TimesFM 2.5, Timestral and other foundation models.
+- Timestral on the scored weeks. Its only weights file was committed on 2026-10-15, so
+  1 of the 48 scored weeks starts after it. It is held back under the open research
+  task in `DECISIONS.md` (newest models whose weights fall inside the scored window).
+  It does run: with temperature, through FoundationForecast, on the gate weeks
+  (`gate/leaderboard.csv`).
+- TimesFM 2.5 with temperature (the GB study used `forecast_with_covariates`; the
+  library wrapper does not expose it).
+- Other foundation models.
 - Vanilla + recency regression row (optional in the brief).

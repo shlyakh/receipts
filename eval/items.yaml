@@ -1,7 +1,7 @@
 # Evaluation set for the judge: 11 candidates collected by Yuri, mostly via LinkedIn.
 # Purpose: test /judge without depending on search.
-# Labels are PROPOSED from a research pass on Nov 12, 2026. Yuri to confirm before
-# they are used as ground truth.
+# label_proposed: from a research pass on Nov 12, 2026. label_yuri: Yuri's blind label
+# (from eval/label_sheet.md, which shows no proposed labels). Ground truth is label_yuri.
 #
 # Labels: ACCEPT_RUN | ACCEPT_STAGE3 | PARTIAL | REJECT
 # Spec being judged against: PJM zonal hourly load, 168-hour horizon, weather covariates.
@@ -17,7 +17,8 @@ items:
       - https://github.com/TimeCopilot/foundationforecast
       - https://docs.timecopilot.dev/foundationforecast/examples/kumo-family/
     claim: Point-forecast model usable through one API, with conformal prediction intervals added on top.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Runnable as a univariate row. No covariates and a short native horizon, so expect it to trail the weather regression; the test is interval coverage.
 
   - id: item-02
@@ -28,7 +29,8 @@ items:
       - https://zenodo.org/records/24161799
       - https://github.com/AndyMoran/gb-foundation-model-tests
     claim: Given the same weather, the best zero-shot model roughly ties a plain weather regression; weather improves every forecaster.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Directly replicable on PJM at 168 h. Day-ahead vs week-ahead is the horizon mismatch to note. Headline demo item.
     unverified: Numbers in the post were not confirmed against the Zenodo record.
 
@@ -40,7 +42,8 @@ items:
       - https://github.com/arnaud-vs/open-predico
       - https://huggingface.co/spaces/open-predico/dashboard
     claim: t0-gamma was the best commercially usable model in the author's wind-generation backtest.
-    label: PARTIAL
+    label_proposed: PARTIAL
+    label_yuri:
     reason: Off-target quantity (generation, not load). Design patterns are reusable; the model claim routes to item-09.
 
   - id: item-04
@@ -51,7 +54,8 @@ items:
       - https://docs.timecopilot.dev/foundationforecast/examples/conformal-prediction/
       - https://github.com/TimeCopilot/foundationforecast
     claim: Calibrated intervals for any model from its historical errors, without retraining.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Testable on PJM as native vs conformal interval coverage.
     unverified: The "63 models" count in the post.
 
@@ -62,7 +66,8 @@ items:
     primary_sources:
       - https://www.ml6.eu/en/blog/googles-weathernext-3-better-weather-forecast-lower-imbalance-costs
     claim: Lower error than a physics model on wind speed, solar irradiance and temperature; lower imbalance costs for wind and solar farms.
-    label: REJECT
+    label_proposed: REJECT
+    label_yuri:
     reason: About weather and generation, not load. Could matter later as a temperature covariate source (stage 3 only); data access is by request.
 
   - id: item-06
@@ -71,7 +76,8 @@ items:
     discovered_via: LinkedIn post (no URL captured)
     primary_sources: []
     claim: Lower error than the operator's own imbalance forecast using public data only.
-    label: REJECT
+    label_proposed: REJECT
+    label_yuri:
     reason: Off-target quantity and no primary source found. The judge should report the missing source, not invent one.
 
   - id: item-07
@@ -80,7 +86,8 @@ items:
     discovered_via: LinkedIn post (no URL captured)
     primary_sources: []
     claim: Timestral slightly ahead of Chronos-2 day-ahead on a 15-minute grid with weather and calendar covariates; Chronos-2 slightly ahead on the hourly grid.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Weak evidence (one series, one month) but both models are runnable, so the claim can be tested at 168 h on JC and DOM.
 
   - id: item-08
@@ -89,7 +96,8 @@ items:
     discovered_via: LinkedIn post (no URL captured)
     primary_sources: []
     claim: The reprogrammed LLM loses to zero-shot Chronos and ties simple neural baselines.
-    label: REJECT
+    label_proposed: REJECT
+    label_yuri:
     reason: Household scale, needs training (outside the runnable class), and the author reports it underperforms.
 
   - id: item-09
@@ -101,7 +109,8 @@ items:
       - https://huggingface.co/theforecastingcompany/t0-beta
       - https://arxiv.org/abs/2609.24559
     claim: Open-weight probabilistic model with known-future covariates, near the top of a public benchmark, usable commercially.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Runnable with covariates. Gated on Hugging Face (accept terms, set a token).
 
   - id: item-10
@@ -113,7 +122,8 @@ items:
       - https://huggingface.co/google/timesfm-3.0-pytorch
       - https://research.google/blog/timesfm-3-a-zero-shot-foundation-model-for-multivariate-forecasting/
     claim: Native multivariate forecasting with past-only and known-future covariates, full horizon in one pass.
-    label: ACCEPT_RUN
+    label_proposed: ACCEPT_RUN
+    label_yuri:
     reason: Runnable for evaluation. Weights are non-commercial, so license_ok_for_commercial is false.
 
   - id: item-11
@@ -124,7 +134,8 @@ items:
       - https://mistral.ai/news/timestral/
       - https://github.com/mistralai/timestral
     claim: Both models lead a general benchmark; synthetic training data is increasingly important.
-    label: PARTIAL
+    label_proposed: PARTIAL
+    label_yuri:
     reason: A secondary source making a generic benchmark claim, not a load claim. Routes to running Timestral and t0-gamma.
 
 expected_counts:

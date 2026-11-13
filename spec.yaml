@@ -1,0 +1,55 @@
+# Problem spec the judge scores candidates against. The backtest itself is defined in
+# protocol.yaml (frozen at tag protocol-v1); where the two overlap, protocol.yaml wins.
+version: spec-v1
+problem: hourly zonal electric load, PJM zones JC and DOM
+target: {series: EIA-930 sub-BA demand, unit: MW, frequency: hourly}
+horizon_hours: 168
+issue_time: "Mon 00:00 America/New_York"
+covariates:
+  required: [temperature_2m]
+  known_future: true
+  regimes: [oracle, forecast]   # always reported separately
+baseline_to_beat: lag_regression_temperature   # "temperature-only regression" in receipts
+primary_comparison:
+  model: chronos2_temperature
+  regime: forecast
+  bar: 0.10
+  defined_in: protocol.yaml
+
+# What makes a candidate relevant. Each is scored 0 to 3 in the scorecard.
+relevance:
+  target_match: 3 = hourly electric load; 2 = other hourly energy series; 1 = other time series; 0 = not forecasting
+  horizon_match: 3 = about a week ahead; 2 = day-ahead; 1 = other horizons; 0 = not stated
+  covariates_match: 3 = weather as a known-future input; 2 = other covariates; 1 = univariate; 0 = not stated
+
+# What we can measure ourselves.
+runnable_class:
+  ff_native_exog: runs through FoundationForecast and takes temperature (models_ff/run_ff.py)
+  ff_univariate: runs through FoundationForecast on load history only
+  direct_adapter: needs its own adapter (as TimesFM 2.5 with covariates did)
+  not_runnable: no public weights or code, or cannot run on a CPU laptop within the limit
+runnable_limits: {cpu_ok: true, max_runtime_min: 60}
+sources_for_weights: [huggingface, pypi, github]
+weights_rule: >
+  Weights are loaded at a recorded revision. The receipt states how many scored weeks
+  start after the weights file's commit date. A model whose weights fall inside the
+  scored window is run only with that label.
+
+license_policy: {prefer: [Apache-2.0, MIT], flag_noncommercial: true}
+metrics: [MAE, MAPE, RMSE, MASE, error_ratio_vs_regression]
+min_evidence: {test_window_days: 90, primary_source_required: true}
+
+labels:
+  ACCEPT_RUN: relevant, with a primary source, and runnable on our benchmark now
+  ACCEPT_STAGE3: relevant and sourced, but running it needs work beyond an adapter
+  PARTIAL: relevant, but the evidence is thin or the primary source is missing
+  REJECT: off target, or the claim has no usable support
+missing_source_rule: >
+  A claim with no primary source caps the label at PARTIAL, unless the candidate is
+  itself a runnable model release (the release is then its own evidence).
+excluded_sources: [linkedin.com]   # a LinkedIn URL is an identifier only; never fetched or cited
+
+receipt:
+  framing: transfer test, never "the claim is true / false"
+  verdicts: [transfers, partially, does_not_transfer, untestable]
+  must_state: [claimed, measured ratio with 90% interval, horizon mismatch, weeks after weights]

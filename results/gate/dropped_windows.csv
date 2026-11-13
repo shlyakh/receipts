@@ -55,3 +55,11 @@ DOM,2025-10-27 04:00:00+00:00,timestral_temperature,forecast
 DOM,2025-10-27 04:00:00+00:00,timestral_temperature,oracle
 JC,2025-10-27 04:00:00+00:00,timestral_temperature,forecast
 JC,2025-10-27 04:00:00+00:00,timestral_temperature,oracle
+DOM,2025-10-27 04:00:00+00:00,vanilla_benchmark,forecast
+DOM,2025-10-27 04:00:00+00:00,vanilla_benchmark,oracle
+JC,2025-10-27 04:00:00+00:00,vanilla_benchmark,forecast
+JC,2025-10-27 04:00:00+00:00,vanilla_benchmark,oracle
+DOM,2025-10-27 04:00:00+00:00,vanilla_benchmark_trend,forecast
+DOM,2025-10-27 04:00:00+00:00,vanilla_benchmark_trend,oracle
+JC,2025-10-27 04:00:00+00:00,vanilla_benchmark_trend,forecast
+JC,2025-10-27 04:00:00+00:00,vanilla_benchmark_trend,oracle

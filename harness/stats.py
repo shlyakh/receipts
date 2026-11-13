@@ -104,6 +104,13 @@ def main() -> None:
             ]:
                 if with_t in models and without_t in models:
                     compare("weather_gain", zone, regime, with_t, without_t)
+            # Against the field's standard benchmark, in both registered forms
+            # (protocol-v1.1, secondary).
+            for v in ("vanilla_benchmark", "vanilla_benchmark_trend"):
+                if v in models:
+                    for m in models:
+                        if not m.startswith("vanilla_benchmark"):
+                            compare("vs_" + v.replace("_benchmark", ""), zone, regime, m, v)
             # Cost of a 48-hour data gap: error with the gap / error without it.
             if {"chronos2_temperature_gap48", "chronos2_temperature"} <= set(models):
                 compare(

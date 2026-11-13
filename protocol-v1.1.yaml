@@ -1,0 +1,64 @@
+# Addendum to protocol.yaml (protocol-v1, which stays frozen and unedited).
+# Written on 2026-11-13, before the added model was run on any scored origin.
+version: protocol-v1.1
+based_on: protocol-v1
+status: frozen at tag protocol-v1.1 once the gate checks below pass
+unchanged: >
+  Everything in protocol-v1: zones, horizon, origins, data rules, regimes, drop rule,
+  bootstrap, the baseline model, the primary comparison, its bar, verdict rule and
+  outcome sentences. The primary outcome cannot be changed by anything in this file.
+
+added_models: two rows, defined below as added_model and second_form
+added_model:
+  name: vanilla_benchmark
+  label: Tao's Vanilla Benchmark
+  why: >
+    The baselines in protocol-v1 came from one recent study. A search of review papers,
+    forecasting competitions and operator practice (notes/classical_baselines.md,
+    BASELINES.md) found that the load-forecasting field's standard benchmark is this
+    regression: it was the named benchmark of GEFCom2012, GEFCom2014 and GEFCom2017.
+  definition: >
+    One least-squares regression, refitted at every origin on the trailing 730 days
+    ("the most recent 24 months") of hourly load and temperature. Terms, as written in
+    Ziel and Liu (2016), equations 10 and 11: month of year, day of week, hour of day
+    and day of week x hour as classes; temperature, its square and its cube; and each of
+    those three interacted with month and with hour. No lagged load, no trend, no
+    holiday term, no tuning. Calendar terms use the local time at the start of the
+    hour. Fitted on reanalysis temperature; predicts with the regime's series, as the
+    lag regression does. Temperature is the same zone series every other model gets.
+  source: https://arxiv.org/abs/1603.01376
+
+second_form:
+  name: vanilla_benchmark_trend
+  label: Tao's Vanilla Benchmark with trend
+  definition: >
+    The same regression plus one linear trend term (time since the start of the training
+    window, continuing over the forecast week).
+  why: >
+    Secondary sources describe the original GEFCom2012 benchmark as including a linear
+    trend. That was found in search summaries only, not on a page we opened, so the
+    verified equation is registered as vanilla_benchmark and this form as a second row.
+    On the gate origins (never scored) the form without trend ran far behind on DOM,
+    whose load is growing; both forms were fixed here before either was scored, and both
+    are reported whatever the outcome.
+
+gate:
+  - run on the gate origins and the ordering_gate origins only, before the tag
+  - the lookahead test (tests/test_gates.py) passes with the model included
+  - forecasts are complete for every gate origin that the other models complete
+
+scoring: the 52 scored origins are run once for each added row, after the tag protocol-v1.1
+
+secondary_comparisons:
+  - each Vanilla form against the lag regression with temperature (the frozen baseline)
+  - every other model against each Vanilla form, per zone and regime, same bootstrap
+  - >
+    Chronos-2 with temperature against each Vanilla form, forecast regime, per zone,
+    read with the same 10% bar and verdict rule as the primary comparison. Reported as
+    secondary. Sentence: "Against the field's standard benchmark, Chronos-2's error on
+    {zone} was {ratio} of Tao's Vanilla Benchmark's (90% interval {low} to {high})."
+
+caveats:
+  - Vanilla is deliberately plain. Stronger classical methods (recency terms, additive
+    models) are not run; beating Vanilla is the field's minimum bar, not its strongest.
+  - Its training window is two years against one year for the lag regression.

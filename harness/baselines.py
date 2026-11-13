@@ -105,10 +105,73 @@ def lightgbm_temperature(
     return pred.where(test["y_lag168"].notna())
 
 
+VANILLA_DAYS = 730  # "the most recent 24 months"
+
+
+def _vanilla_design(
+    idx: pd.DatetimeIndex, t: np.ndarray, tz: str = "America/New_York"
+) -> np.ndarray:
+    """Design matrix of Tao's Vanilla Benchmark as written in Ziel and Liu (2016), eq. 10 and 11:
+    month, day of week, hour and day-of-week x hour as classes, and a cubic in temperature
+    on its own, by month and by hour. No lagged load, no trend, no holiday term."""
+    local = (idx - H).tz_convert(tz)  # calendar from the local time at the start of the hour
+    month, dow, hour = local.month.to_numpy(), local.day_of_week.to_numpy(), local.hour.to_numpy()
+    m = (month[:, None] == np.arange(1, 13)).astype(float)  # 12 month classes
+    h = (hour[:, None] == np.arange(24)).astype(float)  # 24 hour classes
+    dh = ((dow * 24 + hour)[:, None] == np.arange(168)).astype(float)  # day of week x hour
+    x = t / 10.0  # degrees C / 10, for conditioning only; the fit is unchanged
+    powers = [x, x**2, x**3]
+    cols = [m, dh]  # dh spans the intercept, day of week and hour; lstsq handles the overlap with m
+    cols += [m * p[:, None] for p in powers]  # T, T^2, T^3 by month (spans the plain cubic)
+    cols += [h * p[:, None] for p in powers]  # T, T^2, T^3 by hour
+    return np.column_stack(cols)
+
+
+def _vanilla(
+    hist: pd.Series, temp: pd.Series | None, cutoff: pd.Timestamp, trend: bool
+) -> pd.Series:
+    if temp is None:
+        raise ValueError("the Vanilla benchmark needs a temperature series")
+    hz = horizon_index(cutoff)
+    train_idx = pd.date_range(cutoff - pd.Timedelta(days=VANILLA_DAYS) + H, cutoff, freq="h")
+    y = hist.reindex(train_idx).to_numpy()
+    t_train = temp.reindex(train_idx).to_numpy()
+    ok = np.isfinite(y) & np.isfinite(t_train)
+
+    def design(idx: pd.DatetimeIndex, t: np.ndarray) -> np.ndarray:
+        x = _vanilla_design(idx, t)
+        if trend:  # years since the start of the training window, continuing over the horizon
+            years = np.asarray((idx - train_idx[0]) / pd.Timedelta(days=365))
+            x = np.column_stack([x, years])
+        return x
+
+    beta, *_ = np.linalg.lstsq(design(train_idx[ok], t_train[ok]), y[ok], rcond=None)
+    return pd.Series(design(hz, temp.reindex(hz).to_numpy()) @ beta, index=hz)
+
+
+def vanilla_benchmark(hist: pd.Series, temp: pd.Series | None, cutoff: pd.Timestamp) -> pd.Series:
+    """Tao's Vanilla Benchmark: the load-forecasting field's standard regression benchmark
+    (GEFCom2012, 2014 and 2017), as written in Ziel and Liu (2016). One least-squares fit
+    on the trailing 24 months, refitted at every origin. Protocol-v1.1, secondary."""
+    return _vanilla(hist, temp, cutoff, trend=False)
+
+
+def vanilla_benchmark_trend(
+    hist: pd.Series, temp: pd.Series | None, cutoff: pd.Timestamp
+) -> pd.Series:
+    """The same benchmark plus a linear trend, the form reported for GEFCom2012."""
+    return _vanilla(hist, temp, cutoff, trend=True)
+
+
+# Rows added after protocol-v1 carry the version that defined them.
+MODEL_PROTOCOL = {"vanilla_benchmark": "protocol-v1.1", "vanilla_benchmark_trend": "protocol-v1.1"}
+
 # name -> (function, uses_weather)
 MODELS = {
     "seasonal_naive": (seasonal_naive, False),
     "lag_regression": (lag_regression, False),
     "lag_regression_temperature": (lag_regression_temperature, True),
     "lightgbm_temperature": (lightgbm_temperature, True),
+    "vanilla_benchmark": (vanilla_benchmark, True),
+    "vanilla_benchmark_trend": (vanilla_benchmark_trend, True),
 }

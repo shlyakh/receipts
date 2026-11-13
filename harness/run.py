@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fetch import verify_manifest  # noqa: E402
 
-from harness.baselines import MODELS  # noqa: E402
+from harness.baselines import MODEL_PROTOCOL, MODELS  # noqa: E402
 from harness.data import ROOT, Data, load_protocol, origins  # noqa: E402
 
 REGIMES = ["oracle", "forecast"]
@@ -102,7 +102,7 @@ def main() -> None:
                     )
         df = pd.concat(frames, ignore_index=True)
         df["git_commit"] = commit
-        df["protocol_version"] = proto["version"]
+        df["protocol_version"] = MODEL_PROTOCOL.get(name, proto["version"])
         df["weather"] = "temperature" if uses_weather else "none"
         df.to_parquet(out_dir / f"{name}.parquet", index=False)
         print(

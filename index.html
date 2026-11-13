@@ -118,6 +118,17 @@ a { color: var(--model); }
       <p class="note">Load: EIA hourly data. Weather: Open-Meteo. States are shaded; each zone covers part of its state, and zone boundaries are not drawn in this prototype.</p>
     </div>
   </div>
+  <div class="panel stack">
+    <h3>Why these two</h3>
+    <div class="scroll"><table>
+      <tr><th></th><th>JC</th><th>DOM</th><th>Why it matters for a test</th></tr>
+      <tr><td>Size</td><td id="why-jc-size"></td><td id="why-dom-size"></td><td>A method has to work on a small zone and on one six times larger.</td></tr>
+      <tr><td>Peak against average</td><td id="why-jc-peak"></td><td id="why-dom-peak"></td><td>JC is spiky: heat waves more than double its load. DOM is steadier.</td></tr>
+      <tr><td>Trend</td><td>Flat</td><td>Growing; a model fitted on last year runs about 2% low</td><td>Growth punishes models that only learn from the past year.</td></tr>
+      <tr><td>Cost of imperfect weather</td><td>+12% error</td><td>+29% error</td><td>Measured on the regression when forecast weather replaces actual weather.</td></tr>
+    </table></div>
+    <p class="note">Both zones have public hourly data back to 2019 and sit in different climates 400 km apart. If a method wins in one and not the other, the win depends on the zone, and that is what happened (see the receipt).</p>
+  </div>
 </section>
 
 <section>
@@ -136,6 +147,30 @@ a { color: var(--model); }
     </div>
     <svg id="week" viewBox="0 0 960 320" role="img" aria-label="Hourly load for one week: actual, regression forecast and Chronos-2 forecast"></svg>
     <p class="note" id="wk-note"></p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The methods</span>
+  <h2>What is being compared, in plain terms</h2>
+  <p>A week ahead is hard for three reasons: the weather forecast itself gets worse each day out, holidays and heat waves break the weekly rhythm, and nothing after Monday midnight may be used. Each method below gets the same history and the same temperature.</p>
+  <div class="panel scroll">
+    <table>
+      <tr><th>Method</th><th>How it forecasts</th><th>Learns from</th><th>Uses temperature</th></tr>
+      <tr><td>Same hour last week</td><td>Copies the load from 168 hours earlier. The floor any method must beat.</td><td>Nothing</td><td>No</td></tr>
+      <tr><td>Regression</td><td>24 small straight-line fits, one per hour of the day: last week's load, day of week, holidays.</td><td>The past year of this zone, refitted every Monday</td><td>No</td></tr>
+      <tr><td>Regression + temperature <span class="pill flag">baseline</span></td><td>The same fits plus temperature and its square, so both heat and cold can raise load.</td><td>The past year of this zone</td><td>Yes</td></tr>
+      <tr><td>LightGBM + temperature</td><td>Hundreds of small decision trees on exactly the regression's inputs. Can find patterns a straight line cannot.</td><td>The past year of this zone</td><td>Yes</td></tr>
+      <tr><td>Chronos-2 <span class="pill flag">challenger</span></td><td>A neural network pretrained on a very large collection of other time series. It reads 12 weeks of our load and continues the pattern. Nothing is trained on our data.</td><td>Other series, before Oct 2025</td><td>Optional: past and coming week</td></tr>
+      <tr><td>TimesFM 2.5</td><td>Another pretrained network. It has no weather input, so temperature is added outside it by a straight-line fit, with the network forecasting what is left.</td><td>Other series, before Oct 2025</td><td>Only through that outside fit</td></tr>
+      <tr><td>Timestral</td><td>A pretrained network that accepts weather for the coming week. Published in October 2026, after most of our test weeks, so its score may include weeks it was trained on.</td><td>Other series, before Oct 2026</td><td>Yes</td></tr>
+    </table>
+  </div>
+  <div class="steps">
+    <div class="panel"><h3>How error is measured</h3><p>For each of 48 test weeks, the average gap in megawatts between forecast and actual over the 168 hours.</p></div>
+    <div class="panel"><h3>How two methods are compared</h3><p>One method's average error divided by the other's. 0.73 means 27% less error.</p></div>
+    <div class="panel"><h3>How sure we are</h3><p>The 48 weeks are reshuffled 2,000 times to see how far the ratio moves by chance. The range shown holds 90% of those results.</p></div>
+    <div class="panel"><h3>What counts as a win</h3><p>Fixed before scoring: the whole range must be more than 10% better. Otherwise it is a tie or undecided.</p></div>
   </div>
 </section>
 
@@ -278,6 +313,9 @@ a { color: var(--model); }
   d3.select("#jc-mean").text(fmt(D.zones.JC.mean_mw) + " MW"); d3.select("#jc-peak").text(fmt(D.zones.JC.peak_mw) + " MW");
   d3.select("#dom-mean").text(fmt(D.zones.DOM.mean_mw) + " MW"); d3.select("#dom-peak").text(fmt(D.zones.DOM.peak_mw) + " MW");
   d3.select("#n-weeks").text(D.n_windows);
+  ["JC", "DOM"].forEach(z => { const v = D.zones[z], k = z.toLowerCase();
+    d3.select("#why-" + k + "-size").text(fmt(v.mean_mw) + " MW average");
+    d3.select("#why-" + k + "-peak").text((v.peak_mw / v.mean_mw).toFixed(1) + " times"); });
 
   // ---------- sample week
   let wkZone = "DOM", wkIdx = 0;

@@ -1,0 +1,184 @@
+# Addendum to protocol.yaml (protocol-v1) and protocol-v1.1.yaml, which stay frozen and
+# unedited. Weather sources only. Written 2026-11-13, after gate runs and before any row
+# defined here was run on a scored origin. Frozen at git tag protocol-v1.2; do not edit
+# (CLAUDE.md rule 5). New model rows from drafts/protocol-v1.2_models.yaml are NOT part of
+# this version; they go in a later one.
+version: protocol-v1.2
+based_on: protocol-v1.1
+status: frozen           # tagged protocol-v1.2 on 2026-11-13; do not edit
+unchanged: >
+  Everything in protocol-v1 and protocol-v1.1: zones, horizon, stations, origins, load
+  data rules, the v1 regimes `oracle` and `forecast`, their raw files and results, the
+  drop rule as applied to v1 and v1.1 rows, the bootstrap, the baseline model, the
+  primary comparison, its bar, verdict rule and outcome sentences. Every row and
+  comparison defined here is SECONDARY and cannot change the primary outcome sentence.
+
+decisions: >
+  Yuri, 2026-11-13 (DECISIONS.md 28): ERA5 is the temperature truth; AIFS is the
+  preferred forecast source for future work; add a forecast_gfs regime (ERA5 history with
+  the v1 forecast horizon); use AIFS and drop its incomplete scored weeks for AIFS rows
+  only; correct the v1 "oracle" label; run Chronos-2 with temperature in the new regimes.
+
+# ------------------------------------------------------------------ findings behind it
+finding_v1_oracle_label: >
+  The v1 regime called `oracle` (protocol.yaml: "Archive (reanalysis) temperature") is
+  ECMWF IFS 9 km operational analysis, not ERA5 reanalysis. Checked 2026-11-13 at all six
+  stations: the stored archive files equal Open-Meteo archive `models=ecmwf_ifs` at every
+  hour of 2019, 2023 and 2025-09-01..2026-11-08 (RMSE 0.000) and carry its grid
+  coordinates. Against `models=era5` they differ by 1.06 to 1.68 C RMSE per station and
+  year (mean bias -1.2 to +0.3 C); zone series 2025-03..2025-11: 0.89 C (DOM), 1.30 C (JC).
+  fetch.py sent no `models` parameter. The v1 wording is a known misnomer; the frozen text
+  is not edited (DEVIATIONS.md, REFERENCE.md).
+finding_v1_forecast_source: >
+  The v1 `forecast` regime (`best_match`) equals `gfs_seamless` at every hour checked:
+  NOAA HRRR at lead day 1, GFS (`gfs_global`) at lead days 2 to 7.
+
+# ------------------------------------------------------------------ data
+weather_v12:
+  provider: Open-Meteo, every new request names its model explicitly (`models=`)
+  variables_used: [temperature_2m]
+  stations: as protocol-v1 (same six points; zone series = unweighted mean; a zone value
+    exists only when every station has one)
+  truth:
+    model_id: era5          # archive-api.open-meteo.com/v1/archive, ERA5 0.25 deg
+    start_date: "2019-01-01"
+    end_date: "2026-11-11"  # ERA5 runs about 5 days behind; the last days are empty
+  forecast_sources:
+    forecast_gfs:
+      model_id: best_match (resolved to gfs_seamless; HRRR day 1, GFS days 2 to 7)
+      files: the v1 Previous Runs files, unchanged (data/raw/openmeteo/previous_runs_*)
+    forecast_ifs:
+      model_id: ecmwf_ifs025          # ECMWF IFS 0.25 deg
+    forecast_aifs:
+      model_id: ecmwf_aifs025_single  # ECMWF AIFS 0.25 deg Single
+    endpoint: https://previous-runs-api.open-meteo.com/v1/forecast
+    start_date: "2024-02-01"
+    end_date: "2026-11-11"
+    lead_matching: >
+      As the v1 forecast regime: horizon day k (hours cutoff+24(k-1)+1 .. cutoff+24k)
+      uses temperature_2m_previous_day{k}, the value forecast 24k hours before the valid
+      time. Lead is matched by run start, not publication time (v1 caveat applies).
+  model_ids_verified: >
+    2026-11-13 against the live API: era5 and ecmwf_ifs (archive), ecmwf_ifs025 and
+    ecmwf_aifs025_single (Previous Runs) return data; ecmwf_aifs025 returns only nulls.
+  raw_files: data/raw/openmeteo_models/<model_id>/ (150 files), hashed into
+    fetch_manifest.json by adding entries; the 106 v1 entries are unchanged
+  processed: weather_oracle_era5.parquet, weather_forecast_ifs.parquet,
+    weather_forecast_aifs.parquet (fetch.py download-v12 / process-v12); forecast_gfs
+    reads weather_forecast.parquet (v1)
+  coverage: >
+    Weather availability, checked before the tag (data/processed/weather_v12_coverage.csv).
+    ERA5 history (730 days before each cutoff) complete for all origins. Horizon complete
+    per zone: oracle_era5 gate 6/6, scored 51/52 (2026-11-02 lacks its last 30 hours;
+    already dropped for every regime by the EIA load gap). forecast_gfs and forecast_ifs:
+    all origins. forecast_aifs: gate 6/6, scored 49/52 (2026-04-13, 2026-04-20,
+    2026-04-27 incomplete: 35, 72, 19 missing horizon hours); no AIFS archive before
+    2025-02-17.
+
+# ------------------------------------------------------------------ regimes
+regimes:
+  oracle_era5: >
+    ERA5 temperature for every hour, before and after the cutoff: perfect weather against
+    the declared truth.
+  forecast_gfs: >
+    ERA5 up to and including the cutoff; for the horizon, the v1 forecast regime's
+    lead-matched values (HRRR day 1, GFS days 2 to 7). Differs from the v1 `forecast`
+    regime only in its history temperature.
+  forecast_ifs: >
+    ERA5 up to and including the cutoff; for the horizon, ECMWF IFS 0.25 deg,
+    lead-matched.
+  forecast_aifs: >
+    ERA5 up to and including the cutoff; for the horizon, ECMWF AIFS Single,
+    lead-matched. The preferred forecast source for future work.
+  history_temperature_rule: >
+    In every v1.2 regime the temperature a model sees up to the cutoff (all training rows
+    of the regressions, the past covariate of Chronos-2) is ERA5. Only the 168 horizon
+    hours come from the regime's source. The v1 `oracle` series is never read by a v1.2
+    regime. The regressions are fitted on ERA5 and predict with the regime's series.
+  same_inputs: every model in a regime gets the identical temperature series (rule 3)
+  information_set_caveat: >
+    ERA5 is published about 5 days after real time, so a real forecaster would hold ERA5
+    only to about cutoff - 5 days. As in v1 the information set is idealised. Recent ERA5
+    is the preliminary ERA5T; the hashed raw files fix the values used.
+  never_mixed: each regime is its own row (rule 4); v1 and v1.2 regimes are never combined
+
+# ------------------------------------------------------------------ rows
+rows:   # all SECONDARY, protocol_version protocol-v1.2
+  lag_regression_temperature: as protocol-v1, unchanged code (harness/baselines.py)
+  vanilla_benchmark_trend: as protocol-v1.1, unchanged code
+  chronos2_temperature: >
+    As protocol-v1 (models/chronos2.py): amazon/chronos-2 at revision
+    29ec3766d36d6f73f0696f85560a422f50e8498c (weights 2025-10-30), context 2,048 hours,
+    temperature as past and known-future covariate, no cross-learning, median as point,
+    CPU. Inputs exported by the harness (harness/export_inputs.py --v12). A zone-window
+    whose horizon temperature is incomplete is not forecast.
+regimes_run: [oracle_era5, forecast_gfs, forecast_ifs, forecast_aifs]
+baseline_within_regime: lag_regression_temperature (leaderboard ratio column only)
+
+window_drop_rule_v12: >
+  Scoped per regime. A window whose forecast or actuals are incomplete for any of the
+  three v1.2 rows is dropped for every v1.2 row in that zone AND THAT REGIME only, and
+  listed in results/weather_v12/dropped_windows.csv. A missing horizon value is never
+  filled from another lead or another source. v1.2 rows are written to
+  results/weather_v12/ and scored by harness/score_weather.py; harness/score.py never
+  reads them, so no v1 or v1.1 row's n_windows can change. Expected scored n_windows per
+  zone: 48 in oracle_era5, forecast_gfs and forecast_ifs (the four v1 load-gap drops);
+  45 in forecast_aifs (also the three incomplete AIFS weeks).
+
+# ------------------------------------------------------------------ comparisons
+statistics: as protocol-v1 (window MAE; ratio of mean window errors; whole-week paired
+  bootstrap, 2,000 draws, seed 20261112, 90% percentile interval)
+registered_comparisons:   # fixed before scoring; per zone; all secondary
+  - >
+    within each of the four regimes: chronos2_temperature vs lag_regression_temperature,
+    read against the 10% bar with the v1 verdict rule (worth switching / practical tie /
+    regression clearly better / inconclusive), labelled secondary
+  - >
+    within each regime: chronos2_temperature vs vanilla_benchmark_trend, same reading
+  - >
+    for each of the three rows and each forecast regime: MAE in that regime / MAE in
+    oracle_era5 (the cost of that source's forecast weather), paired on the weeks both
+    regimes keep
+  - per-horizon-day versions of the above, reported in stats.csv, not read against the bar
+  - >
+    descriptive: temperature error (MAE, RMSE, bias) by lead day of each forecast source
+    against ERA5 over the scored windows
+wording: >
+  Secondary. A receipt sentence says "transfers / does not transfer", never true/false.
+  The v1 primary sentence is unchanged and is not restated with v1.2 numbers.
+
+# ------------------------------------------------------------------ gate
+gate:
+  - raw files match fetch_manifest.json; v1 raw and processed files byte-identical to before
+  - tests/test_weather_v12.py (history is ERA5 in all four regimes; lead matching;
+    forecast_gfs horizon equals the v1 forecast horizon; corrupting load after the cutoff,
+    ERA5 after the cutoff, all non-matched leads and the other sources changes no forecast)
+  - tests/test_gates.py unchanged and passing
+  - all three rows run on the 6 gate origins in all four regimes
+gate_results_2026_11_13: >
+  Passed. Gate origins, 4 of 6 windows per zone and regime (2025-10-27 and 2025-11-03
+  dropped by the EIA daylight-saving gap, as in v1). MAE in MW, Chronos-2 / lag
+  regression / Vanilla with trend: DOM oracle_era5 286 / 389 / 328, forecast_gfs
+  294 / 450 / 367, forecast_ifs 293 / 460 / 383, forecast_aifs 322 / 438 / 369; JC
+  oracle_era5 79 / 158 / 109, forecast_gfs 91 / 136 / 116, forecast_ifs 97 / 128 / 122,
+  forecast_aifs 86 / 132 / 117 (results/gate/weather_v12/). Four weeks check the
+  pipeline; they are not evidence about any source. Temperature RMSE against ERA5, all
+  hours 2025-03-01..2025-11-10, lead day 1..7: DOM GFS/HRRR 1.32 to 3.57, IFS 0.25 1.13
+  to 3.00, AIFS 0.88 to 2.37; JC GFS/HRRR 1.89 to 3.75, IFS 0.25 1.59 to 3.37, AIFS 1.14
+  to 2.68 C.
+
+scoring: >
+  The 52 scored origins are run once per row, in all four regimes together, after the
+  tag protocol-v1.2, from a clean checkout of the tagged commit. No rerun or adjustment
+  after results are seen; a crash is fixed without changing any definition and reported.
+
+caveats:
+  - ERA5 is a model product, not observations. AIFS is trained on ERA5 (and IFS
+    0.25 deg is initialised from the IFS analysis), so an ERA5 truth may favour AIFS. A
+    neutral truth (station observations) is not part of this version.
+  - Comparing a v1.2 regime with a v1 regime changes the history series as well as the
+    horizon source; forecast_gfs isolates the history change.
+  - ERA5, IFS 0.25 and AIFS use 0.25 deg grid points up to about 15 km from the station
+    coordinates; the v1 series used finer grids.
+  - forecast_aifs has 45 scored weeks per zone, the others 48; cross-regime ratios are
+    paired on the common weeks.

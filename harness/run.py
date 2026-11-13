@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -27,8 +28,10 @@ from harness.baselines import MODEL_PROTOCOL, MODELS  # noqa: E402
 from harness.data import ROOT, V12_REGIMES, Data, load_protocol, origins  # noqa: E402
 
 REGIMES = ["oracle", "forecast"]
-V12_DIR = "weather_v12"  # draft protocol-v1.2 rows: results/<set>/weather_v12/forecasts/
-V12_VERSION = "protocol-v1.2-draft"
+V12_DIR = "weather_v12"  # protocol-v1.2 rows: results/<set>/weather_v12/forecasts/
+V12_VERSION = "protocol-v1.2"
+V12_FILE = "protocol-v1.2.yaml"
+FROZEN_FILES = ["protocol.yaml", "protocol-v1.1.yaml", V12_FILE]
 
 
 def git(*args: str) -> str:
@@ -55,6 +58,23 @@ def require_frozen(proto: dict) -> None:
         sys.exit(f"protocol.yaml differs from tag {tag}")
 
 
+def require_frozen_v12(proto: dict, out_file: Path | None = None) -> None:
+    """Scored v1.2 rows run only after the tag protocol-v1.2, against unchanged protocol
+    files, and only once: an existing scored output is never overwritten (rule 12)."""
+    require_frozen(proto)
+    v12 = yaml.safe_load((ROOT / V12_FILE).read_text())
+    if v12.get("version") != V12_VERSION or v12.get("status") != "frozen":
+        sys.exit(f"{V12_FILE} is not marked frozen: scored origins must not be run yet")
+    if not git("tag", "--list", V12_VERSION):
+        sys.exit(f"git tag {V12_VERSION} does not exist: scored origins must not be run yet")
+    if subprocess.run(
+        ["git", "diff", "--quiet", V12_VERSION, "--", *FROZEN_FILES], cwd=ROOT, check=False
+    ).returncode:
+        sys.exit(f"a protocol file differs from tag {V12_VERSION}")
+    if out_file is not None and out_file.exists():
+        sys.exit(f"{out_file} exists: the scored set is run once")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("which", choices=["gate", "ordering_gate", "scored"])
@@ -65,29 +85,33 @@ def main() -> None:
         nargs="*",
         choices=REGIMES + list(V12_REGIMES),
         default=REGIMES,
-        help="default: the v1 regimes. The draft v1.2 regimes must be run on their own and "
+        help="default: the v1 regimes. The v1.2 regimes must be run on their own and "
         "write to a separate folder, so the v1 drop rule never sees them",
     )
     args = ap.parse_args()
     regimes = args.regimes
     v12 = bool(set(regimes) & set(V12_REGIMES))
     if v12 and not set(regimes) <= set(V12_REGIMES):
-        sys.exit("run the v1 and the draft v1.2 regimes separately")
+        sys.exit("run the v1 and the v1.2 regimes separately")
 
     proto = load_protocol()
     verify_manifest()
+    out_dir = ROOT / "results" if args.which == "scored" else ROOT / "results" / args.which
+    out_dir = (out_dir / V12_DIR if v12 else out_dir) / "forecasts"
     if args.which == "scored":
         if args.limit:
             sys.exit("--limit is for the gate set; the scored set is run whole, once")
         if v12:
-            sys.exit("the v1.2 weather regimes are a draft: scored origins must not be run")
-        require_frozen(proto)
+            if set(regimes) != set(V12_REGIMES):
+                sys.exit("the scored v1.2 set is run once, in all four regimes together")
+            for name in args.models:
+                require_frozen_v12(proto, out_dir / f"{name}.parquet")
+        else:
+            require_frozen(proto)
 
     cutoffs = origins(proto, args.which)[: args.limit]
     data = Data()
     commit = git_commit()
-    out_dir = ROOT / "results" if args.which == "scored" else ROOT / "results" / args.which
-    out_dir = (out_dir / V12_DIR if v12 else out_dir) / "forecasts"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for name in args.models:

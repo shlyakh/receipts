@@ -5,7 +5,7 @@ Usage (from the repo root):
     uv run --project core python fetch.py process    # data/processed/*.parquet
     uv run --project core python fetch.py verify     # check raw files against the manifest
 
-Draft protocol-v1.2 weather sources (additive; the commands above are unchanged):
+protocol-v1.2 weather sources (additive; the commands above are unchanged):
     uv run --project core python fetch.py download-v12  # ERA5, IFS 0.25, AIFS raw files
     uv run --project core python fetch.py process-v12   # their parquet files + coverage
 
@@ -41,7 +41,7 @@ MAX_FILL_RUN = 3
 FLAG_FACTOR = 3.0
 PREVIOUS_RUNS_CHUNK_DAYS = 92
 
-# ---- Draft protocol-v1.2 weather sources (drafts/protocol-v1.2_weather.yaml). Additive:
+# ---- protocol-v1.2 weather sources (protocol-v1.2.yaml). Additive:
 # the v1 commands above never read or write these files. Every request names its model
 # explicitly (`models=`), so a later change in Open-Meteo's best_match cannot alter a
 # refetch. Temperature only (decision 17). Same stations, date ranges, chunks and
@@ -322,7 +322,7 @@ def process() -> None:
     print("oracle", oracle.shape, "forecast", forecast.shape)
 
 
-# ------------------------------------------------- draft protocol-v1.2 weather sources
+# ------------------------------------------------- protocol-v1.2 weather sources
 
 
 def download_v12(proto: dict) -> list[Path]:

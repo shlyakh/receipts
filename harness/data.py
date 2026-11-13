@@ -19,8 +19,9 @@ ROOT = Path(__file__).resolve().parent.parent
 PROCESSED = ROOT / "data" / "processed"
 H = pd.Timedelta(hours=1)
 
-# Draft protocol-v1.2 regimes (not part of the frozen protocol; secondary rows only).
-V12_REGIMES = ("oracle_era5", "forecast_ifs", "forecast_aifs")
+# protocol-v1.2 weather regimes (protocol-v1.2.yaml; secondary rows only). forecast_gfs
+# reuses the v1 forecast files (HRRR day 1, GFS days 2 to 7) with ERA5 history.
+V12_REGIMES = ("oracle_era5", "forecast_gfs", "forecast_ifs", "forecast_aifs")
 V12_PARQUET = {
     "oracle_era5": "weather_oracle_era5.parquet",
     "forecast_ifs": "weather_forecast_ifs.parquet",
@@ -104,7 +105,7 @@ class Data:
             raise ValueError(f"unknown regime {regime!r}")
         return pd.concat([past, future]).rename("T")
 
-    # ---- draft protocol-v1.2 weather regimes (drafts/protocol-v1.2_weather.yaml).
+    # ---- protocol-v1.2 weather regimes (protocol-v1.2.yaml).
     # Loaded on first use, so the v1 regimes and their tests never need these files.
 
     def _load_v12(self) -> None:
@@ -125,9 +126,10 @@ class Data:
 
     def _temperature_v12(self, zone: str, cutoff: pd.Timestamp, regime: str) -> pd.Series:
         """ERA5 (the declared truth) up to the cutoff in every v1.2 regime. After it:
-        ERA5 for oracle_era5; for forecast_ifs / forecast_aifs, horizon day k uses that
-        model's previous_day{k} value, the same lead matching as the v1 forecast regime.
-        Missing values stay missing; the per-regime drop rule handles them."""
+        ERA5 for oracle_era5; for the forecast regimes, horizon day k uses that source's
+        previous_day{k} value, the same lead matching as the v1 forecast regime
+        (forecast_gfs: the v1 forecast table itself). Missing values stay missing; the
+        per-regime drop rule handles them."""
         self._load_v12()
         past = self.era5[zone].loc[:cutoff]
         hz = horizon_index(cutoff)
@@ -135,7 +137,10 @@ class Data:
             future = self.era5[zone].reindex(hz)
         else:
             lead_day = np.arange(len(hz)) // 24 + 1
-            table = self.forecast_v12[regime][zone].reindex(index=hz, columns=range(1, 8))
+            src = (
+                self.forecast[zone] if regime == "forecast_gfs" else self.forecast_v12[regime][zone]
+            )
+            table = src.reindex(index=hz, columns=range(1, 8))
             future = pd.Series(
                 table.to_numpy()[np.arange(len(hz)), lead_day - 1], index=hz, dtype=float
             )

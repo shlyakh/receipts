@@ -25,11 +25,26 @@ https://api.eia.gov/v2/electricity/rto/region-sub-ba-data/data/
 
 ## Weather: Open-Meteo (free, no key)
 
-- Oracle regime: `https://archive-api.open-meteo.com/v1/archive`, hourly
-  `temperature_2m` (ERA5, about 5 days behind real time).
-- Forecast regime: Previous Runs API, `temperature_2m_previous_day1` ..
-  `previous_day7` = the value forecast N days before the valid time. Reported to be
-  archived from January 2024. Horizon day k uses `previous_dayk`.
+- Oracle regime (v1): `https://archive-api.open-meteo.com/v1/archive`, hourly
+  `temperature_2m`, requested without a `models` parameter. **Correction (verified
+  2026-11-13): this is ECMWF IFS 9 km analysis, not ERA5.** At all six stations the
+  stored files equal `models=ecmwf_ifs` at every hour of 2019, 2023 and 2025-09 to
+  2026-11 and carry the `ecmwf_ifs` grid coordinates; they differ from `models=era5`
+  by 1.1 to 1.7 °C RMSE per station (zone series 0.9 °C DOM, 1.3 °C JC). The words
+  "reanalysis" and "ERA5" for the v1 `oracle` regime in `protocol.yaml` (and the label
+  `oracle` itself, read as "true weather") are a known misnomer; the frozen file is not
+  edited (DEVIATIONS.md, 2026-11-13).
+- Forecast regime (v1): Previous Runs API, `temperature_2m_previous_day1` ..
+  `previous_day7` = the value forecast N days before the valid time. Horizon day k uses
+  `previous_dayk`. Requested without `models`, i.e. `best_match`, which for our points
+  is `gfs_seamless`: **NOAA HRRR on lead day 1 and GFS (`gfs_global`) on lead days 2
+  to 7** (identical at every hour checked, 2026-11-13). HRRR is marked discontinued on
+  2026-11-30, so `best_match` will change after that date; the hashed raw files fix v1.
+- protocol-v1.2 (secondary rows only): ERA5 (`models=era5`) is the declared temperature
+  truth, used as history in every v1.2 regime; forecast sources are named explicitly:
+  `forecast_gfs` (the v1 forecast files), `forecast_ifs` (`ecmwf_ifs025`) and
+  `forecast_aifs` (`ecmwf_aifs025_single`, the preferred source for future work). AIFS
+  Single is archived from 2025-02-17. See `protocol-v1.2.yaml`.
 - `protocol-v1` uses temperature only (decision 17). The GB study also uses wind
   speed and solar radiation (see `notes/moran.md`). If Previous Runs serves
   `wind_speed_10m`, `shortwave_radiation` and `dew_point_2m` at lead days 1 to 7,
@@ -120,7 +135,8 @@ def fit_predict_hour(train, test, weather_cols):
 The Vanilla + recency model above stays as a second, lag-free weather baseline.
 
 Known caveat to write into `protocol.yaml`: in the forecast regime the regression
-trains on reanalysis and predicts with forecast weather. The GB study puts that
+trains on reanalysis (in v1 actually the IFS analysis, see the weather section) and
+predicts with forecast weather. The GB study puts that
 mismatch at 100 to 200 MW in its cool months.
 
 ## Metrics and headline statistic

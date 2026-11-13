@@ -100,9 +100,15 @@ def main() -> None:
             for with_t, without_t in [
                 ("lag_regression_temperature", "lag_regression"),
                 ("chronos2_temperature", "chronos2"),
+                ("timesfm25_temperature", "timesfm25"),
             ]:
                 if with_t in models and without_t in models:
                     compare("weather_gain", zone, regime, with_t, without_t)
+            # Cost of a 48-hour data gap: error with the gap / error without it.
+            if {"chronos2_temperature_gap48", "chronos2_temperature"} <= set(models):
+                compare(
+                    "gap48_cost", zone, regime, "chronos2_temperature_gap48", "chronos2_temperature"
+                )
         # Cost of forecast weather: forecast-regime error / oracle-regime error.
         for m in models:
             if (win.loc[win["model"] == m, "weather"] == "temperature").all():

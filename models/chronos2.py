@@ -2,6 +2,7 @@
 
     uv run --project models python models/chronos2.py gate
     uv run --project models python models/chronos2.py scored
+    uv run --project models python models/chronos2.py scored --gap48
 
 Reads only data/model_inputs/<set>.parquet, which the harness writes. The harness owns
 the cutoffs: this script loops over the cutoffs in that file and calls the model once
@@ -12,6 +13,11 @@ Settings, fixed on 2026-11-13 before any scored run and not tuned:
   point forecast = median; quantiles 0.1 / 0.5 / 0.9; CPU.
 Rows written: chronos2_temperature (both regimes) and chronos2 (no weather, identical in
 both regimes).
+
+With --gap48 (pre-registered secondary, protocol.yaml): the load context ends 48 hours
+before the cutoff, the model forecasts 216 hours and the last 168 are kept. Weather is
+unchanged: reanalysis temperature up to the cutoff, the regime's series after it. Row
+written: chronos2_temperature_gap48.
 """
 
 from __future__ import annotations
@@ -29,6 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REPO_ID = "amazon/chronos-2"
 CONTEXT_HOURS = 2048
 QUANTILES = [0.1, 0.5, 0.9]
+GAP_HOURS = 48
 
 
 def git_commit() -> str:
@@ -41,7 +48,8 @@ def git_commit() -> str:
 
 def main() -> None:
     which = sys.argv[1] if len(sys.argv) > 1 else ""
-    if which not in ("gate", "ordering_gate", "scored"):
+    gap48 = sys.argv[2:] == ["--gap48"]
+    if which not in ("gate", "ordering_gate", "scored") or (sys.argv[2:] and not gap48):
         sys.exit(__doc__)
     pin = json.loads((ROOT / "models" / "pins.json").read_text())[REPO_ID]
     pipe = Chronos2Pipeline.from_pretrained(
@@ -71,10 +79,44 @@ def main() -> None:
         assert len(out) == len(fut), "forecast timestamps do not match the horizon"
         return out, runtime
 
-    rows = {"chronos2_temperature": [], "chronos2": []}
+    def predict_gap48(win: pd.DataFrame) -> tuple[pd.DataFrame, float]:
+        cutoff = win["cutoff"].iloc[0]
+        seen = win["ds"] <= cutoff - pd.Timedelta(hours=GAP_HOURS)
+        hist = win[seen].groupby("unique_id").tail(CONTEXT_HOURS)
+        ahead = win[~seen]  # 48 gap hours (reanalysis temperature) + 168 horizon hours
+        assert ahead.groupby("unique_id").size().eq(GAP_HOURS + 168).all()
+        t0 = time.perf_counter()
+        pred = pipe.predict_df(
+            hist[["unique_id", "ds_naive", "y", "T"]],
+            future_df=ahead[["unique_id", "ds_naive", "T"]],
+            id_column="unique_id",
+            timestamp_column="ds_naive",
+            target="y",
+            prediction_length=GAP_HOURS + 168,
+            quantile_levels=QUANTILES,
+            cross_learning=False,
+        )
+        runtime = (time.perf_counter() - t0) / win["unique_id"].nunique()
+        fut = win[win["is_horizon"]]
+        out = fut[["unique_id", "ds", "ds_naive"]].merge(pred, on=["unique_id", "ds_naive"])
+        assert len(out) == len(fut), "forecast timestamps do not match the horizon"
+        return out, runtime
+
+    rows = (
+        {"chronos2_temperature_gap48": []}
+        if gap48
+        else {"chronos2_temperature": [], "chronos2": []}
+    )
     cutoffs = sorted(inputs["cutoff"].unique())
     for i, cutoff in enumerate(cutoffs):
         at = inputs[inputs["cutoff"] == cutoff]
+        if gap48:
+            for regime, win in at.groupby("regime"):
+                out, rt = predict_gap48(win)
+                rows["chronos2_temperature_gap48"].append(
+                    out.assign(regime=regime, cutoff=cutoff, runtime_s=rt)
+                )
+            continue
         for regime, win in at.groupby("regime"):
             out, rt = predict(win, use_temperature=True)
             rows["chronos2_temperature"].append(
@@ -93,7 +135,7 @@ def main() -> None:
         df = pd.concat(parts, ignore_index=True)
         df = df.rename(columns={"0.5": "y_hat", "0.1": "q10", "0.9": "q90"})
         df["model"] = name
-        df["weather"] = "temperature" if name.endswith("temperature") else "none"
+        df["weather"] = "temperature" if "temperature" in name else "none"
         df["git_commit"] = commit
         df["protocol_version"] = "protocol-v1"
         df["weights_revision"] = pin["revision"]

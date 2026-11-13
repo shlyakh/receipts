@@ -30,7 +30,7 @@ def origin_utc(local_date: str, tz: str) -> pd.Timestamp:
 
 
 def origins(proto: dict, which: str) -> list[pd.Timestamp]:
-    """Cutoffs from protocol.yaml. `which` is "gate" or "scored"."""
+    """Cutoffs from protocol.yaml. `which` is "gate", "ordering_gate" or "scored"."""
     return [origin_utc(str(d), proto["timezone"]) for d in proto["origins"][which]]
 
 

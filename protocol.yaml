@@ -1,6 +1,6 @@
-# Backtest protocol. DRAFT until tagged protocol-v1; frozen afterwards (CLAUDE.md rule 5).
+# Backtest protocol. Frozen at git tag protocol-v1. Changes go in a new version.
 version: protocol-v1
-status: draft            # set to "frozen" in the commit that is tagged
+status: frozen           # tagged protocol-v1 on 2026-11-12; do not edit (CLAUDE.md rule 5)
 
 # ---------------------------------------------------------------- problem
 target: PJM hourly load (EIA-930 sub-BA demand), MW
@@ -80,6 +80,17 @@ origins:
   # Gate origins are used to check the code before the tag and are never scored.
   # The last two touch the 2025-11-02 data gap, so they exercise the drop rule.
   gate: ["2025-09-29", "2025-10-06", "2025-10-13", "2025-10-20", "2025-10-27", "2025-11-03"]
+  # Ordering gate: the 52 Mondays before the gate set. Used for one check only
+  # (see gates). Never scored.
+  ordering_gate: ["2024-09-30", "2024-10-07", "2024-10-14", "2024-10-21", "2024-10-28", "2024-11-04",
+                  "2024-11-11", "2024-11-18", "2024-11-25", "2024-12-02", "2024-12-09", "2024-12-16",
+                  "2024-12-23", "2024-12-30", "2025-01-06", "2025-01-13", "2025-01-20", "2025-01-27",
+                  "2025-02-03", "2025-02-10", "2025-02-17", "2025-02-24", "2025-03-03", "2025-03-10",
+                  "2025-03-17", "2025-03-24", "2025-03-31", "2025-04-07", "2025-04-14", "2025-04-21",
+                  "2025-04-28", "2025-05-05", "2025-05-12", "2025-05-19", "2025-05-26", "2025-06-02",
+                  "2025-06-09", "2025-06-16", "2025-06-23", "2025-06-30", "2025-07-07", "2025-07-14",
+                  "2025-07-21", "2025-07-28", "2025-08-04", "2025-08-11", "2025-08-18", "2025-08-25",
+                  "2025-09-01", "2025-09-08", "2025-09-15", "2025-09-22"]
   scored: ["2025-11-10", "2025-11-17", "2025-11-24", "2025-12-01", "2025-12-08", "2025-12-15",
            "2025-12-22", "2025-12-29", "2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26",
            "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09",
@@ -123,6 +134,35 @@ window_drop_rule: >
   A window whose forecast or actuals are incomplete for any forecaster is dropped for
   every forecaster in that zone, in both regimes, and listed in dropped_windows.csv.
 
+# ---------------------------------------------------------------- gates
+# Checks that passed before this file was tagged (tests/test_gates.py). They use the
+# gate and ordering_gate origins only.
+gates:
+  - raw files match fetch_manifest.json
+  - origins are Monday 00:00 local in winter and summer time
+  - no model input is later than the cutoff, except the regime's horizon temperature
+  - the forecast regime uses the lead-matched value for each horizon day
+  - corrupting all load after the cutoff and all disallowed weather changes no forecast
+  - an independent second implementation of the temperature regression agrees to 0.1 MW
+  - >
+    row ordering over the 52 ordering_gate origins, both zones: the lag regression
+    beats seasonal naive, and the temperature regression beats the lag regression
+    in the oracle regime
+gate_history: >
+  The ordering check was first run on the gate origins and failed there: on four
+  October weeks the lag regression without temperature was worse than seasonal naive
+  in both zones. Over the full ordering_gate year it is 3 to 5 percent better. The
+  cause is seasonal, not a bug: the fitted lag coefficient is about 0.6, so forecasts
+  are pulled towards the trailing-year level, which is too high in the low-load
+  shoulder months. At a week ahead the lag regression without temperature is only
+  marginally better than seasonal naive. Decided by Yuri on 2026-11-12: run the check
+  on the full earlier year.
+expected_dropped_windows: >
+  Four scored origins per zone are expected to be dropped because of the EIA gaps on
+  2026-03-08 and 2026-11-01: 2026-03-02 and 2026-10-26 (actuals missing), 2026-03-09
+  and 2026-11-02 (168-hour lag missing). Decided by Yuri on 2026-11-12: keep the drop
+  rule, no fallback lag. Expected n_windows: 48.
+
 # ---------------------------------------------------------------- statistics
 metrics: [MAE, MAPE, RMSE, MASE, error_ratio_vs_baseline, mae_per_horizon_day]
 mase_scale: MAE of the 168-hour seasonal naive over the 365 days before the cutoff
@@ -146,8 +186,8 @@ primary_comparison:
     practical_tie: the whole interval is inside 0.90 to 1.10
     regression_clearly_better: the whole interval is above 1.10
     inconclusive: anything else
-  # One sentence per outcome, written before scoring. {zone}, {ratio}, {low}, {high}
-  # are filled in afterwards. Each is followed by the leakage statement.
+  # One sentence per outcome, written before scoring and approved by Yuri on
+  # 2026-11-12. {zone}, {ratio}, {low}, {high}, {n} are filled in afterwards. Each is followed by the leakage statement.
   outcome_sentences:
     worth_switching: >
       On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
@@ -166,7 +206,7 @@ primary_comparison:
     inconclusive: >
       On {zone}, a week ahead with archived forecast weather, Chronos-2's error was
       {ratio} of the temperature-only lag regression's (90% interval {low} to
-      {high}). The interval crosses the 10% bar, so 52 weeks cannot separate a tie
+      {high}). The interval crosses the 10% bar, so {n} weeks cannot separate a tie
       from a real difference.
   leakage_statement: >
     {n_after} of {n} scored weeks start after the date of the pinned weights.

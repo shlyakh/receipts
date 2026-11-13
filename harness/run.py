@@ -54,7 +54,7 @@ def require_frozen(proto: dict) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("which", choices=["gate", "scored"])
+    ap.add_argument("which", choices=["gate", "ordering_gate", "scored"])
     ap.add_argument("--limit", type=int, help="run only the first N origins (smoke test)")
     ap.add_argument("--models", nargs="*", default=list(MODELS))
     args = ap.parse_args()
@@ -70,7 +70,7 @@ def main() -> None:
     data = Data()
     commit = git_commit()
     out_dir = (
-        ROOT / "results" if args.which == "scored" else ROOT / "results" / "gate"
+        ROOT / "results" if args.which == "scored" else ROOT / "results" / args.which
     ) / "forecasts"
     out_dir.mkdir(parents=True, exist_ok=True)
 

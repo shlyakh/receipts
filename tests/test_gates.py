@@ -130,15 +130,24 @@ def test_second_implementation_of_the_regression_agrees(data):
         assert np.abs(ours - other).max() < 0.1
 
 
-def test_gate_row_ordering():
-    """Sanity of the baselines on the gate origins: each added piece of information helps."""
-    path = ROOT / "results" / "gate" / "leaderboard.parquet"
+def test_row_ordering_over_the_ordering_gate_year():
+    """Sanity of the baselines over the 52 Mondays before the gate set (never scored)."""
+    path = ROOT / "results" / "ordering_gate" / "leaderboard.parquet"
     if not path.exists():
-        pytest.skip("run `python -m harness.run gate` and `python -m harness.score gate` first")
-    lb = pd.read_parquet(path).set_index(["model", "unique_id", "regime"])["mae"]
+        pytest.skip("run harness.run and harness.score with `ordering_gate` first")
+    lb = pd.read_parquet(path)
+    assert (lb["n_windows"] >= 45).all()
+    mae = lb.set_index(["model", "unique_id", "regime"])["mae"]
     for zone in PROTO["zones"]:
         for regime in ["oracle", "forecast"]:
-            assert lb["lag_regression", zone, regime] < lb["seasonal_naive", zone, regime]
+            assert mae["lag_regression", zone, regime] < mae["seasonal_naive", zone, regime]
         assert (
-            lb["lag_regression_temperature", zone, "oracle"] < lb["lag_regression", zone, "oracle"]
+            mae["lag_regression_temperature", zone, "oracle"]
+            < mae["lag_regression", zone, "oracle"]
         )
+
+
+def test_origin_sets_do_not_overlap():
+    o, g, s = (origins(PROTO, k) for k in ("ordering_gate", "gate", "scored"))
+    assert (len(o), len(g), len(s)) == (52, 6, 52)
+    assert max(o) < min(g) and max(g) < min(s)

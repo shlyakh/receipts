@@ -93,11 +93,11 @@ def leaderboard(win: pd.DataFrame, baseline: str) -> pd.DataFrame:
 
 def main() -> None:
     which = sys.argv[1] if len(sys.argv) > 1 else ""
-    if which not in ("gate", "scored"):
+    if which not in ("gate", "ordering_gate", "scored"):
         sys.exit(__doc__)
     verify_manifest()
     proto = load_protocol()
-    out = ROOT / "results" if which == "scored" else ROOT / "results" / "gate"
+    out = ROOT / "results" if which == "scored" else ROOT / "results" / which
     fc = pd.concat(pd.read_parquet(p) for p in sorted((out / "forecasts").glob("*.parquet")))
     win = window_metrics(fc, Data())
 

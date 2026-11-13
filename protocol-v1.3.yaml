@@ -194,7 +194,16 @@ tabpfn_gate_file_note: >
   its git_commit is a dirty tree, and its protocol_version column was set to protocol-v1.3
   after the run (a label change only; the forecasts are as produced). It was not rerun (about
   2 hours).
-gate_results_2026_11_13: GATE_RESULTS_PLACEHOLDER
+gate_results_2026_11_13: >
+  Passed. Gate origins, 4 of 6 windows per zone and regime (2025-10-27 and 2025-11-03
+  dropped, as in v1 and v1.2); no kept window left incomplete by a v1.3 row.
+  lightgbm_competition from clean commit 01dbcb1, about 3.6 s per window. MAE in MW,
+  LightGBM / TabPFN / Chronos-2 / lag regression / Vanilla with trend: DOM oracle
+  271 / 293 / 303 / 365 / 295, forecast 339 / 359 / 328 / 436 / 358; JC oracle
+  107 / 102 / 83 / 160 / 107, forecast 130 / 112 / 98 / 163 / 115. LightGBM in the v1.2
+  regimes, DOM / JC: oracle_era5 283 / 109, forecast_gfs 332 / 120, forecast_ifs 324 / 121,
+  forecast_aifs 323 / 118 (results/gate/models_v13/). Four weeks check the pipeline; they
+  are not evidence about either row.
 
 # ------------------------------------------------------------------ scoring
 scoring: >

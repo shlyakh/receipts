@@ -8,6 +8,7 @@ cutoff+168h), or None for a model that uses no weather.
 
 from __future__ import annotations
 
+import holidays
 import numpy as np
 import pandas as pd
 
@@ -163,8 +164,151 @@ def vanilla_benchmark_trend(
     return _vanilla(hist, temp, cutoff, trend=True)
 
 
-# Rows added after protocol-v1 carry the version that defined them.
-MODEL_PROTOCOL = {"vanilla_benchmark": "protocol-v1.1", "vanilla_benchmark_trend": "protocol-v1.1"}
+# ---------------------------------------------------------------- competition-grade LightGBM
+# Feature design after the BigDEAL Challenge 2022 entry (https://arxiv.org/abs/2305.05575,
+# read on 2026-11-13): temperature and calendar only, no lagged load; hourly temperature
+# lags of 1 to 48 h; rolling mean, max, min, median and std over 3 h, 1 day, 1 week and
+# 1 month; daily ("Year-Month-Day") and month-hour aggregates; calendar with holiday name and
+# days since and until a holiday; log target with a linear trend removed and added back.
+# Our own code. Fixed before any run (drafts/protocol-v1.3_models.yaml); not tuned. The paper
+# reports no hyperparameter values (it tuned with Optuna), so the values below are LightGBM's
+# defaults except a fixed budget of 1,000 trees at learning rate 0.05.
+COMP_DAYS = 730  # training window, the same as Vanilla
+COMP_TEMP_LAGS = range(1, 49)
+COMP_ROLL_HOURS = {"3h": 3, "1d": 24, "1w": 168, "1m": 720}
+COMP_ROLL_STATS = ["mean", "max", "min", "median", "std"]
+COMP_PARAMS = {
+    "objective": "regression",  # L2, as in the entry's qualifying match
+    "n_estimators": 1000,
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "min_child_samples": 20,
+    "random_state": 20261112,
+    "deterministic": True,
+    "force_row_wise": True,
+    "n_jobs": 1,
+    "verbose": -1,
+}
+
+
+def _hol_name(name: str) -> str:
+    """One base name per day: drop "(observed)" and keep the first of joined names."""
+    return name.split("; ")[0].replace(" (observed)", "")
+
+
+# Holiday names as a fixed integer code (0 = no holiday), the same at every origin.
+_US_HOLIDAY_NAMES = sorted(
+    {_hol_name(n) for n in holidays.country_holidays("US", years=range(2017, 2029)).values()}
+)
+
+
+def _comp_calendar(idx: pd.DatetimeIndex, tz: str = "America/New_York") -> pd.DataFrame:
+    """Calendar from the local time at the start of each hour. No year term: the level is
+    carried by the removed trend, and a year code cannot extrapolate."""
+    local = (idx - H).tz_convert(tz)
+    years = range(local.year.min() - 1, local.year.max() + 2)
+    us = holidays.country_holidays("US", years=years)
+    hol_dates = np.array(sorted(us), dtype="datetime64[D]")
+    day = local.tz_localize(None).normalize().to_numpy().astype("datetime64[D]")
+    nxt = hol_dates[np.searchsorted(hol_dates, day, side="left")]
+    prv = hol_dates[np.searchsorted(hol_dates, day, side="right") - 1]
+    names = [us.get(d) for d in local.date]
+    code = {n: i + 1 for i, n in enumerate(_US_HOLIDAY_NAMES)}
+    month = local.month.to_numpy()
+    return pd.DataFrame(
+        {
+            "hour": local.hour,
+            "dow": local.day_of_week,
+            "month": month,
+            "week": local.isocalendar().week.to_numpy().astype(int),
+            "dom": local.day,
+            "doy": local.day_of_year,
+            "weekend": (local.day_of_week >= 5).astype(int),
+            "week_of_month": (local.day.to_numpy() - 1) // 7 + 1,
+            "season": (month % 12) // 3,  # 0 DJF, 1 MAM, 2 JJA, 3 SON
+            "hol": np.array([n is not None for n in names], dtype=int),
+            "hol_name": [code[_hol_name(n)] if n else 0 for n in names],
+            "days_to_hol": (nxt - day).astype(int),
+            "days_from_hol": (day - prv).astype(int),
+        },
+        index=idx,
+    )
+
+
+def _comp_features(
+    temp: pd.Series, idx: pd.DatetimeIndex, mh_ref: pd.DatetimeIndex, tz: str = "America/New_York"
+) -> pd.DataFrame:
+    """Features for the rows `idx` from one temperature series. Lags and rolling statistics
+    look back only; daily aggregates use the hours of the same local day; the month-hour
+    mean is taken over the hours `mh_ref` (the training rows, all at or before the cutoff)."""
+    back = pd.Timedelta(hours=max(*COMP_ROLL_HOURS.values(), *COMP_TEMP_LAGS))
+    grid = pd.date_range(idx[0] - back, idx[-1], freq="h")
+    t = temp.reindex(grid)
+    cols = {"T": t}
+    for k in COMP_TEMP_LAGS:
+        cols[f"T_lag{k}"] = t.shift(k)
+    for name, w in COMP_ROLL_HOURS.items():
+        roll = t.rolling(w, min_periods=1)
+        for stat in COMP_ROLL_STATS:
+            cols[f"T_roll{name}_{stat}"] = getattr(roll, stat)()
+    f = pd.DataFrame(cols).reindex(idx)
+    day = (idx - H).tz_convert(tz).tz_localize(None).normalize()
+    by_day = f["T"].groupby(day)
+    for stat in ["mean", "max", "min", "median", "std"]:
+        f[f"T_day_{stat}"] = by_day.transform(stat).to_numpy()
+    f["T_day_ptp"] = f["T_day_max"] - f["T_day_min"]
+    f["T_minus_day_mean"] = f["T"] - f["T_day_mean"]
+    ref_local = (mh_ref - H).tz_convert(tz)
+    mh = temp.reindex(mh_ref).groupby([ref_local.month, ref_local.hour]).mean()
+    local = (idx - H).tz_convert(tz)
+    keys = pd.MultiIndex.from_arrays([local.month, local.hour])
+    f["T_monthhour_mean"] = mh.reindex(keys).to_numpy()
+    f["T_minus_monthhour_mean"] = f["T"] - f["T_monthhour_mean"]
+    return pd.concat([_comp_calendar(idx, tz), f], axis=1)
+
+
+def lightgbm_competition(
+    hist: pd.Series, temp: pd.Series | None, cutoff: pd.Timestamp
+) -> pd.Series:
+    """Competition-grade LightGBM after the BigDEAL 2022 entry: temperature and calendar
+    features only (no lagged load), log target with a linear trend removed, one model per
+    origin on the trailing 730 days, all 168 horizon hours predicted directly from the
+    regime's temperature. Protocol-v1.3 (draft), secondary."""
+    import lightgbm as lgb
+
+    if temp is None:
+        raise ValueError("lightgbm_competition needs a temperature series")
+    train_idx = pd.date_range(cutoff - pd.Timedelta(days=COMP_DAYS) + H, cutoff, freq="h")
+    hz = horizon_index(cutoff)
+    y = hist.reindex(train_idx)
+    ok = y.notna() & (y > 0)
+    train_idx = train_idx[ok.to_numpy()]
+    z = np.log(y[ok].to_numpy())
+    # Linear trend in log load, years since the start of the training window.
+    origin = cutoff - pd.Timedelta(days=COMP_DAYS)
+
+    def years(idx: pd.DatetimeIndex) -> np.ndarray:
+        return np.asarray((idx - origin) / pd.Timedelta(days=365))
+
+    a = np.column_stack([np.ones(len(train_idx)), years(train_idx)])
+    beta, *_ = np.linalg.lstsq(a, z, rcond=None)
+    resid = z - a @ beta
+    x_train = _comp_features(temp, train_idx, train_idx)
+    x_hz = _comp_features(temp, hz, train_idx)
+    model = lgb.LGBMRegressor(**COMP_PARAMS).fit(x_train, resid)
+    trend_hz = beta[0] + beta[1] * years(hz)
+    return pd.Series(np.exp(trend_hz + model.predict(x_hz[x_train.columns])), index=hz)
+
+
+# Rows added after protocol-v1 carry the version that defined them. protocol-v1.3 is a
+# draft (drafts/protocol-v1.3_models.yaml) until it is written, committed and tagged.
+MODEL_PROTOCOL = {
+    "vanilla_benchmark": "protocol-v1.1",
+    "vanilla_benchmark_trend": "protocol-v1.1",
+    "lightgbm_competition": "protocol-v1.3",
+    # Runs in models_ff/ (models_ff/tabpfn_ts_v2.py), which writes the same label.
+    "tabpfn_ts_v2_temperature": "protocol-v1.3",
+}
 
 # name -> (function, uses_weather)
 MODELS = {
@@ -174,4 +318,5 @@ MODELS = {
     "lightgbm_temperature": (lightgbm_temperature, True),
     "vanilla_benchmark": (vanilla_benchmark, True),
     "vanilla_benchmark_trend": (vanilla_benchmark_trend, True),
+    "lightgbm_competition": (lightgbm_competition, True),
 }

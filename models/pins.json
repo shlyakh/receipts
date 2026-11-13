@@ -1,4 +1,15 @@
 {
+ "Prior-Labs/TabPFN-v2-reg": {
+  "note": "Only the checkpoint TabPFN-TS uses is downloaded and dated; other files in the repository are not used. Not gated; downloaded anonymously, no token.",
+  "revision": "02a44705ff7790b50cded404bc59adb94da456a1",
+  "sha256": {
+   "tabpfn-v2-regressor-2noar4o2.ckpt": "e2d4a06eeb4521dee71fc68d819e277ffb97614cc3695dc9ac3030dd9da36c21"
+  },
+  "weights_date": "2025-01-05T14:36:20+00:00",
+  "weights_files": {
+   "tabpfn-v2-regressor-2noar4o2.ckpt": "2025-01-05T14:36:20+00:00"
+  }
+ },
  "amazon/chronos-2": {
   "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
   "weights_date": "2025-10-30T14:58:57+00:00",

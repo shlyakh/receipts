@@ -280,6 +280,10 @@ def lightgbm_competition(
         raise ValueError("lightgbm_competition needs a temperature series")
     train_idx = pd.date_range(cutoff - pd.Timedelta(days=COMP_DAYS) + H, cutoff, freq="h")
     hz = horizon_index(cutoff)
+    if temp.reindex(hz).isna().any():
+        # Incomplete horizon temperature: not forecast (LightGBM would accept the gaps
+        # silently). The window is then dropped under the regime's drop rule.
+        return pd.Series(np.nan, index=hz)
     y = hist.reindex(train_idx)
     ok = y.notna() & (y > 0)
     train_idx = train_idx[ok.to_numpy()]

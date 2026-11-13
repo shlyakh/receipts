@@ -2,12 +2,20 @@
 
     uv run --project models_ff python models_ff/tabpfn_ts_v2.py gate
     uv run --project models_ff python models_ff/tabpfn_ts_v2.py gate --limit 1
+    uv run --project models_ff python models_ff/tabpfn_ts_v2.py scored   # at tag protocol-v1.3
 
-Reads only data/model_inputs/<set>.parquet, which the harness writes. The harness owns the
-cutoffs: this script loops over the cutoffs in that file and calls the model once per
-cutoff, zone and regime. Row written: tabpfn_ts_v2_temperature (protocol-v1.3, draft).
+Reads only data/model_inputs/<set>.parquet (v1 regimes) and <set>_weather_v12.parquet (the
+four v1.2 regimes), which the harness writes (harness.export_inputs <set> [--v12]). The
+harness owns the cutoffs: this script loops over the cutoffs in those files and calls the
+model once per cutoff, zone and regime. A zone-window whose horizon temperature is
+incomplete is not forecast (y_hat missing). Row written: tabpfn_ts_v2_temperature
+(protocol-v1.3), to results/models_v13/forecasts/ (gate set: results/gate/models_v13/).
 
-Settings, fixed on 2026-11-13 before any run and not tuned (drafts/protocol-v1.3_models.yaml):
+Resumable: each finished cutoff is saved under <out>/partial/; a restarted run (for
+example after a reboot) skips the cutoffs already saved and only assembles the final file
+once every cutoff is done. This changes nothing in the definition.
+
+Settings, fixed on 2026-11-13 before any run and not tuned (protocol-v1.3.yaml):
   - `tabpfn_time_series.TabPFNTSPipeline` (installed 1.4.0), mode LOCAL, called directly
     (not through FoundationForecast, whose wrapper selects cloud mode without CUDA).
   - checkpoint `tabpfn-v2-regressor-2noar4o2.ckpt` from Prior-Labs/TabPFN-v2-reg at the
@@ -86,6 +94,7 @@ CHECKPOINT = "tabpfn-v2-regressor-2noar4o2.ckpt"
 CONTEXT_HOURS = 4096
 H = 168
 QUANTILES = [0.1, 0.5, 0.9]
+REGIMES = ["oracle", "forecast", "oracle_era5", "forecast_gfs", "forecast_ifs", "forecast_aifs"]
 
 
 def checkpoint_path() -> tuple[Path, dict]:
@@ -152,43 +161,82 @@ def git(*a: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True)
 
 
+def require_frozen_v13(out_file: Path) -> str:
+    """Scored run: at tag protocol-v1.3, clean tree, unchanged protocol files, once."""
+    if not git("tag", "--list", PROTOCOL).stdout.strip():
+        sys.exit(f"git tag {PROTOCOL} does not exist: scored origins must not be run yet")
+    files = ["protocol.yaml", "protocol-v1.1.yaml", "protocol-v1.2.yaml", "protocol-v1.3.yaml"]
+    if git("diff", "--quiet", PROTOCOL, "--", *files).returncode != 0:
+        sys.exit(f"a protocol file differs from tag {PROTOCOL}")
+    if git("status", "--porcelain", "--untracked-files=no").stdout.strip():
+        sys.exit("commit the code before a scored run")
+    if out_file.exists():
+        sys.exit(f"{out_file} exists: the scored set is run once")
+    return git("rev-parse", "--short", "HEAD").stdout.strip()
+
+
 def main() -> None:
     args = sys.argv[1:]
     which = args[0] if args else ""
     limit = int(args[args.index("--limit") + 1]) if "--limit" in args else None
     if which not in ("gate", "scored"):
         sys.exit(__doc__)
-    dirty = "-dirty" if git("status", "--porcelain", "--untracked-files=no").stdout.strip() else ""
-    commit = git("rev-parse", "--short", "HEAD").stdout.strip() + dirty
+    base = (ROOT / "results" if which == "scored" else ROOT / "results" / which) / "models_v13"
+    out_file = base / "forecasts" / f"{NAME}.parquet"
     if which == "scored":
         if limit:
             sys.exit("--limit is for the gate set")
-        if not git("tag", "--list", PROTOCOL).stdout.strip():
-            sys.exit(f"git tag {PROTOCOL} does not exist: scored origins must not be run yet")
-        if dirty:
-            sys.exit("commit the code before a scored run")
+        commit = require_frozen_v13(out_file)
+    else:
+        dirty = git("status", "--porcelain", "--untracked-files=no").stdout.strip()
+        commit = git("rev-parse", "--short", "HEAD").stdout.strip() + ("-dirty" if dirty else "")
     _, pin = checkpoint_path()
     pipe = build_pipeline()
 
-    inputs = pd.read_parquet(ROOT / "data" / "model_inputs" / f"{which}.parquet")
+    folder = ROOT / "data" / "model_inputs"
+    inputs = pd.concat(
+        [
+            pd.read_parquet(folder / f"{which}.parquet"),
+            pd.read_parquet(folder / f"{which}_weather_v12.parquet"),
+        ],
+        ignore_index=True,
+    )
+    assert set(inputs["regime"]) == set(REGIMES), sorted(set(inputs["regime"]))
     cutoffs = sorted(inputs["cutoff"].unique())[:limit]
-    parts = []
+    partial = base / "partial" / NAME
+    partial.mkdir(parents=True, exist_ok=True)
     for i, cutoff in enumerate(cutoffs):
+        done = partial / f"{pd.Timestamp(cutoff):%Y%m%dT%H}.parquet"
+        if done.exists():
+            print(f"{i + 1}/{len(cutoffs)} cutoffs (saved earlier)", flush=True)
+            continue
         at = inputs[inputs["cutoff"] == cutoff]
+        parts = []
         for (regime, zone), win in at.groupby(["regime", "unique_id"]):
-            t0 = time.perf_counter()
-            out = forecast_window(pipe, win)
-            runtime = time.perf_counter() - t0
+            fut = win[win["is_horizon"]]
+            if fut["T"].isna().any():  # incomplete horizon temperature: not forecast
+                out = pd.DataFrame(
+                    {"ds": fut["ds"].to_numpy(), "y_hat": np.nan, "q10": np.nan, "q90": np.nan}
+                )
+                runtime = np.nan
+            else:
+                t0 = time.perf_counter()
+                out = forecast_window(pipe, win)
+                runtime = time.perf_counter() - t0
             parts.append(
                 out.assign(unique_id=zone, regime=regime, cutoff=cutoff, runtime_s=runtime)
             )
-            print(f"{cutoff:%Y-%m-%d} {regime} {zone}: {runtime:.1f} s", flush=True)
+            print(f"{pd.Timestamp(cutoff):%Y-%m-%d} {regime} {zone}: {runtime:.1f} s", flush=True)
+        pd.concat(parts, ignore_index=True).assign(git_commit=commit).to_parquet(done)
         print(f"{i + 1}/{len(cutoffs)} cutoffs", flush=True)
 
+    parts = [pd.read_parquet(partial / f"{pd.Timestamp(c):%Y%m%dT%H}.parquet") for c in cutoffs]
+    commits = {c for p in parts for c in p["git_commit"].unique()}
+    if len(commits) != 1:
+        sys.exit(f"partial files come from different commits: {sorted(commits)}")
     df = pd.concat(parts, ignore_index=True)
     df["model"] = NAME
     df["weather"] = "temperature"
-    df["git_commit"] = commit
     df["protocol_version"] = PROTOCOL
     df["weights_revision"] = pin["revision"]
     df["weights_date"] = pin["weights_date"]
@@ -215,9 +263,8 @@ def main() -> None:
         "context_hours",
         "library",
     ]
-    base = ROOT / "results" if which == "scored" else ROOT / "results" / which
     (base / "forecasts").mkdir(parents=True, exist_ok=True)
-    df[keep].to_parquet(base / "forecasts" / f"{NAME}.parquet", index=False)
+    df[keep].to_parquet(out_file, index=False)
     print(NAME, len(df), "rows, mean runtime per window", round(df["runtime_s"].mean(), 1), "s")
 
 

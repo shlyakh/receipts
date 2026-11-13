@@ -28,3 +28,14 @@ new version file.
   `vanilla_benchmark_trend` (protocol-v1.1), recorded at registration as found in search
   summaries only, is confirmed by the competition paper (Hong, Pinson and Fan 2014,
   section 2.3). No definition, row or result changes. See `notes/hong2014_gefcom2012.md`.
+- **2026-11-13, protocol-v1.3** (`protocol-v1.3.yaml`): added two secondary model rows:
+  a competition-grade LightGBM after the BigDEAL 2022 feature design (temperature and
+  calendar only, detrended log target, 730-day window, fixed untuned hyperparameters) and
+  TabPFN-TS with pinned TabPFN v2 weights and temperature (local CPU only). Both run in all
+  six regimes (v1 and v1.2) and are scored on the windows the existing scoring kept; their
+  output goes to `results/models_v13/`, which no earlier scorer reads. Registered
+  comparisons: each new row vs the temperature regression and vs Vanilla with trend, and
+  Chronos-2 with temperature vs each new row. The primary comparison, its sentences and
+  every v1, v1.1 and v1.2 row and file are unchanged. LightGBM is scored once after the
+  tag; the TabPFN scored run (about 50 h on CPU) is deferred and will be run once at the
+  same tag with no change to its definition.

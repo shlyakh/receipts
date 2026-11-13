@@ -1,0 +1,216 @@
+# Addendum to protocol.yaml (protocol-v1), protocol-v1.1.yaml and protocol-v1.2.yaml, which
+# stay frozen and unedited. Two model rows only. Written 2026-11-13, after gate runs and
+# before either row was run on a scored origin. Frozen at git tag protocol-v1.3; do not
+# edit (CLAUDE.md rule 5).
+version: protocol-v1.3
+based_on: protocol-v1.2
+status: frozen           # tagged protocol-v1.3 on 2026-11-13; do not edit
+unchanged: >
+  Everything in protocol-v1, protocol-v1.1 and protocol-v1.2: zones, horizon, stations,
+  origins, load data rules, all six weather regimes and their data, both drop rules, every
+  existing row and result file, the bootstrap, the baseline model, the primary comparison,
+  its bar, verdict rule and outcome sentences. Both rows defined here are SECONDARY and
+  cannot change the primary outcome sentence.
+
+decisions: >
+  Yuri, 2026-11-13 (DECISIONS.md 29): add a competition-grade LightGBM and TabPFN-TS with
+  TabPFN v2 weights as secondary rows; score LightGBM now; the TabPFN scored run is
+  deferred (see tabpfn_scored_run).
+
+# ------------------------------------------------------------------ rows
+added_models:
+  lightgbm_competition:
+    label: LightGBM, competition-grade (BigDEAL 2022 feature design)
+    why: >
+      The protocol-v1 LightGBM row uses exactly the lag regression's six inputs and loses to
+      Vanilla with trend. Published competition entries use far richer exogenous features.
+      This row asks whether Chronos-2 beats properly built gradient boosting, not only
+      regressions (notes/model_families.md, section 3).
+    source: >
+      Feature design of the BigDEAL Challenge 2022 entry, https://arxiv.org/abs/2305.05575
+      (read 2026-11-13). Our own code: harness/baselines.py, lightgbm_competition.
+    environment: core/, lightgbm 4.7.0 (no new dependency)
+    weights: not applicable (trained at every origin on data up to the cutoff)
+    fit: >
+      One LightGBM model per origin, refitted at every origin on the trailing 730 days
+      ending at the cutoff (hours with load present and > 0). Training rows use the
+      regime's history temperature (v1 regimes: the v1 archive series; v1.2 regimes:
+      ERA5); the horizon uses the regime's series. Same temperature as every other row.
+    target: >
+      log(load) minus a linear trend in log(load), least squares on the training rows,
+      time in years since the start of the window. LightGBM fits the residual; the forecast
+      is exp(trend extrapolated over the horizon + predicted residual). No retransformation
+      bias correction.
+    lagged_load: >
+      None, as in the cited entry. The row needs no 168-hour lag.
+    horizon: >
+      Direct: the 168 horizon rows are predicted in one call from their own calendar and
+      temperature features. No recursion and no horizon-day feature.
+    incomplete_horizon_temperature: >
+      If any of the 168 horizon temperature values is missing, the window is not forecast
+      (all 168 values missing). Never filled.
+    features:  # 91 columns
+      calendar: >
+        From the local time (America/New_York) at the start of the hour: hour, day of week,
+        month, ISO week, day of month, day of year, weekend, week of month ((day-1)//7+1),
+        meteorological season (0 DJF .. 3 SON), US federal holiday indicator (holidays
+        package, as the other rows), holiday name as a fixed integer code (observed days
+        share the holiday's code), days until the next and since the last holiday. No year
+        term (the level is carried by the removed trend).
+      temperature_current: T, the zone series
+      temperature_lags: T at lags 1 to 48 hours (48 columns)
+      temperature_rolling: >
+        Trailing windows of 3 h, 24 h, 168 h and 720 h ending at the hour (inclusive): mean,
+        max, min, median, std (20 columns), min_periods 1.
+      temperature_daily: >
+        Over the hours of the same local day: mean, max, min, median, std, max - min, and T
+        minus the daily mean (7 columns). Origins are local midnight, so a horizon day holds
+        horizon hours only and a training day holds training hours only.
+      temperature_month_hour: >
+        Mean T by (local month, local hour) over the training rows, and T minus it (2
+        columns).
+    hyperparameters:
+      objective: regression      # L2, as in the entry's qualifying match
+      n_estimators: 1000
+      learning_rate: 0.05
+      num_leaves: 31
+      min_child_samples: 20
+      other: LightGBM 4.7.0 defaults (no subsampling, no early stopping, GBDT booster)
+      random_state: 20261112
+      deterministic: true
+      force_row_wise: true
+      n_jobs: 1
+    not_tuned: >
+      The paper reports no hyperparameter values (it tuned with Optuna on time-ordered folds)
+      and selected features by permutation importance. Neither is repeated: the full
+      candidate set above is used, and the values are LightGBM defaults plus a fixed budget
+      of 1,000 trees at rate 0.05, chosen before any run. The gate origins were a sanity
+      check only. One change was made before the tag and without reference to results: the
+      incomplete-horizon rule above, so that this row follows the v1.2 rule that a missing
+      horizon value is never filled (LightGBM would otherwise accept the gap silently).
+    differences_from_the_entry: >
+      One zone temperature series instead of four station summaries (Tavg, Tmed, Tmin,
+      Tmax); six of the eleven daily aggregate functions and only the mean for the
+      month-hour aggregate; no feature selection; GBDT, not the DART booster of the final
+      match; no tuning; 730-day window (the entry's is not stated).
+
+  tabpfn_ts_v2_temperature:
+    label: TabPFN-TS (TabPFN v2 weights) with temperature
+    why: >
+      A covariate-aware zero-shot model pretrained on synthetic tables, so it cannot have
+      memorised PJM load. Asks whether Chronos-2's gain from temperature is special.
+    source: https://arxiv.org/abs/2501.02945 (TabPFN-TS)
+    code: models_ff/tabpfn_ts_v2.py (direct adapter; not through FoundationForecast)
+    environment: models_ff/, tabpfn-time-series 1.4.0, tabpfn 9.2.0 (already installed)
+    weights:
+      repo: Prior-Labs/TabPFN-v2-reg
+      revision: 02a44705ff7790b50cded404bc59adb94da456a1
+      file: tabpfn-v2-regressor-2noar4o2.ckpt
+      weights_date: "2025-01-05T14:36:20+00:00"   # file commit date; models/pins.json
+      sha256: e2d4a06eeb4521dee71fc68d819e277ffb97614cc3695dc9ac3030dd9da36c21
+      n_windows_after_weights: every scored window (the weights predate the first origin)
+      why_this_file: >
+        The default checkpoint of tabpfn-time-series 0.1.x to 1.0.x, the TabPFN-TS paper's
+        releases ("model_path": "2noar4o2" in their defaults.py, read on GitHub 2026-11-13).
+      access: not gated; downloaded anonymously, no token, no licence click-through
+      licence: >
+        Prior Labs License 1.1: Apache 2.0 plus section 10, an attribution clause asking for
+        "Built with PriorLabs-TabPFN" on each related website, user interface, blog post and
+        similar. Any publication of this row's results must carry it.
+    mode: >
+      LOCAL only, CPU. TabPFNTSPipeline(tabpfn_mode=LOCAL), model_path the pinned local
+      file, device cpu, ignore_pretraining_limits true, compile false. Telemetry off and
+      Hugging Face offline; network sockets, the cloud client and the checkpoint downloader
+      raise if called; the adapter checks that the pipeline holds the local TabPFNRegressor.
+      MPS is not used.
+    context: 4096 hours ending at the cutoff (the v2-era default)
+    covariate: T, the regime's zone temperature, past and known-future
+    features: >
+      The installed package's defaults: known-covariate lags (1 and season) and trailing
+      mean, running index, calendar, automatic seasonal features. Timestamps in UTC.
+    missing_load: context rows with missing load are dropped by the pipeline
+    incomplete_horizon_temperature: the window is not forecast (y_hat missing); never filled
+    output: median of TabPFN's predictive distribution; quantiles 0.1, 0.5, 0.9
+    other_settings: all other TabPFNRegressor arguments at tabpfn 9.2.0 defaults
+    inputs: >
+      data/model_inputs/<set>.parquet (v1 regimes) and <set>_weather_v12.parquet (v1.2
+      regimes), written by harness.export_inputs, read only.
+    runtime_cpu: >
+      Measured on the 24 v1-regime gate windows: mean 287 s per window (233 to 370 s), laptop
+      CPU with other jobs running. The scored set in all six regimes is 624 windows, about
+      50 hours; the v1 regimes alone are 208 windows, about 17 hours.
+
+regimes: >
+  Both rows run in all six regimes: the v1 pair `oracle` and `forecast` (protocol-v1) and
+  the four v1.2 regimes `oracle_era5`, `forecast_gfs`, `forecast_ifs`, `forecast_aifs`
+  (protocol-v1.2, ERA5 history). Each regime is its own row (rule 4).
+
+# ------------------------------------------------------------------ windows and output
+windows: >
+  A v1.3 row is scored on exactly the windows the existing scoring kept: in the v1 regimes
+  the (zone, cutoff) pairs kept under the v1 window_drop_rule (results/windows.parquet); in
+  the v1.2 regimes the (zone, regime, cutoff) triples kept under window_drop_rule_v12
+  (results/weather_v12/windows.parquet). Those files are read, never written. A kept window
+  that a v1.3 row did not complete is dropped from that row's comparisons only and listed
+  in results/models_v13/dropped_windows.csv. Expected scored n_windows per zone: 48 in
+  oracle, forecast, oracle_era5, forecast_gfs and forecast_ifs; 45 in forecast_aifs.
+output: >
+  results/models_v13/ (gate set: results/gate/models_v13/): forecasts/, windows.parquet,
+  leaderboard.csv, dropped_windows.csv, stats.csv. Written by harness/v13.py (run, score)
+  and models_ff/tabpfn_ts_v2.py. harness/score.py and harness/score_weather.py never read
+  this folder, so no v1, v1.1 or v1.2 result can change.
+
+# ------------------------------------------------------------------ comparisons
+statistics: as protocol-v1 (window MAE; ratio of mean window errors; whole-week paired
+  bootstrap, 2,000 draws, seed 20261112, 90% percentile interval; 10% bar and verdict rule)
+registered_comparisons:   # fixed before scoring; per zone and per regime; all secondary
+  - each v1.3 row vs lag_regression_temperature (the frozen baseline)
+  - each v1.3 row vs vanilla_benchmark_trend (the field's standard benchmark)
+  - chronos2_temperature vs each v1.3 row
+pairing: on the weeks both arms keep in that zone and regime
+readings: >
+  Each ratio A/B is read against the 10% bar with the v1 verdict rule, named neutrally:
+  A_better_beyond_bar (whole 90% interval below 0.90), practical_tie (inside 0.90 to 1.10),
+  B_better_beyond_bar (above 1.10), inconclusive (anything else). Per-horizon-day ratios
+  are reported in stats.csv and not read against the bar.
+wording: >
+  Secondary. A receipt sentence says "transfers / does not transfer", never true/false. The
+  v1 primary sentence is unchanged and is not restated with v1.3 numbers.
+
+# ------------------------------------------------------------------ gate
+gate:
+  - tests/test_gates.py includes lightgbm_competition through harness.baselines.MODELS
+    (corrupting load after the cutoff and disallowed weather changes no forecast, v1 regimes)
+  - tests/test_v13.py (the same check in the four v1.2 regimes; incomplete horizon
+    temperature is not forecast; version labels)
+  - tests/test_tabpfn_lookahead.py, models_ff environment (the adapter reads no load after
+    the cutoff; horizon temperature is the regime's series; network and cloud calls raise)
+  - lightgbm_competition run on the 6 gate origins in all six regimes from a committed tree
+  - tabpfn_ts_v2_temperature run on the 6 gate origins in the v1 regimes; one v1.2-regime
+    window (forecast_aifs, JC, 2025-09-29) run as a smoke check, not saved
+tabpfn_gate_file_note: >
+  results/gate/models_v13/forecasts/tabpfn_ts_v2_temperature.parquet was produced before
+  the renumbering to v1.3 and before the six-regime adapter: it covers the v1 regimes only,
+  its git_commit is a dirty tree, and its protocol_version column was set to protocol-v1.3
+  after the run (a label change only; the forecasts are as produced). It was not rerun (about
+  2 hours).
+gate_results_2026_11_13: GATE_RESULTS_PLACEHOLDER
+
+# ------------------------------------------------------------------ scoring
+scoring: >
+  lightgbm_competition: the 52 scored origins are run once, in all six regimes together,
+  after the tag protocol-v1.3, from a clean tree at the tagged commit. No rerun or
+  adjustment after results are seen; a crash is fixed without changing any definition and
+  reported.
+tabpfn_scored_run: >
+  DEFERRED. Registered here with its full definition, but not run at tagging because of its
+  CPU runtime (about 50 hours in all six regimes). It will be run once, later, from a clean
+  tree at this tag, with no change to its definition, then scored with harness/v13.py. The
+  adapter saves each finished cutoff and resumes after an interruption; that does not change
+  any forecast. Until then results/README.md lists it as registered, not scored.
+
+caveats:
+  - Both rows are secondary; LightGBM here is untuned by design, so it is a floor for
+    "tuned machine learning", not its ceiling.
+  - TabPFN-TS does not extrapolate trends (paper); DOM load is growing.
+  - The v1 caveats on the information set and lead matching apply to every regime.

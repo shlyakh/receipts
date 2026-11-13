@@ -1,0 +1,22 @@
+[project]
+name = "receipts-models-ff"
+version = "0.1.0"
+description = "FoundationForecast (pre-alpha, installed from git) kept apart from the direct adapters"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "foundationforecast",
+    "pandas>=2.3.3",
+    "pyarrow>=25.0.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+foundationforecast = { git = "https://github.com/TimeCopilot/foundationforecast", rev = "cd67b6081b9222796848e822d948651ee0b2126c" }
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

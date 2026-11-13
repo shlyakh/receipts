@@ -148,10 +148,15 @@ regression was worse than seasonal naive. It was moved to the 52 Mondays before 
 set, where it passes; the reason is in `protocol.yaml` under `gate_history`. Gate-stage
 results are in `gate/` and `ordering_gate/` and are not scored results.
 
+## Cross-check through FoundationForecast
+
+Not a leaderboard row. Chronos-2 run through FoundationForecast (installed from GitHub
+at commit `cd67b608`, separate environment `models_ff/`) on the six gate origins agrees
+with the direct adapter to within 0.003 MW on every one of 8,064 hourly forecasts.
+Details in `notes/foundationforecast.md`; values in `gate/crosscheck/chronos2_ff.parquet`.
+
 ## Not done
 
 - Chronos-2 with a 48-hour data gap (pre-registered secondary).
 - TimesFM 2.5, Timestral and other foundation models.
-- Chronos-2 through FoundationForecast: the PyPI package of that name is an empty
-  placeholder, so the cross-check row was not run.
 - Vanilla + recency regression row (optional in the brief).

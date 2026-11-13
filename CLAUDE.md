@@ -61,7 +61,9 @@ design the backtest mirrors.
 - Two environments that exchange parquet files, so a model dependency cannot break
   the baselines:
   - `core/`: pandas, pyarrow, requests, holidays, statsmodels, lightgbm
-  - `models/`: foundationforecast + model extras, chronos-forecasting
+  - `models/`: chronos-forecasting and other direct model adapters
+  - `models_ff/`: FoundationForecast from GitHub at a pinned commit (it conflicts with
+    `models/`, so it has its own environment)
 - Mac laptop. Default to CPU. Use MPS only after one window matches CPU output.
 
 ## Layout

@@ -23,9 +23,34 @@ Checked on Nov 13, 2026 in the `models/` environment.
   PLACEHOLDER: its only content is a top-level `main.py` that prints a greeting. There
   is no `foundationforecast` module in it. It was removed.
 - The real library is at `github.com/TimeCopilot/foundationforecast` (Apache-2.0,
-  "Pre-Alpha" in its classifiers, last pushed 2026-11-11). Its README says to install
-  from PyPI, which does not work as of today. Installing it means installing from git.
-  Not done: ask Yuri first.
+  "Pre-Alpha" in its classifiers). Its README says to install from PyPI, which does not
+  work as of Nov 13, 2026.
+- Installed from git on Nov 13, 2026 with Yuri's approval, pinned to commit `cd67b608`
+  (Nov 11, 2026; reports version 0.1.20), in its own environment `models_ff/`. It cannot
+  share `models/`: it requires `huggingface-hub<2.0` and brings a fork of the Chronos
+  package (`timecopilot-chronos-forecasting` 0.2.2) that installs the same `chronos`
+  module. Its stack here is torch 2.11.0 and pandas 2.3.3.
+- Verified API: `FoundationForecast(models=[...]).forecast(df, h, freq, level, quantiles,
+  X_df=..., futr_exog_list=...)`. `X_df` works as sketched in `REFERENCE.md`: long format
+  with `unique_id`, `ds` and the covariate columns for the next `h` steps. Timestamps
+  must be timezone-naive.
+- Model classes: Chronos, TimesFM, Timestral, T0, TiRex, Kumo, Moirai, Toto, Sundial,
+  TabPFN, FlowState, PatchTSTFM, TimeH2O, Tabby, Tafsut, TimeGPT.
+- No wrapper takes a Hugging Face `revision`. `repo_id` may be a local directory, so the
+  way to honour the pinning rule is to pass the path of the pinned snapshot in
+  `models_cache/`.
+- `Chronos` has no context-length argument; it uses whatever history it is given, so
+  the caller truncates. Only checkpoints with "chronos-2" in `repo_id` accept `X_df`;
+  for other models `X_df` raises unless `exog_strategy=False`.
+
+### Cross-check against the direct adapter (gate origins only)
+
+`models_ff/crosscheck_chronos2.py gate`, same inputs and settings as
+`models/chronos2.py`, six gate origins, both zones, both regimes, with and without
+temperature (8,064 hourly forecasts). Largest difference 0.003 MW on DOM and 0.0007 MW
+on JC, a relative difference below 5e-7: single-precision noise across two library
+stacks. The library reproduces the direct adapter. Side-by-side values are in
+`results/gate/crosscheck/chronos2_ff.parquet`. It is not a leaderboard row.
 
 ## Hugging Face ids
 

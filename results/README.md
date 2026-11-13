@@ -181,6 +181,126 @@ Ziel and Liu (2016), and the same with a linear trend. Both were scored once at 
   not that it beats a standard load-forecasting regression. Against the standard one,
   the GB study's "rough tie" largely reappears.
 
+## Weather sources and ERA5 truth (protocol-v1.2, secondary)
+
+Scored once on Fri Nov 13, 2026, at commit `fb62323`, the commit tagged
+`protocol-v1.2`, from a clean checkout of that commit. Every number in this section is
+**secondary**: none changes the primary comparison or its sentences above. Files:
+`weather_v12/` (`leaderboard.csv`, `stats.csv`, `windows.parquet`, `dropped_windows.csv`,
+`temperature_error_by_lead.csv`, `forecasts/`). Scored by `harness/score_weather.py`,
+which `harness/score.py` never reads; the v1 and v1.1 results files were checked
+byte-identical after this run.
+
+**Why.** The v1 regime called `oracle` turned out to be ECMWF IFS 9 km operational
+analysis, not ERA5 reanalysis (identical to Open-Meteo `models=ecmwf_ifs` at every hour
+at all six stations; 0.9 °C RMSE from ERA5 on DOM's zone series, 1.3 °C on JC's). The v1
+`forecast` regime is HRRR on day 1 and GFS on days 2 to 7. Decision 28 makes ERA5 the
+temperature truth and AIFS the preferred forecast source. Four regimes, all with ERA5 as
+the temperature up to the cutoff:
+
+- `oracle_era5`: ERA5 over the horizon too (perfect weather against the declared truth).
+- `forecast_gfs`: the v1 forecast horizon (HRRR day 1, GFS days 2 to 7). It differs from
+  the v1 `forecast` regime only in the history series.
+- `forecast_ifs`: ECMWF IFS 0.25°, lead-matched.
+- `forecast_aifs`: ECMWF AIFS Single, lead-matched.
+
+Windows: 48 per zone in `oracle_era5`, `forecast_gfs` and `forecast_ifs` (the four v1
+load-gap drops). 45 in `forecast_aifs`: it also drops 2026-04-13, 04-20 and 04-27, where
+the AIFS archive is incomplete (per-regime drop rule; other regimes keep those weeks).
+Chronos-2 runs at the v1 pinned revision `29ec3766`; all scored weeks start after its
+weights date. Intervals are 90%, paired whole-week bootstrap, 2,000 draws, seed
+20261112. The "reading" column applies the v1 verdict rule and 10% bar, as a secondary
+reading.
+
+### Chronos-2 against the two regressions, per regime
+
+DOM, MAE in MW:
+
+| Regime | Weeks | Chronos-2 | Lag regression | Vanilla + trend | Chronos-2 / lag regression | Reading | Chronos-2 / Vanilla + trend | Reading |
+|---|---|---|---|---|---|---|---|---|
+| `oracle_era5` | 48 | 497 | 720 | 476 | 0.691 (0.607 to 0.785) | worth switching | 1.044 (0.933 to 1.166) | inconclusive |
+| `forecast_gfs` | 48 | 743 | 1,008 | 793 | 0.737 (0.670 to 0.812) | worth switching | 0.937 (0.878 to 1.000) | inconclusive |
+| `forecast_ifs` | 48 | 745 | 987 | 771 | 0.755 (0.685 to 0.836) | worth switching | 0.967 (0.907 to 1.040) | practical tie |
+| `forecast_aifs` | 45 | 640 | 890 | 643 | 0.719 (0.661 to 0.782) | worth switching | 0.995 (0.918 to 1.079) | practical tie |
+
+JC, MAE in MW:
+
+| Regime | Weeks | Chronos-2 | Lag regression | Vanilla + trend | Chronos-2 / lag regression | Reading | Chronos-2 / Vanilla + trend | Reading |
+|---|---|---|---|---|---|---|---|---|
+| `oracle_era5` | 48 | 159 | 226 | 155 | 0.704 (0.583 to 0.839) | worth switching | 1.025 (0.889 to 1.167) | inconclusive |
+| `forecast_gfs` | 48 | 215 | 267 | 215 | 0.807 (0.669 to 0.962) | inconclusive | 1.000 (0.906 to 1.090) | practical tie |
+| `forecast_ifs` | 48 | 213 | 274 | 217 | 0.776 (0.641 to 0.940) | inconclusive | 0.981 (0.894 to 1.072) | inconclusive |
+| `forecast_aifs` | 45 | 184 | 239 | 185 | 0.767 (0.668 to 0.883) | worth switching | 0.995 (0.892 to 1.106) | inconclusive |
+
+- **Against the lag regression** Chronos-2's lead holds under every weather source,
+  0.69 to 0.81. On DOM the GB study's "rough tie" does not transfer under any of the
+  four sources. On JC it does not transfer with AIFS or ERA5 weather and is undecided
+  with GFS and IFS, whose intervals cross 0.90.
+- **Against Vanilla with trend** Chronos-2 is level under every source (0.94 to 1.04;
+  every interval contains or touches 1.0): a practical tie on DOM with IFS and AIFS and
+  on JC with GFS, inconclusive elsewhere.
+  The better the weather, the less Chronos-2's lead: DOM moves from 0.937 (GFS) through
+  0.967 (IFS) and 0.995 (AIFS) to 1.044 with ERA5 actuals. A regression that uses
+  temperature well gains more from better weather than Chronos-2 does, as
+  `notes/weather_skill_sensitivity.md` predicted.
+- **The history change alone does little.** `forecast_gfs` against the v1 `forecast`
+  regime (same horizon, IFS-analysis history): Chronos-2 / lag regression 0.737 against
+  0.730 on DOM, 0.807 against 0.817 on JC.
+- The AIFS row has 45 weeks, the others 48. Not registered, for scale only: on the 45
+  weeks all four regimes keep, Chronos-2 / Vanilla + trend is 0.908, 0.935, 0.995 and
+  1.000 on DOM (GFS, IFS, AIFS, ERA5) and 0.979, 0.961, 0.995 and 0.981 on JC. The DOM
+  progression is the same on common weeks.
+
+### Cost of forecast weather (forecast-regime MAE / `oracle_era5` MAE, paired weeks)
+
+| Zone | Model | `forecast_gfs` | `forecast_ifs` | `forecast_aifs` |
+|---|---|---|---|---|
+| DOM | Chronos-2 + temperature | 1.494 (1.367 to 1.640) | 1.499 (1.347 to 1.680) | 1.326 (1.250 to 1.417) |
+| DOM | Lag regression + temperature | 1.400 (1.289 to 1.526) | 1.371 (1.214 to 1.553) | 1.202 (1.146 to 1.260) |
+| DOM | Vanilla with trend | 1.665 (1.524 to 1.823) | 1.618 (1.456 to 1.794) | 1.331 (1.249 to 1.419) |
+| JC | Chronos-2 + temperature | 1.349 (1.251 to 1.456) | 1.334 (1.236 to 1.465) | 1.218 (1.146 to 1.295) |
+| JC | Lag regression + temperature | 1.177 (1.094 to 1.267) | 1.210 (1.102 to 1.317) | 1.052 (0.980 to 1.130) |
+| JC | Vanilla with trend | 1.384 (1.272 to 1.515) | 1.393 (1.274 to 1.528) | 1.201 (1.110 to 1.302) |
+
+- AIFS cuts the weather cost for every model in both zones: the extra error over
+  perfect weather is a third to two thirds smaller than with GFS (DOM Vanilla: 66% extra
+  with GFS, 33% with AIFS; JC lag regression: 18% and 5%).
+- IFS 0.25° is no better than the GFS/HRRR mix for load over this year.
+- Against ERA5 truth the gap between perfect and forecast weather is larger than v1
+  reported against the IFS analysis (DOM Chronos-2: 1.49 here, 1.41 in v1).
+
+### Temperature error by horizon day against ERA5 (scored windows, zone series)
+
+RMSE in °C. Each horizon day is always the same weekday. The v1 `oracle` series is
+shown for scale: it is the error of calling the IFS analysis "true".
+
+| Zone | Source | Hours | D1 | D2 | D3 | D4 | D5 | D6 | D7 |
+|---|---|---|---|---|---|---|---|---|---|
+| DOM | GFS/HRRR (`forecast_gfs`) | 8,706 | 1.41 | 1.66 | 1.87 | 2.56 | 3.08 | 2.87 | 3.71 |
+| DOM | IFS 0.25° (`forecast_ifs`) | 8,706 | 1.17 | 1.47 | 1.78 | 1.98 | 2.74 | 3.26 | 4.14 |
+| DOM | AIFS Single (`forecast_aifs`) | 8,580 | 0.80 | 0.96 | 1.09 | 1.66 | 2.06 | 2.71 | 3.29 |
+| DOM | v1 `oracle` (IFS 9 km analysis) | 8,706 | 0.79 | 0.80 | 0.79 | 0.85 | 0.77 | 0.74 | 0.76 |
+| JC | GFS/HRRR (`forecast_gfs`) | 8,706 | 1.98 | 1.79 | 1.91 | 3.08 | 3.39 | 3.57 | 3.96 |
+| JC | IFS 0.25° (`forecast_ifs`) | 8,706 | 1.70 | 2.05 | 2.16 | 2.42 | 2.99 | 3.49 | 4.28 |
+| JC | AIFS Single (`forecast_aifs`) | 8,580 | 1.11 | 1.39 | 1.49 | 2.70 | 2.28 | 2.81 | 3.20 |
+| JC | v1 `oracle` (IFS 9 km analysis) | 8,706 | 1.21 | 1.28 | 1.25 | 1.35 | 1.23 | 1.12 | 1.20 |
+
+- AIFS has the lowest error on every day on DOM and on six of seven days on JC (day 4:
+  IFS 2.42, AIFS 2.70). IFS 0.25° beats GFS on DOM days 1 to 5 but only on days 1, 4 and
+  5 on JC, and it is the worst source on day 7 in both zones; on JC it runs about 1.2 °C
+  colder than ERA5 on days 2 to 5. In the months before the scored window (2025-03 to
+  2025-11, gate check) IFS was ahead of GFS at every lead except JC day 2, so the ranking
+  of IFS and GFS depends on the period.
+
+### Caveats
+
+- ERA5 is a model product, not observations. AIFS was trained on ERA5, so an ERA5 truth
+  may favour it. A neutral truth (station observations) has not been tried.
+- `forecast_aifs` has three fewer weeks (all in April), so its raw MAE is not directly
+  comparable with the other regimes' MAE. The ratios above are paired within their weeks.
+- The information set is idealised as in v1: ERA5 is published about five days late.
+- One year, two zones, six grid points.
+
 ## Leaderboard
 
 Mean absolute error over each 168-hour window, averaged over 48 windows, in MW.

@@ -1,0 +1,57 @@
+unique_id,source,day,n,mae,rmse,bias
+DOM,forecast_aifs (ecmwf_aifs025_single),1,1248,0.616,0.801,-0.141
+DOM,forecast_aifs (ecmwf_aifs025_single),2,1248,0.745,0.958,-0.157
+DOM,forecast_aifs (ecmwf_aifs025_single),3,1248,0.836,1.087,-0.146
+DOM,forecast_aifs (ecmwf_aifs025_single),4,1205,1.142,1.655,-0.25
+DOM,forecast_aifs (ecmwf_aifs025_single),5,1213,1.513,2.063,0.14
+DOM,forecast_aifs (ecmwf_aifs025_single),6,1242,1.952,2.71,0.167
+DOM,forecast_aifs (ecmwf_aifs025_single),7,1176,2.277,3.288,0.007
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",1,1248,1.076,1.408,-0.379
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",2,1248,1.299,1.661,0.208
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",3,1248,1.43,1.869,-0.046
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",4,1248,1.985,2.555,0.142
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",5,1248,2.16,3.078,0.372
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",6,1242,2.222,2.866,-0.296
+DOM,"forecast_gfs (HRRR d1, GFS d2-7)",7,1224,2.888,3.71,-0.089
+DOM,forecast_ifs (ecmwf_ifs025),1,1248,0.928,1.174,-0.367
+DOM,forecast_ifs (ecmwf_ifs025),2,1248,1.129,1.47,-0.295
+DOM,forecast_ifs (ecmwf_ifs025),3,1248,1.336,1.785,-0.464
+DOM,forecast_ifs (ecmwf_ifs025),4,1248,1.468,1.983,-0.412
+DOM,forecast_ifs (ecmwf_ifs025),5,1248,1.927,2.736,-0.094
+DOM,forecast_ifs (ecmwf_ifs025),6,1242,2.454,3.26,-0.137
+DOM,forecast_ifs (ecmwf_ifs025),7,1224,3.017,4.138,0.26
+DOM,v1 oracle (IFS 9 km analysis),1,1248,0.596,0.786,-0.099
+DOM,v1 oracle (IFS 9 km analysis),2,1248,0.61,0.801,-0.072
+DOM,v1 oracle (IFS 9 km analysis),3,1248,0.601,0.785,-0.166
+DOM,v1 oracle (IFS 9 km analysis),4,1248,0.651,0.848,-0.234
+DOM,v1 oracle (IFS 9 km analysis),5,1248,0.585,0.766,-0.102
+DOM,v1 oracle (IFS 9 km analysis),6,1242,0.568,0.744,-0.062
+DOM,v1 oracle (IFS 9 km analysis),7,1224,0.59,0.757,-0.101
+JC,forecast_aifs (ecmwf_aifs025_single),1,1248,0.801,1.112,-0.227
+JC,forecast_aifs (ecmwf_aifs025_single),2,1248,1.024,1.392,-0.446
+JC,forecast_aifs (ecmwf_aifs025_single),3,1248,1.151,1.488,-0.491
+JC,forecast_aifs (ecmwf_aifs025_single),4,1205,1.484,2.701,-0.553
+JC,forecast_aifs (ecmwf_aifs025_single),5,1213,1.545,2.279,-0.34
+JC,forecast_aifs (ecmwf_aifs025_single),6,1242,2.057,2.81,0.305
+JC,forecast_aifs (ecmwf_aifs025_single),7,1176,2.385,3.198,-0.073
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",1,1248,1.557,1.977,-1.132
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",2,1248,1.442,1.79,-0.52
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",3,1248,1.517,1.907,-0.548
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",4,1248,2.186,3.075,-0.494
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",5,1248,2.357,3.392,-0.583
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",6,1242,2.655,3.567,-0.427
+JC,"forecast_gfs (HRRR d1, GFS d2-7)",7,1224,2.911,3.964,-0.082
+JC,forecast_ifs (ecmwf_ifs025),1,1248,1.297,1.695,-0.836
+JC,forecast_ifs (ecmwf_ifs025),2,1248,1.579,2.047,-1.195
+JC,forecast_ifs (ecmwf_ifs025),3,1248,1.742,2.162,-1.219
+JC,forecast_ifs (ecmwf_ifs025),4,1248,1.934,2.418,-1.063
+JC,forecast_ifs (ecmwf_ifs025),5,1248,2.342,2.988,-1.178
+JC,forecast_ifs (ecmwf_ifs025),6,1242,2.724,3.494,-0.498
+JC,forecast_ifs (ecmwf_ifs025),7,1224,3.135,4.282,-0.298
+JC,v1 oracle (IFS 9 km analysis),1,1248,0.947,1.214,-0.748
+JC,v1 oracle (IFS 9 km analysis),2,1248,0.983,1.282,-0.752
+JC,v1 oracle (IFS 9 km analysis),3,1248,1.0,1.252,-0.755
+JC,v1 oracle (IFS 9 km analysis),4,1248,1.051,1.355,-0.866
+JC,v1 oracle (IFS 9 km analysis),5,1248,0.937,1.232,-0.692
+JC,v1 oracle (IFS 9 km analysis),6,1242,0.862,1.117,-0.631
+JC,v1 oracle (IFS 9 km analysis),7,1224,0.919,1.197,-0.61

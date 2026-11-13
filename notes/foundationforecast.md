@@ -61,6 +61,17 @@ stacks. The library reproduces the direct adapter. Side-by-side values are in
   at zero. About 0.5 s per series. Run on the gate origins only. Its repository has a
   single squashed weights commit dated 2026-10-15, so no earlier revision can be pinned.
 
+### Covariates: what the library does and does not do
+
+`X_df` is a universal argument, but the library passes covariates only to models that
+take them natively: Chronos-2, Timestral, T0, TiRex-2, TimeH2O, TimesFM 3.0, TimeGPT
+(`docs/exogenous-variables.md` in its repository). For the others, including TimesFM
+1.0 to 2.5, it raises an error unless `exog_strategy=False`. It does not wrap TimesFM's
+`forecast_with_covariates`, which is a linear regression bolted on outside the model.
+That method is available in the installed `timesfm` package and is what
+`models_ff/timesfm25_xreg.py` calls (config needs `return_backcast=True`; returns point
+and quantile forecasts with the regression already added).
+
 ## Hugging Face ids
 
 All eight ids in `REFERENCE.md` resolve and none is gated. Pins and weights dates for

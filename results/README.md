@@ -4,8 +4,9 @@ Scored once on Thu Nov 12, 2026, at commit `912a902`, the commit tagged `protoco
 52 Monday origins from 2025-11-10 to 2026-11-02, 168-hour horizon, zones JC and DOM.
 
 Baselines were scored on Thu Nov 12, 2026 at commit `912a902`. Chronos-2 was scored
-once on Fri Nov 13, 2026 at commit `2029bad`, and TimesFM 2.5 once on the same day at
-commit `760adc7`, both against the same unchanged protocol.
+once on Fri Nov 13, 2026 at commit `2029bad`, TimesFM 2.5 (univariate) once on the same day at
+commit `760adc7`, and the 48-hour-gap, TimesFM-with-temperature and Timestral rows once
+at commit `0771698`, all against the same unchanged protocol.
 
 ## Primary comparison
 
@@ -39,7 +40,8 @@ undecided on JC. Read that with the caveats below.
   GB regression also had a 2-day lag, wind and solar, and a day-ahead horizon.
 - The information set is idealised: load is visible up to the cutoff. That favours
   Chronos-2, which uses the most recent hours, over a regression whose only load input
-  is a week old. The pre-registered 48-hour-gap row that measures this is not run yet.
+  is a week old. The pre-registered 48-hour-gap row measures this (below): the gap costs
+  about 4% on DOM and nothing on JC over the week, and 15 to 19% on day 1.
 - The comparator is not the strongest simple model. LightGBM on the same inputs has a
   ratio of 0.857 (0.751 to 0.963) on JC and 0.947 (0.856 to 1.031) on DOM. Against
   LightGBM, Chronos-2's lead on JC is about 5% and on DOM about 23% (point values; no
@@ -95,6 +97,56 @@ row uses load history only. Weights `google/timesfm-2.5-200m-pytorch` revision
 - This is the weather-free pattern the GB study reports: a foundation model without
   weather does not beat a regression that has it.
 
+### Chronos-2 with a 48-hour data gap (pre-registered secondary)
+
+The load context ends 48 hours before the cutoff; weather inputs are unchanged. The
+regression is not rerun: its only load input is a week old, so the gap does not touch it.
+
+| Forecast regime | DOM | JC |
+|---|---|---|
+| Gap row vs. the temperature-only regression | 0.762 (0.683 to 0.849) | 0.803 (0.671 to 0.943) |
+| Cost of the gap (gap / no gap), whole week | 1.045 (0.991 to 1.104) | 0.984 (0.936 to 1.041) |
+| Cost of the gap, day 1 | 1.193 (1.044 to 1.358) | 1.151 (0.967 to 1.374) |
+| Gap row vs. regression, day 1 | 0.757 (0.612 to 0.934) | 0.741 (0.579 to 0.948) |
+
+- The idealised cutoff explains little of the week-ahead result. With realistic data
+  latency the verdicts stay the same: DOM below 0.90, JC crossing it.
+- The gap matters on day 1 only, where the lead shrinks from about 0.63 to about 0.75.
+
+### TimesFM 2.5 with temperature (secondary)
+
+Direct adapter (`models_ff/timesfm25_xreg.py`) using the package's
+`forecast_with_covariates`, configured as in the GB study: mode "xreg + timesfm",
+temperature as the one covariate. The model has no covariate input; this method fits a
+straight line of load on temperature over the context and lets TimesFM forecast the rest.
+
+| Forecast regime | DOM | JC |
+|---|---|---|
+| vs. the temperature-only regression | 1.218 (1.027 to 1.454) | 1.120 (0.949 to 1.315) |
+| Weather gain (with / without temperature) | 0.917 (0.798 to 1.071) | 1.003 (0.884 to 1.148) |
+
+- Temperature gives TimesFM 2.5 no reliable gain here (the GB study reports 6%). A
+  straight line cannot represent load that rises in both heat and cold; on the gate
+  weeks, where the context is summer and the horizon is autumn, it made the forecast
+  about twice as bad. Temperature squared was not added: the settings were fixed before
+  scoring to match the GB study.
+
+### Timestral with temperature (secondary, NOT out-of-sample)
+
+Run through FoundationForecast with temperature as a known-future covariate. Its only
+weights file was committed on 2026-10-15, so **1 of 48 scored weeks starts after the
+weights**. The model may have been trained on the weeks it is scored on. The ratio on
+the weeks after the weights, which the protocol asks for, rests on that single week and
+is not reported.
+
+| Regime | DOM | JC |
+|---|---|---|
+| Forecast, vs. the temperature-only regression | 0.656 (0.608 to 0.709) | 0.698 (0.599 to 0.802) |
+| Oracle, vs. the temperature-only regression | 0.486 (0.442 to 0.537) | 0.543 (0.468 to 0.631) |
+
+It is the lowest error on the board in every zone and regime. That cannot be told apart
+from leakage with this window; see the open research task in `DECISIONS.md`.
+
 ## Leaderboard
 
 Mean absolute error over each 168-hour window, averaged over 48 windows, in MW.
@@ -109,6 +161,9 @@ Ratio is against the lag regression with temperature in the same zone and regime
 | Chronos-2, no weather | DOM | forecast | 1,349 | 7.9 | 0.89 | 1.34 |
 | Chronos-2 + temperature | DOM | forecast | 734 | 4.3 | 0.48 | 0.73 |
 | TimesFM 2.5, univariate | DOM | forecast | 1,336 | 7.8 | 0.88 | 1.33 |
+| Chronos-2 + temperature, 48-hour gap | DOM | forecast | 766 | 4.5 | 0.50 | 0.76 |
+| TimesFM 2.5 + temperature | DOM | forecast | 1,224 | 7.5 | 0.80 | 1.22 |
+| Timestral + temperature (weights inside the window) | DOM | forecast | 660 | 3.8 | 0.43 | 0.66 |
 | Seasonal naive | DOM | oracle | 1,619 | 9.5 | 1.06 | 2.07 |
 | Lag regression | DOM | oracle | 1,533 | 8.8 | 1.00 | 1.96 |
 | Lag regression + temperature | DOM | oracle | 782 | 4.5 | 0.51 | 1.00 |
@@ -116,6 +171,9 @@ Ratio is against the lag regression with temperature in the same zone and regime
 | Chronos-2, no weather | DOM | oracle | 1,349 | 7.9 | 0.89 | 1.72 |
 | Chronos-2 + temperature | DOM | oracle | 519 | 3.1 | 0.34 | 0.66 |
 | TimesFM 2.5, univariate | DOM | oracle | 1,336 | 7.8 | 0.88 | 1.71 |
+| Chronos-2 + temperature, 48-hour gap | DOM | oracle | 572 | 3.4 | 0.38 | 0.73 |
+| TimesFM 2.5 + temperature | DOM | oracle | 1,114 | 6.8 | 0.73 | 1.42 |
+| Timestral + temperature (weights inside the window) | DOM | oracle | 380 | 2.3 | 0.25 | 0.49 |
 | Seasonal naive | JC | forecast | 377 | 13.8 | 1.03 | 1.41 |
 | Lag regression | JC | forecast | 350 | 13.1 | 0.96 | 1.31 |
 | Lag regression + temperature | JC | forecast | 267 | 10.2 | 0.74 | 1.00 |
@@ -123,6 +181,9 @@ Ratio is against the lag regression with temperature in the same zone and regime
 | Chronos-2, no weather | JC | forecast | 290 | 10.5 | 0.80 | 1.09 |
 | Chronos-2 + temperature | JC | forecast | 218 | 8.0 | 0.60 | 0.82 |
 | TimesFM 2.5, univariate | JC | forecast | 298 | 10.8 | 0.82 | 1.12 |
+| Chronos-2 + temperature, 48-hour gap | JC | forecast | 214 | 7.9 | 0.59 | 0.80 |
+| TimesFM 2.5 + temperature | JC | forecast | 299 | 11.7 | 0.82 | 1.12 |
+| Timestral + temperature (weights inside the window) | JC | forecast | 186 | 6.9 | 0.51 | 0.70 |
 | Seasonal naive | JC | oracle | 377 | 13.8 | 1.03 | 1.58 |
 | Lag regression | JC | oracle | 350 | 13.1 | 0.96 | 1.46 |
 | Lag regression + temperature | JC | oracle | 239 | 9.3 | 0.66 | 1.00 |
@@ -130,6 +191,9 @@ Ratio is against the lag regression with temperature in the same zone and regime
 | Chronos-2, no weather | JC | oracle | 290 | 10.5 | 0.80 | 1.21 |
 | Chronos-2 + temperature | JC | oracle | 167 | 6.3 | 0.46 | 0.70 |
 | TimesFM 2.5, univariate | JC | oracle | 298 | 10.8 | 0.82 | 1.25 |
+| Chronos-2 + temperature, 48-hour gap | JC | oracle | 170 | 6.3 | 0.47 | 0.71 |
+| TimesFM 2.5 + temperature | JC | oracle | 266 | 10.5 | 0.73 | 1.11 |
+| Timestral + temperature (weights inside the window) | JC | oracle | 130 | 4.9 | 0.36 | 0.54 |
 
 Seasonal naive, the lag regression, Chronos-2 without weather and TimesFM 2.5 use no
 weather, so their rows are the same in both regimes. Full precision, per-horizon-day errors and run metadata are in
@@ -180,13 +244,8 @@ Details in `notes/foundationforecast.md`; values in `gate/crosscheck/chronos2_ff
 
 ## Not done
 
-- Chronos-2 with a 48-hour data gap (pre-registered secondary).
-- Timestral on the scored weeks. Its only weights file was committed on 2026-10-15, so
-  1 of the 48 scored weeks starts after it. It is held back under the open research
-  task in `DECISIONS.md` (newest models whose weights fall inside the scored window).
-  It does run: with temperature, through FoundationForecast, on the gate weeks
-  (`gate/leaderboard.csv`).
-- TimesFM 2.5 with temperature (the GB study used `forecast_with_covariates`; the
-  library wrapper does not expose it).
+- A fair test of Timestral and other models whose weights fall inside the scored
+  window (open research task in `DECISIONS.md`).
+- TimesFM 2.5 with a curved temperature term.
 - Other foundation models.
 - Vanilla + recency regression row (optional in the brief).

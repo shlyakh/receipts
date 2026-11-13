@@ -1,6 +1,7 @@
 <title>Receipts for Forecasting Papers</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <style>
 /* Layout: one scrolling story in a single column, 1040px max; maps and charts sit beside short text and stack on phones. */
 :root {
@@ -9,8 +10,9 @@
   --model: #2a78d6; --base: #eb6834; --actual: #10202c;
   --map-none: #e3e8ec; --map-iso: #b9c6d0; --map-pjm: #2a78d6; --map-stroke: #ffffff;
   --good: #0f7a4d; --warn: #9a6200; --good-bg: #dff3ea; --warn-bg: #fbeed3; --flag-bg: #eceff2;
-  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --primary-bg: #eef4fc;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
@@ -18,6 +20,7 @@
   --model: #3987e5; --base: #d95926; --actual: #eaf0f4;
   --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
   --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
+  --primary-bg: #1c2e43;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
@@ -25,6 +28,7 @@
   --model: #3987e5; --base: #d95926; --actual: #eaf0f4;
   --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
   --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
+  --primary-bg: #1c2e43;
   color-scheme: dark }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-block: 32px 64px;
@@ -74,6 +78,13 @@ svg { display: block; width: 100%; height: auto; }
 svg text { font-family: var(--body); fill: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
 .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-2); }
 .legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend svg { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; }
+svg text.lab { font-size: 13px; fill: var(--ink); }
+svg text.halo { paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; }
+svg text.halo.on-pri { stroke: var(--primary-bg); }
+td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+svg text.grp { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--ink-3); font-weight: 600; }
+svg .hit:focus { outline: none; } svg .hit:focus-visible { stroke: var(--model); stroke-width: 2; }
 .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
 .pill.good { background: var(--good-bg); color: var(--good); }
 .pill.warn { background: var(--warn-bg); color: var(--warn); }
@@ -113,7 +124,7 @@ a { color: var(--model); }
 <div class="wrap">
 
 <header class="stack">
-  <span class="eyebrow">Prototype &#183; built from scored results, protocol-v1</span>
+  <span class="eyebrow" id="proto-line">Prototype &#183; built from scored results</span>
   <h1>Receipts for Forecasting Papers</h1>
   <p class="lede">Every week a new model claims to forecast better. This agent reads the claim, checks its sources, runs the model on our own electricity data, and hands back a receipt: what was claimed, and what we measured.</p>
   <div class="controls"><button type="button" class="tourbtn" id="tour-start">&#9654; Play the 45-second tour</button></div>
@@ -219,7 +230,7 @@ a { color: var(--model); }
   <h2>A study said the model and the regression tie. Does that hold here?</h2>
   <p>A pre-registered study of Great Britain's demand, published this week, found that once both get the same weather, Chronos-2's error is <strong>0.97</strong> of a regression's, a rough tie. We ran the same question on PJM, a week ahead, on <span id="n-weeks"></span> weeks the model cannot have seen in training.</p>
   <div class="receipt" id="receipt"></div>
-  <p class="note">Error ratio: the model's average error divided by the regression's. Below 1 the model is better. The shaded band is our 10% bar, fixed before scoring: inside it the two are a practical tie. Whiskers are 90% ranges. Source of the claim: <a href="https://zenodo.org/records/24161799">Zenodo record 24161799</a>.</p>
+  <p class="note">Error ratio: the model's average error divided by the comparison regression's, on a log scale. Below 1 the model is better. The shaded band is our 10% bar, fixed before scoring: inside it the two are a practical tie. Bars are 90% ranges, but over different samples: the claim's over the GB study's own 960 days (day-ahead), ours over our <span class="n-weeks"></span> whole weeks, so the narrower claimed bar reflects more data, not a stronger result. The third row, against the field's standard benchmark, is secondary and does not change the verdict. Source of the claim: <a href="https://zenodo.org/records/24161799">Zenodo record 24161799</a>.</p>
   <div class="panel stack">
     <h3>A second check: against the field's standard benchmark</h3>
     <p>After scoring, we searched review papers and forecasting competitions for the load-forecasting field's own standard baseline. It is a different regression, known as Tao's Vanilla Benchmark: no lagged load, a curved temperature response that varies by month and hour, two years of history, plus a trend. It beats our original regression by about 20% in both zones.</p>
@@ -239,12 +250,18 @@ a { color: var(--model); }
   <span class="eyebrow">Leaderboard</span>
   <h2>Every model against the same baseline</h2>
   <div class="controls">
-    <div class="seg" id="lb-zone" role="group" aria-label="Zone"></div>
     <div class="seg" id="lb-regime" role="group" aria-label="Weather"></div>
   </div>
-  <div class="panel"><svg id="board" role="img" aria-label="Error ratio of each model against the regression with temperature"></svg></div>
-  <p class="note">Dots left of 1.00 beat the regression with temperature. Models without weather give the same forecast under either weather setting. A greyed row was scored on weeks the model may have been trained on.</p>
-  <div class="panel scroll"><table id="board-table"></table></div>
+  <div class="panel stack">
+    <div class="legend" id="board-legend"></div>
+    <svg id="board" role="img" aria-label="Error ratio of each model against the regression with temperature, DOM and JC side by side"></svg>
+    <p class="note" id="board-caption"></p>
+  </div>
+  <p class="note">Dots left of 1 beat the regression with temperature. Models without weather give the same forecast under either weather setting. The grey diamond row was scored on weeks the model may have been trained on.</p>
+  <div class="panel stack">
+    <div class="controls"><span class="note">Values for</span><div class="seg" id="lb-zone" role="group" aria-label="Zone shown in the table"></div><span class="note" id="board-table-regime"></span></div>
+    <div class="scroll"><table id="board-table"></table></div>
+  </div>
 </section>
 
 <section data-tab="agents">
@@ -330,6 +347,18 @@ a { color: var(--model); }
     const x = Math.min(ev.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
     tip.style.left = Math.max(8, x) + "px"; tip.style.top = (ev.clientY + 14) + "px"; }
   function hideTip() { tip.hidden = true; }
+  // Hover and keyboard focus show the same tooltip; the hit area is the whole row or slot, not the painted mark.
+  function hit(sel, label, html) {
+    sel.attr("class", "hit").attr("fill", "transparent").attr("tabindex", 0).attr("role", "img").attr("aria-label", label)
+      .on("mousemove", ev => showTip(ev, html)).on("mouseleave", hideTip)
+      .on("focus", function () { const b = this.getBoundingClientRect(); showTip({ clientX: b.left + Math.min(b.width / 2, 120), clientY: b.top + b.height / 2 }, html); })
+      .on("blur", hideTip);
+  }
+  // Charts are drawn at their real pixel width so 12px text stays 12px on a phone; hidden tabs are redrawn when shown.
+  var drawers = [];
+  function redraw() { drawers.forEach(f => f()); }
+  let rz = null; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(redraw, 120); });
+  const widthOf = (el, fallback) => (el && el.clientWidth) || fallback;
   function seg(id, options, value, onChange) {
     const el = d3.select("#" + id);
     el.selectAll("button").data(options).join("button").attr("type", "button").text(d => d.label)
@@ -343,6 +372,7 @@ a { color: var(--model); }
     const want = location.hash.replace("#", ""), tab = tabNames.includes(want) ? want : tabNames[0];
     document.querySelectorAll("section[data-tab]").forEach(el => { el.hidden = el.dataset.tab !== tab; });
     document.querySelectorAll("#tabs a").forEach(a => { if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    redraw();
   }
   window.addEventListener("hashchange", () => { showTab(); window.scrollTo(0, 0); });
   showTab();
@@ -412,9 +442,14 @@ a { color: var(--model); }
     Object.keys(ISO).forEach(k => {
       const merged = topojson.merge(US, US.objects.states.geometries.filter(g => ISO[k].includes(+g.id)));
       const c = path.centroid(merged), o = off[k] || [0, 0];
-      svg.append("text").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle")
-        .attr("style", "font-size:" + (k === "PJM" ? 20 : 15) + "px;font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
+      svg.append("text").attr("class", "iso").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle").attr("data-base", k === "PJM" ? 20 : 15)
+        .attr("style", "font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
     });
+    // labels are in map units; keep them at least about 9px on screen when the map is drawn small
+    function sizeLabels() { const k = 975 / widthOf(svg.node(), 975);
+      svg.selectAll("text.iso").style("font-size", function () { return Math.max(+this.dataset.base, +this.dataset.base / 15 * 10 * k) + "px"; })
+        .attr("dx", function () { const b = this.getBBox(); return Math.min(0, 962 - (b.x - (+this.getAttribute("dx") || 0) + b.width)); }); }
+    sizeLabels(); drawers.push(sizeLabels);
   })();
 
   (function zoneMap() {
@@ -449,23 +484,25 @@ a { color: var(--model); }
 
   // ---------- sample week
   let wkZone = "DOM", wkIdx = 0;
-  const BASE = "lag_regression_temperature", MODEL = "chronos2_temperature";
+  const BASE = "lag_regression_temperature", MODEL = "chronos2_temperature", STD = "vanilla_benchmark_trend";
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   function drawWeek() {
     const wk = D.weeks[wkIdx][wkZone], svg = d3.select("#week"); svg.selectAll("*").remove();
-    const m = { l: 56, r: 12, t: 26, b: 28 }, W = 960, H = 320;
+    const W = widthOf(svg.node(), 960), narrow = W < 560, H = narrow ? 240 : 320;
+    const m = { l: narrow ? 46 : 56, r: 8, t: 26, b: 28 };
+    svg.attr("viewBox", "0 0 " + W + " " + H);
     const all = wk.actual.concat(wk[BASE], wk[MODEL]);
     const x = d3.scaleLinear([0, 167], [m.l, W - m.r]);
     const y = d3.scaleLinear(d3.extent(all), [H - m.b, m.t]).nice();
-    y.ticks(5).forEach(t => { svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", "var(--grid)");
-      svg.append("text").attr("x", m.l - 8).attr("y", y(t) + 4).attr("text-anchor", "end").text(fmt(t)); });
+    y.ticks(narrow ? 4 : 5).forEach(t => { svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", "var(--grid)");
+      svg.append("text").attr("x", m.l - 6).attr("y", y(t) + 4).attr("text-anchor", "end").text(fmt(t)); });
     dayNames.forEach((d, i) => { svg.append("text").attr("x", x(i * 24 + 12)).attr("y", H - 8).attr("text-anchor", "middle").text(d);
       if (i) svg.append("line").attr("x1", x(i * 24)).attr("x2", x(i * 24)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--grid)"); });
-    svg.append("text").attr("x", m.l - 8).attr("y", 12).attr("text-anchor", "end").text("MW");
+    svg.append("text").attr("x", m.l - 6).attr("y", 12).attr("text-anchor", "end").text("MW");
     const line = d3.line().x((d, i) => x(i)).y(d => y(d));
     [[BASE, "var(--base)"], [MODEL, "var(--model)"], ["actual", "var(--actual)"]].forEach(([k, c]) =>
       svg.append("path").attr("d", line(wk[k])).attr("fill", "none").attr("stroke", c).attr("stroke-width", 2).attr("stroke-linejoin", "round"));
-    const cross = svg.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--ink-3)").attr("stroke-dasharray", "3 3").attr("visibility", "hidden");
+    const cross = svg.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--ink-3)").attr("visibility", "hidden");
     svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", W - m.l - m.r).attr("height", H - m.t - m.b).attr("fill", "transparent")
       .on("mousemove", ev => { const i = Math.max(0, Math.min(167, Math.round(x.invert(d3.pointer(ev)[0]))));
         cross.attr("x1", x(i)).attr("x2", x(i)).attr("visibility", "visible");
@@ -477,50 +514,103 @@ a { color: var(--model); }
   seg("wk-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], wkZone, v => { wkZone = v; drawWeek(); });
   d3.select("#wk-select").on("change", function () { wkIdx = +this.value; drawWeek(); })
     .selectAll("option").data(D.weeks).join("option").attr("value", (d, i) => i).text(d => d.start);
-  drawWeek();
+  drawWeek(); drawers.push(drawWeek);
 
-  // ---------- receipt
+  // ---------- shared pieces for ratio axes (log scale, so 0.5 and 2 sit equally far from 1)
   const bar = D.bar, lo = 1 - bar, hi = 1 + bar;
+  const tickTxt = t => String(t);
+  // Keep tick labels that do not collide, most important first; ticks without a label still get a gridline.
+  function tickLabels(x, pri) {
+    const kept = [];
+    pri.forEach(t => { const w = tickTxt(t).length * 7 + 8, a = x(t) - w / 2, b = x(t) + w / 2;
+      if (kept.every(k => b < k.a || a > k.b)) kept.push({ t, a, b }); });
+    return new Set(kept.map(k => k.t));
+  }
+  const nW = D.n_windows;
+  d3.selectAll(".n-weeks").text(nW);
+
+  // ---------- receipt: claimed (GB) against measured, with the second check as a secondary third row
   function verdict(r) { return r.hi < lo ? ["Does not transfer: model clearly better", "good"]
     : (r.lo >= lo && r.hi <= hi) ? ["Transfers: practical tie", "flag"]
     : r.lo > hi ? ["Does not transfer: regression clearly better", "warn"] : ["Inconclusive", "warn"]; }
   const sentences = {}; D.primary_text.split("\n").forEach(l => { const m = l.match(/^\*\*(\w+): [^*]+\*\*\s*(.*)$/); if (m) sentences[m[1]] = m[2]; });
+  const C = D.claim, pct = v => Math.round(v * 100) + "%";
+  function drawStrip(zone, node) {
+    const r = D.board.find(b => b.model === MODEL && b.zone === zone && b.regime === "forecast");
+    const std = D.vs_standard && D.vs_standard[zone];
+    const svg = d3.select(node); svg.selectAll("*").remove();
+    const W = widthOf(node, 440), x = d3.scaleLog([0.6, 1.25], [10, W - 10]);
+    const rows = [
+      { name: "Claimed in GB, against its regression", basis: pct(C.level) + " range over the study's " + fmt(C.n_days) + " days, " + C.horizon, v: C, kind: "claim" },
+      { name: "Measured, against regression + temperature", basis: "primary \u00b7 " + pct(C.level) + " range over our " + nW + " weeks", v: r, kind: "primary" }];
+    if (std) rows.push({ name: "Measured, against Vanilla with trend", basis: "secondary \u00b7 " + pct(C.level) + " range over our " + nW + " weeks", v: std, kind: "secondary" });
+    // lay out labels first: the basis sits beside the name when it fits, else on its own line
+    let yy = 6; const laid = [];
+    rows.forEach(row => {
+      const g = svg.append("g");
+      const t1 = g.append("text").attr("class", "lab").attr("x", 10).attr("y", yy + 13).text(row.name);
+      if (row.kind === "primary") t1.attr("font-weight", 600);
+      const t2 = g.append("text").attr("x", W - 10).attr("y", yy + 13).attr("text-anchor", "end").attr("fill", "var(--ink-3)").text(row.basis);
+      const wrap = t1.node().getComputedTextLength() + t2.node().getComputedTextLength() + 16 > W - 20;
+      if (wrap) t2.attr("x", 10).attr("y", yy + 29).attr("text-anchor", "start");
+      const cy = yy + (wrap ? 44 : 30);
+      laid.push({ ...row, cy, top: yy, bottom: cy + 10 }); yy = cy + 16;
+    });
+    const top = laid[0].cy - 12, bot = laid[laid.length - 1].cy + 12;
+    // band and gridlines only beside the marks, so they never run through the row labels
+    const spans = laid.map(row => [row.cy - 11, row.cy + 11]);
+    spans.forEach(([a, b]) => svg.insert("rect", "g").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", a).attr("height", b - a).attr("fill", "var(--band)"));
+    const ticks = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2], shown = tickLabels(x, [1, 0.6, 1.2, 0.8, 0.9, 1.1, 0.7]);
+    ticks.forEach(t => { spans.forEach(([a, b]) => svg.insert("line", "g").attr("x1", x(t)).attr("x2", x(t)).attr("y1", a).attr("y2", b).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)"));
+      if (shown.has(t)) svg.append("text").attr("x", x(t)).attr("y", bot + 16).attr("text-anchor", "middle").text(tickTxt(t)); });
+    svg.append("text").attr("x", 10).attr("y", bot + 34).attr("fill", "var(--ink-3)").text("\u2190 lower is better \u00b7 error ratio, log scale");
+    laid.forEach(row => {
+      const v = row.v, col = row.kind === "claim" ? "var(--ink-3)" : "var(--model)";
+      svg.append("line").attr("x1", x(v.lo)).attr("x2", x(v.hi)).attr("y1", row.cy).attr("y2", row.cy).attr("stroke", col)
+        .attr("stroke-width", row.kind === "primary" ? 3 : 2).attr("stroke-linecap", "round").attr("opacity", row.kind === "secondary" ? 0.6 : 1);
+      svg.append("circle").attr("cx", x(v.ratio)).attr("cy", row.cy).attr("r", row.kind === "primary" ? 6 : 5)
+        .attr("fill", row.kind === "primary" ? col : "var(--panel)").attr("stroke", row.kind === "primary" ? "var(--panel)" : col).attr("stroke-width", 2);
+      const right = x(v.hi) + 8, txt = f2(v.ratio);
+      svg.append("text").attr("x", right + 30 < W ? right : x(v.lo) - 8).attr("y", row.cy + 4).attr("text-anchor", right + 30 < W ? "start" : "end").attr("class", "halo").attr("fill", "var(--ink)").text(txt);
+      hit(svg.append("rect").attr("x", 0).attr("y", row.top).attr("width", W).attr("height", row.bottom - row.top + 4),
+        zone + ", " + row.name + ": " + f3(v.ratio) + ", range " + f3(v.lo) + " to " + f3(v.hi),
+        "<b>" + (row.kind === "claim" ? "GB study" : zone) + "</b><br>" + row.name + "<br>ratio " + f3(v.ratio) + ", range " + f3(v.lo) + " to " + f3(v.hi) + "<br>" + row.basis);
+    });
+    svg.attr("viewBox", "0 0 " + W + " " + (bot + 42)).attr("height", bot + 42);
+  }
   ["DOM", "JC"].forEach(zone => {
     const r = D.board.find(b => b.model === MODEL && b.zone === zone && b.regime === "forecast");
+    const std = D.vs_standard && D.vs_standard[zone];
     const [vtxt, vcls] = verdict(r);
     const card = d3.select("#receipt").append("div").attr("class", "panel");
     card.append("div").attr("class", "controls").html("<h3>" + zone + "</h3><span class='pill " + vcls + "'>" + vtxt + "</span>");
     card.append("div").attr("class", "big").text(f2(r.ratio));
     card.append("div").attr("class", "kv").html("<span>Measured ratio, 90% range <b>" + f2(r.lo) + " to " + f2(r.hi) + "</b></span><span>Claimed in GB <b>" + f2(D.claim.ratio) + "</b></span><span>Unseen weeks <b>" + r.n_after + " of " + r.n + "</b></span>");
-    const svg = card.append("svg").attr("viewBox", "0 0 440 92").attr("role", "img").attr("aria-label", zone + " measured ratio against the claimed ratio");
-    const x = d3.scaleLinear([0.6, 1.2], [14, 426]);
-    svg.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", 12).attr("height", 48).attr("fill", "var(--band)");
-    [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].forEach(t => { svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", 60).attr("y2", 65).attr("stroke", "var(--ink-3)");
-      svg.append("text").attr("x", x(t)).attr("y", 80).attr("text-anchor", "middle").text(f2(t)); });
-    svg.append("line").attr("x1", 14).attr("x2", 426).attr("y1", 60).attr("y2", 60).attr("stroke", "var(--ink-3)");
-    svg.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", 12).attr("y2", 60).attr("stroke", "var(--ink-3)").attr("stroke-dasharray", "3 3");
-    svg.append("line").attr("x1", x(D.claim.lo)).attr("x2", x(D.claim.hi)).attr("y1", 24).attr("y2", 24).attr("stroke", "var(--ink-3)").attr("stroke-width", 2);
-    svg.append("circle").attr("cx", x(D.claim.ratio)).attr("cy", 24).attr("r", 5).attr("fill", "var(--panel)").attr("stroke", "var(--ink-3)").attr("stroke-width", 2);
-    svg.append("text").attr("x", x(D.claim.hi) + 8).attr("y", 28).text("claimed, GB");
-    svg.append("line").attr("x1", x(r.lo)).attr("x2", x(r.hi)).attr("y1", 46).attr("y2", 46).attr("stroke", "var(--model)").attr("stroke-width", 2);
-    svg.append("circle").attr("cx", x(r.ratio)).attr("cy", 46).attr("r", 6).attr("fill", "var(--model)").attr("stroke", "var(--panel)").attr("stroke-width", 2);
-    svg.append("text").attr("x", x(r.hi) + 10).attr("y", 50).text("measured");
+    const svg = card.append("svg").attr("role", "img").attr("aria-label", zone + ": claimed ratio, measured ratio against the regression, and the secondary measured ratio against the Vanilla benchmark with trend");
+    const node = svg.node(); drawStrip(zone, node); drawers.push(() => drawStrip(zone, node));
     card.append("p").attr("class", "note").text(sentences[zone] || "");
+    if (std) card.append("p").attr("class", "note").text("Secondary: against the Vanilla benchmark with trend the ratio is " + f2(std.ratio) + " (" + f2(std.lo) + " to " + f2(std.hi) + "). It does not change the verdict above, whose baseline was fixed in advance.");
+  });
 
-    const dsvg = d3.select("#day-" + zone), days = D.per_day[zone];
-    const dx = d3.scalePoint(days.map(d => d.day), [48, 420]).padding(0.4), dy = d3.scaleLinear([0.4, 1.2], [168, 10]);
-    dsvg.append("rect").attr("x", 40).attr("width", 390).attr("y", dy(hi)).attr("height", dy(lo) - dy(hi)).attr("fill", "var(--band)");
-    [0.4, 0.6, 0.8, 1.0, 1.2].forEach(t => { dsvg.append("line").attr("x1", 40).attr("x2", 430).attr("y1", dy(t)).attr("y2", dy(t)).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)").attr("stroke-dasharray", t === 1 ? "3 3" : null);
+  function drawDay(zone) {
+    const dsvg = d3.select("#day-" + zone), days = D.per_day[zone]; dsvg.selectAll("*").remove();
+    const W = widthOf(dsvg.node(), 440), H = 200; dsvg.attr("viewBox", "0 0 " + W + " " + H);
+    const narrow = W < 360;
+    const dx = d3.scalePoint(days.map(d => d.day), [48, W - 8]).padding(0.4), dy = d3.scaleLinear([0.4, 1.2], [168, 10]);
+    const step = dx.step();
+    dsvg.append("rect").attr("x", 40).attr("width", W - 48).attr("y", dy(hi)).attr("height", dy(lo) - dy(hi)).attr("fill", "var(--band)");
+    [0.4, 0.6, 0.8, 1.0, 1.2].forEach(t => { dsvg.append("line").attr("x1", 40).attr("x2", W - 8).attr("y1", dy(t)).attr("y2", dy(t)).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)");
       dsvg.append("text").attr("x", 34).attr("y", dy(t) + 4).attr("text-anchor", "end").text(f2(t)); });
     dsvg.append("path").attr("d", d3.line().x(d => dx(d.day)).y(d => dy(d.ratio))(days)).attr("fill", "none").attr("stroke", "var(--model)").attr("stroke-width", 2);
     days.forEach(d => {
       dsvg.append("line").attr("x1", dx(d.day)).attr("x2", dx(d.day)).attr("y1", dy(d.lo)).attr("y2", dy(d.hi)).attr("stroke", "var(--model)").attr("stroke-width", 2).attr("opacity", 0.45);
       dsvg.append("circle").attr("cx", dx(d.day)).attr("cy", dy(d.ratio)).attr("r", 5).attr("fill", "var(--model)").attr("stroke", "var(--panel)").attr("stroke-width", 2);
-      dsvg.append("text").attr("x", dx(d.day)).attr("y", 190).attr("text-anchor", "middle").text("Day " + d.day);
-      dsvg.append("rect").attr("x", dx(d.day) - 22).attr("y", 10).attr("width", 44).attr("height", 160).attr("fill", "transparent")
+      dsvg.append("text").attr("x", dx(d.day)).attr("y", 190).attr("text-anchor", "middle").text((narrow ? "D" : "Day ") + d.day);
+      dsvg.append("rect").attr("x", dx(d.day) - step / 2).attr("y", 10).attr("width", step).attr("height", 160).attr("fill", "transparent")
         .on("mousemove", ev => showTip(ev, "<b>" + zone + ", day " + d.day + "</b><br>ratio " + f3(d.ratio) + "<br>90% range " + f3(d.lo) + " to " + f3(d.hi))).on("mouseleave", hideTip);
     });
-  });
+  }
+  ["DOM", "JC"].forEach(z => { drawDay(z); drawers.push(() => drawDay(z)); });
 
   // ---------- scan results
   (function scanResults() {
@@ -569,42 +659,117 @@ a { color: var(--model); }
     .html(z => { const v = D.vs_standard[z], tie = v.lo >= lo && v.hi <= hi;
       return "<b>" + f2(v.ratio) + "</b><span><strong>" + z + "</strong>, range " + f2(v.lo) + " to " + f2(v.hi) + ". " + (tie ? "A practical tie." : v.hi < lo ? "Model clearly better." : "Undecided.") + "</span>"; });
 
-  // ---------- leaderboard
+  // ---------- leaderboard: fixed order by model family, both zones side by side, one regime at a time
   let lbZone = "DOM", lbRegime = "forecast";
-  const order = ["chronos2_temperature", "timestral_temperature", "chronos2_temperature_gap48", "vanilla_benchmark_trend", "vanilla_benchmark", "lightgbm_temperature", "lag_regression_temperature", "timesfm25_temperature", "timesfm25", "chronos2", "lag_regression", "seasonal_naive"];
-  function drawBoard() {
-    const rows = order.map(m => D.board.find(b => b.model === m && b.zone === lbZone && b.regime === lbRegime)).filter(Boolean)
-      .sort((a, b) => a.ratio - b.ratio);
-    const rh = 34, m = { l: 380, r: 60, t: 26, b: 8 }, W = 960, H = m.t + rows.length * rh + m.b;
-    const narrow = window.innerWidth < 640; if (narrow) m.l = 14;
-    const rowH = narrow ? 50 : rh, HH = m.t + rows.length * rowH + m.b;
-    const svg = d3.select("#board").attr("viewBox", "0 0 " + W + " " + HH); svg.selectAll("*").remove();
-    const max = Math.max(2.2, d3.max(rows, r => r.hi || r.ratio) + 0.05);
-    const x = d3.scaleLinear([0.4, max], [m.l, W - m.r]);
-    svg.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", m.t).attr("height", rows.length * rowH).attr("fill", "var(--band)");
-    x.ticks(8).forEach(t => { svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", m.t).attr("y2", m.t + rows.length * rowH).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)").attr("stroke-dasharray", t === 1 ? "3 3" : null);
-      svg.append("text").attr("x", x(t)).attr("y", 16).attr("text-anchor", "middle").text(f2(t)); });
-    rows.forEach((r, i) => {
-      const cy = m.t + i * rowH + (narrow ? rowH - 14 : rowH / 2), flagged = r.group === "flagged";
-      const col = flagged ? "var(--ink-3)" : r.group === "baseline" ? "var(--base)" : r.group === "standard" ? "var(--ink)" : (r.group === "fm" || r.group === "primary") ? "var(--model)" : "var(--ink-2)";
-      const lab = svg.append("text").attr("x", narrow ? m.l : m.l - 14).attr("y", narrow ? cy - 18 : cy + 4).attr("text-anchor", narrow ? "start" : "end")
-        .attr("style", "font-size:13px;fill:" + (flagged ? "var(--ink-3)" : "var(--ink)") + ";font-weight:" + (r.group === "primary" || r.group === "baseline" ? 600 : 400));
-      lab.text(r.label + (r.note ? "  \u00b7  " + r.note : ""));
-      if (r.lo != null) svg.append("line").attr("x1", x(r.lo)).attr("x2", x(r.hi)).attr("y1", cy).attr("y2", cy).attr("stroke", col).attr("stroke-width", 2).attr("opacity", 0.55);
-      svg.append("circle").attr("cx", x(r.ratio)).attr("cy", cy).attr("r", r.group === "primary" ? 7 : 5.5).attr("fill", flagged ? "var(--panel)" : col).attr("stroke", flagged ? col : "var(--panel)").attr("stroke-width", 2);
-      svg.append("text").attr("x", x(r.hi || r.ratio) + 10).attr("y", cy + 4).text(f2(r.ratio));
-      svg.append("rect").attr("x", 0).attr("y", m.t + i * rowH).attr("width", W).attr("height", rowH).attr("fill", "transparent")
-        .on("mousemove", ev => showTip(ev, "<b>" + r.label + "</b><br>error " + fmt(Math.round(r.mae)) + " MW (" + r.mape.toFixed(1) + "%)<br>ratio " + f3(r.ratio) + (r.lo != null ? ", 90% range " + f3(r.lo) + " to " + f3(r.hi) : "") + (r.n_after != null ? "<br>" + r.n_after + " of " + r.n + " weeks after its weights" : "")))
-        .on("mouseleave", hideTip);
-    });
-    const t = d3.select("#board-table"); t.selectAll("*").remove();
-    t.append("tr").selectAll("th").data(["Model", "Avg error, MW", "Error %", "Ratio", "90% range", "Unseen weeks"]).join("th").text(d => d);
-    rows.forEach(r => t.append("tr").selectAll("td").data([r.label + (r.note ? " (" + r.note + ")" : ""), fmt(Math.round(r.mae)), r.mape.toFixed(1), f2(r.ratio),
-      r.lo != null ? f2(r.lo) + " to " + f2(r.hi) : "baseline", r.n_after != null ? r.n_after + " of " + r.n : "n/a"]).join("td").text(d => d));
+  const FAM = [
+    { title: "Primary comparison", kind: "primary", models: ["chronos2_temperature"] },
+    { title: "Pretrained, with temperature", kind: "fm", models: ["chronos2_temperature_gap48", "timesfm25_temperature"] },
+    { title: "Classical, with temperature", kind: "classical", models: ["lag_regression_temperature", "lightgbm_temperature", "vanilla_benchmark_trend", "vanilla_benchmark"] },
+    { title: "No temperature input", kind: "noweather", models: ["chronos2", "timesfm25", "lag_regression", "seasonal_naive"], rule: true },
+    { title: "Not out-of-sample", kind: "flagged", models: ["timestral_temperature"], rule: true }
+  ];
+  const famOf = {}; FAM.forEach(f => f.models.forEach(m => famOf[m] = f));
+  const LOOK = {
+    primary: { col: "var(--model)", fill: true, shape: "circle" }, fm: { col: "var(--model)", fill: true, shape: "circle" },
+    classical: { col: "var(--base)", fill: true, shape: "circle" }, noweather: { col: "var(--ink-3)", fill: false, shape: "circle" },
+    flagged: { col: "var(--ink-3)", fill: false, shape: "diamond" }
+  };
+  const BX = [0.4, 2.4], BT = [0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2], BP = [1, 0.5, 2, 0.8, 1.25, 0.67, 1.5, 0.9, 1.1];
+  const protoShort = p => (p || "").replace("protocol-", "");
+  const rowLabel = r => r.label + (r.model === BASE ? " (baseline, = 1)" : r.note && famOf[r.model].kind !== "primary" && famOf[r.model].kind !== "flagged" ? " \u00b7 " + r.note : "");
+  function mark(g, kind, cx, cy, primary) {
+    const L = LOOK[kind];
+    if (L.shape === "diamond") return g.append("path").attr("d", d3.symbol(d3.symbolDiamond, 110)()).attr("transform", "translate(" + cx + "," + cy + ")")
+      .attr("fill", "var(--panel)").attr("stroke", L.col).attr("stroke-width", 2);
+    return g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", primary ? 7 : 5)
+      .attr("fill", L.fill ? L.col : "var(--panel)").attr("stroke", L.fill ? "var(--panel)" : L.col).attr("stroke-width", 2);
   }
-  seg("lb-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], lbZone, v => { lbZone = v; drawBoard(); });
+  (function legend() {
+    const items = [["fm", "Pretrained model, with temperature"], ["classical", "Classical model, with temperature"], ["noweather", "No temperature input"], ["flagged", "Not out-of-sample"]];
+    const lg = d3.select("#board-legend");
+    items.forEach(([k, t]) => { const s = lg.append("span"), sv = s.append("svg").attr("viewBox", "0 0 14 14").attr("aria-hidden", "true"); mark(sv, k, 7, 7, false).attr("r", 5); s.append("span").text(t); });
+    const s = lg.append("span"); s.append("svg").attr("viewBox", "0 0 14 14").attr("aria-hidden", "true").append("rect").attr("x", 1).attr("y", 1).attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", "var(--band)").attr("stroke", "var(--line)");
+    s.append("span").text("10% bar, " + f2(lo) + " to " + f2(hi));
+  })();
+  function drawBoard() {
+    const svg = d3.select("#board"); svg.selectAll("*").remove();
+    const W = widthOf(svg.node(), 960), narrow = W < 600;
+    const labW = narrow ? 0 : Math.min(300, Math.round(W * 0.31)), gap = narrow ? 14 : 28;
+    const pw = (W - labW - gap) / 2, px = [labW, labW + pw + gap], zones = ["DOM", "JC"];
+    const x = d3.scaleLog(BX, [6, pw - 6]);
+    const rowH = narrow ? 44 : 30, grpH = 26, head = narrow ? 44 : 50;
+    // vertical layout: group headings, rows, rules
+    let y = head; const items = [];
+    FAM.forEach((f, fi) => {
+      if (fi) y += f.rule ? 14 : 6;
+      items.push({ type: "grp", f, y, rule: f.rule }); y += grpH;
+      f.models.forEach(m => { items.push({ type: "row", f, m, y }); y += rowH; });
+      if (f.kind === "primary") y += 8;
+    });
+    const plotTop = head - 4, plotBot = y + 4, H = plotBot + 46;
+    svg.attr("viewBox", "0 0 " + W + " " + H).attr("height", H);
+    // primary row set apart: a tinted strip across labels and both panels
+    const pri = items.find(it => it.type === "row" && it.f.kind === "primary");
+    svg.append("rect").attr("x", 0).attr("y", pri.y).attr("width", W).attr("height", rowH).attr("rx", 6).attr("fill", "var(--primary-bg)");
+    zones.forEach((z, k) => {
+      const g = svg.append("g").attr("transform", "translate(" + px[k] + ",0)");
+      g.append("text").attr("x", 6).attr("y", 18).attr("style", "font-size:15px;font-weight:600;fill:var(--ink)").text(z);
+      // on a phone the row labels sit above the marks, so band and gridlines are drawn only beside the marks
+      const spans = narrow ? items.filter(it => it.type === "row").map(it => [it.y + rowH - 24, it.y + rowH]) : [[plotTop, plotBot]];
+      spans.forEach(([a, b]) => g.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", a).attr("height", b - a).attr("fill", "var(--band)"));
+      const shown = tickLabels(x, BP);
+      BT.forEach(t => {
+        spans.forEach(([a, b]) => g.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", a).attr("y2", b).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)"));
+        if (shown.has(t)) { g.append("text").attr("x", x(t)).attr("y", plotBot + 16).attr("text-anchor", "middle").text(tickTxt(t));
+          if (!narrow) g.append("text").attr("x", x(t)).attr("y", plotTop - 8).attr("text-anchor", "middle").text(tickTxt(t)); }
+      });
+      g.append("text").attr("x", 6).attr("y", plotBot + 36).attr("fill", "var(--ink-3)").text(pw < 300 ? "\u2190 lower is better" : "\u2190 lower is better \u00b7 ratio, log scale");
+    });
+    items.forEach(it => {
+      if (it.type === "grp") {
+        if (it.rule) svg.append("line").attr("x1", 0).attr("x2", W).attr("y1", it.y - 7).attr("y2", it.y - 7).attr("stroke", "var(--line)");
+        svg.append("text").attr("class", "grp halo").attr("x", 0).attr("y", it.y + 17).text(it.f.title);
+        return;
+      }
+      const isPri = it.f.kind === "primary", look = LOOK[it.f.kind];
+      const cy = narrow ? it.y + rowH - 12 : it.y + rowH / 2;
+      const any = D.board.find(b => b.model === it.m && b.regime === lbRegime);
+      if (!any) return;
+      svg.append("text").attr("class", "lab halo" + (isPri ? " on-pri" : "")).attr("x", narrow ? 0 : labW - 14).attr("y", narrow ? it.y + 14 : cy + 4).attr("text-anchor", narrow ? "start" : "end")
+        .attr("font-weight", isPri || it.m === BASE ? 600 : 400).attr("fill", it.f.kind === "flagged" ? "var(--ink-3)" : null).text(rowLabel(any));
+      zones.forEach((z, k) => {
+        const r = D.board.find(b => b.model === it.m && b.zone === z && b.regime === lbRegime); if (!r) return;
+        const g = svg.append("g").attr("transform", "translate(" + px[k] + ",0)");
+        if (r.lo != null) g.append("line").attr("x1", x(r.lo)).attr("x2", x(r.hi)).attr("y1", cy).attr("y2", cy).attr("stroke", look.col)
+          .attr("stroke-width", isPri ? 3 : 2).attr("stroke-linecap", "round").attr("opacity", isPri ? 1 : 0.6);
+        mark(g, it.f.kind, x(r.ratio), cy, isPri);
+        if (isPri) { const right = x(r.hi) + 8, fits = right + 32 < pw;
+          g.append("text").attr("x", fits ? right : x(r.lo) - 8).attr("y", cy + 4).attr("text-anchor", fits ? "start" : "end").attr("class", "halo on-pri").attr("style", "fill:var(--ink);font-weight:600").text(f2(r.ratio)); }
+        const role = isPri ? "primary comparison" : r.model === BASE ? "the baseline itself" : "secondary, interval not adjusted for multiple comparisons";
+        hit(g.append("rect").attr("x", 0).attr("y", it.y).attr("width", pw).attr("height", rowH),
+          z + ", " + r.label + ": ratio " + f3(r.ratio) + (r.lo != null ? ", 90% range " + f3(r.lo) + " to " + f3(r.hi) : ""),
+          "<b>" + z + " \u00b7 " + r.label + "</b><br>ratio " + f3(r.ratio) + (r.lo != null ? ", 90% range " + f3(r.lo) + " to " + f3(r.hi) : " (the baseline)") +
+          "<br>error " + fmt(Math.round(r.mae)) + " MW (" + r.mape.toFixed(1) + "%)<br>" + role + "<br>" + r.protocol +
+          (r.n_after != null ? " \u00b7 " + r.n_after + " of " + r.n + " weeks after its weights" : "") + (it.f.kind === "flagged" ? "<br>not out-of-sample" : ""));
+      });
+    });
+    d3.select("#board-caption").text("Dot: the model's mean weekly error divided by the regression + temperature's, " + (lbRegime === "forecast" ? "forecast" : "actual") + " weather. Bar: 90% whole-week bootstrap interval over " + nW +
+      " weeks. Shaded: the pre-registered 10% bar. Log scale, so 0.5 and 2 sit equally far from 1. Only the first row is the primary comparison; every other row is secondary, and its interval is not adjusted for the number of rows compared.");
+    drawTable();
+  }
+  function drawTable() {
+    const t = d3.select("#board-table"); t.selectAll("*").remove();
+    d3.select("#board-table-regime").text(lbRegime === "forecast" ? "forecast weather" : "actual weather");
+    t.append("tr").selectAll("th").data(["Model", "Role", "Avg error, MW", "Error %", "Ratio", "90% range", "Unseen weeks", "Protocol"]).join("th").text(d => d);
+    FAM.forEach(f => f.models.forEach(m => {
+      const r = D.board.find(b => b.model === m && b.zone === lbZone && b.regime === lbRegime); if (!r) return;
+      t.append("tr").selectAll("td").data([r.label + (r.note ? " (" + r.note + ")" : ""), f.kind === "primary" ? "Primary" : r.model === BASE ? "Baseline" : "Secondary", fmt(Math.round(r.mae)), r.mape.toFixed(1), f2(r.ratio),
+        r.lo != null ? f2(r.lo) + " to " + f2(r.hi) : "baseline", r.n_after != null ? r.n_after + " of " + r.n : "n/a", protoShort(r.protocol)]).join("td").attr("class", (d, i) => i >= 2 ? "num" : null).text(d => d);
+    }));
+  }
+  seg("lb-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], lbZone, v => { lbZone = v; drawTable(); });
   seg("lb-regime", [{ label: "Forecast weather", value: "forecast" }, { label: "Actual weather", value: "oracle" }], lbRegime, v => { lbRegime = v; drawBoard(); });
-  drawBoard();
-  window.addEventListener("resize", drawBoard);
+  drawBoard(); drawers.push(drawBoard);
+  d3.select("#proto-line").text("Prototype \u00b7 built from scored results, " + [].concat(D.protocol).join(" and ") + " (each row's version is in the leaderboard table)");
 })();
 </script>

@@ -142,7 +142,7 @@ a { color: var(--model); }
   <span class="eyebrow" id="proto-line">Prototype &#183; built from scored results</span>
   <h1>Receipts for Forecasting Papers</h1>
   <p class="lede">Every week a new model claims to forecast better. This agent reads the claim, checks its sources, runs the model on our own electricity data, and hands back a receipt: what was claimed, and what we measured.</p>
-  <div class="controls"><button type="button" class="tourbtn" id="tour-start">&#9654; Play the 45-second tour</button></div>
+  <div class="controls"><button type="button" class="tourbtn" id="tour-start">&#9654; Play the 55-second tour</button></div>
 </header>
 
 <nav class="tabs" id="tabs" aria-label="Sections">
@@ -448,16 +448,28 @@ a { color: var(--model); }
   if (D.scan && D.scan.claude) document.getElementById("tab-count").textContent = D.scan.claude.candidates.length;
 
   // ---------- tour: walks the tabs with captions. body.dataset.demo is "running" then "done" (read by the recorder).
+  // Tour captions read their numbers from data.js.
+  const tourNum = (() => {
+    const prim = D.board.find(r => r.model === "chronos2_temperature" && r.zone === "DOM" && r.regime === "forecast");
+    const std = D.vs_standard && D.vs_standard.DOM;
+    const W = D.weather_v12, pv = (z, rg) => W && W.pairs.find(p => p.kind === "chronos2_vs_vanilla_benchmark_trend" && p.zone === z && p.regime === rg);
+    const all = W ? W.pairs.filter(p => p.kind === "chronos2_vs_vanilla_benchmark_trend").map(p => p.ratio) : [];
+    return { claim: f2(D.claim.ratio), prim: f2(prim.ratio), std: std ? f2(std.ratio) : "", gfs: W ? f2(pv("DOM", "forecast_gfs").ratio) : "", era5: W ? f2(pv("DOM", "oracle_era5").ratio) : "",
+      min: all.length ? f2(d3.min(all)) : "", max: all.length ? f2(d3.max(all)) : "" };
+  })();
   const TOUR = [
     { tab: "story", at: "#usmap", ms: 5000, text: "Grid operators schedule power plants from a forecast of demand. PJM is the largest operator in the United States." },
     { tab: "story", at: "#zonemap", ms: 5000, text: "We forecast two PJM zones that behave differently: JC in New Jersey and DOM in Virginia." },
     { tab: "story", at: "#week", ms: 6000, text: "Every Monday, each method forecasts the next 168 hours. Here: a plain regression and Chronos-2, a pretrained model.", act: () => click("#wk-zone button:nth-child(2)", 3000) },
-    { tab: "methods", at: "section[data-tab='methods'] table", ms: 5000, text: "Seven methods get the same history and the same temperature. The regression with temperature is the baseline." },
-    { tab: "receipt", at: "#receipt", ms: 7500, text: "A study found a tie in Great Britain: 0.97. Against our first baseline we measured 0.73 on DOM. Against the field's standard benchmark it is 0.95: close to a tie again." },
-    { tab: "leaderboard", at: "#board", ms: 6500, text: "Every model against the same baseline. Timestral is greyed: it was published after most test weeks, so it may have seen them.", act: () => click("#lb-zone button:nth-child(2)", 3200) },
+    { tab: "methods", at: "section[data-tab='methods'] table", ms: 5000, text: "Every method gets the same history and the same temperature. The regression with temperature is the baseline." },
+    { tab: "receipt", at: "#receipt", ms: 7500, text: "A study found a tie in Great Britain: " + tourNum.claim + ". Against our first baseline we measured " + tourNum.prim + " on DOM. Against the field's standard benchmark it is " + tourNum.std + ": close to a tie again." },
+    { tab: "leaderboard", at: "#board", ms: 6500, text: "Every model against the same baseline, DOM and JC side by side. Timestral, the grey diamond, was published after most test weeks, so it may have seen them." },
+    { tab: "weather", at: "#wx-ratio", ms: 7500, text: "With better weather forecasts the regressions catch up. Against the field's standard benchmark the model is level under every source (" + tourNum.min + " to " + tourNum.max + "); on DOM it goes from " + tourNum.gfs + " with GFS weather to " + tourNum.era5 + " with perfect weather." },
     { tab: "candidates", at: "#cands", ms: 6000, text: "The scan agent reads arXiv, Hugging Face and Zenodo, and keeps new claims that cite a primary source.", act: () => type("#cand-q", "PJM", 2600) },
     { tab: "agents", at: ".steps", ms: 5000, text: "Find, judge, run, receipt: from a new claim to a measured answer, with every source cited." }
   ];
+  const tourSecs = Math.round(TOUR.reduce((a, s) => a + s.ms, 0) / 5000) * 5;
+  document.getElementById("tour-start").textContent = "\u25b6 Play the " + tourSecs + "-second tour";
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   function click(sel, after) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.click(); }, after); }
   function type(sel, text, after) { setTimeout(() => { const el = document.querySelector(sel); if (el) { el.value = text; el.dispatchEvent(new Event("input")); } }, after); }

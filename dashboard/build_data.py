@@ -29,7 +29,7 @@ LABELS = {
     "chronos2": ("Chronos-2, no weather", "fm", ""),
     "chronos2_temperature": ("Chronos-2 + temperature", "primary", "primary comparison"),
     "chronos2_temperature_gap48": ("Chronos-2 + temperature, 2-day data delay", "fm", ""),
-    "timesfm25": ("TimesFM 2.5, no weather", "fm", ""),
+    "timesfm25": ("TimesFM 2.5, no weather", "fm", "univariate"),
     "timesfm25_temperature": ("TimesFM 2.5 + temperature", "fm", ""),
     "timestral_temperature": ("Timestral + temperature", "flagged", "not out-of-sample"),
 }
@@ -68,6 +68,7 @@ def main() -> None:
                 if pd.isna(r.n_windows_after_weights)
                 else int(r.n_windows_after_weights),
                 "weights_date": None if pd.isna(r.weights_date) else str(r.weights_date)[:10],
+                "protocol": r.protocol_version,
             }
         )
 
@@ -158,7 +159,7 @@ def main() -> None:
         "feed_counts": feed_counts,
         "scan_window_days": spec["scan"]["window_days"],
         "built_from_commit": lb["git_commit"].dropna().unique().tolist(),
-        "protocol": "protocol-v1",
+        "protocol": sorted(lb["protocol_version"].dropna().unique().tolist()),
         "bar": proto["primary_comparison"]["bar"],
         "n_windows": int(lb["n_windows"].max()),
         "first_week": str(pd.Timestamp(min(kept)).tz_convert(proto["timezone"]).date()),
@@ -187,6 +188,9 @@ def main() -> None:
             "ratio": 0.966,
             "lo": 0.931,
             "hi": 1.001,
+            "level": 0.90,
+            "n_days": 960,
+            "horizon": "day-ahead",
             "url": "https://zenodo.org/records/24161799",
         },
     }

@@ -13,6 +13,7 @@
   --display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --primary-bg: #eef4fc;
+  --src-gfs: #eda100; --src-ifs: #1baf7a; --src-aifs: #6250d6;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
@@ -21,6 +22,7 @@
   --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
   --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
   --primary-bg: #1c2e43;
+  --src-gfs: #c98500; --src-ifs: #199e70; --src-aifs: #9085e9;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0f161c; --panel: #172029; --ink: #eaf0f4; --ink-2: #b3c0ca; --ink-3: #8394a1;
@@ -29,6 +31,7 @@
   --map-none: #1f2a34; --map-iso: #3a4b59; --map-pjm: #3987e5; --map-stroke: #0f161c;
   --good: #58c79a; --warn: #e0b057; --good-bg: #153328; --warn-bg: #3a2e12; --flag-bg: #222d37;
   --primary-bg: #1c2e43;
+  --src-gfs: #c98500; --src-ifs: #199e70; --src-aifs: #9085e9;
   color-scheme: dark }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-block: 32px 64px;
@@ -118,6 +121,9 @@ details[open] summary { margin-bottom: 12px; }
 ul.plain { margin: 0; padding-left: 18px; color: var(--ink-2); max-width: 70ch; display: flex; flex-direction: column; gap: 6px; }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; padding: 6px 9px; border-radius: 6px; line-height: 1.4; z-index: 20; max-width: 260px; font-variant-numeric: tabular-nums; }
 a { color: var(--model); }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.duo > * { min-width: 0; }
+@media (max-width: 640px) { .duo { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
 @media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } .wrap { gap: 40px; } }
 </style>
 
@@ -135,6 +141,7 @@ a { color: var(--model); }
   <a href="#methods" data-tab="methods">Methods</a>
   <a href="#receipt" data-tab="receipt">Receipt</a>
   <a href="#leaderboard" data-tab="leaderboard">Leaderboard</a>
+  <a href="#weather" data-tab="weather">Weather</a>
   <a href="#candidates" data-tab="candidates">New claims <span class="count" id="tab-count"></span></a>
   <a href="#agents" data-tab="agents">How it works</a>
 </nav>
@@ -164,7 +171,7 @@ a { color: var(--model); }
         <div class="fact"><b id="jc-mean"></b><span><strong>JC</strong>, Jersey Central, New Jersey. Average load; peak <span id="jc-peak"></span>. Residential, driven by summer heat.</span></div>
         <div class="fact"><b id="dom-mean"></b><span><strong>DOM</strong>, Dominion, Virginia. Average load; peak <span id="dom-peak"></span>. Large and growing, with heavy data-centre demand.</span></div>
       </div>
-      <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather stations per zone (the dots). We test twice, once with the weather that actually happened and once with the forecast that was available at the time.</p>
+      <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather stations per zone (the dots). We test with the forecast that was available at the time, and with weather analysed after the fact. The Weather tab adds ERA5, the reference record of past weather, and two more forecast sources.</p>
       <p class="note">Load: EIA hourly data. Weather: Open-Meteo. States are shaded; each zone covers part of its state, and zone boundaries are not drawn in this prototype.</p>
     </div>
   </div>
@@ -175,7 +182,7 @@ a { color: var(--model); }
       <tr><td>Size</td><td id="why-jc-size"></td><td id="why-dom-size"></td><td>A method has to work on a small zone and on one six times larger.</td></tr>
       <tr><td>Peak against average</td><td id="why-jc-peak"></td><td id="why-dom-peak"></td><td>JC is spiky: heat waves more than double its load. DOM is steadier.</td></tr>
       <tr><td>Trend</td><td>Flat</td><td>Growing; a model fitted on last year runs about 2% low</td><td>Growth punishes models that only learn from the past year.</td></tr>
-      <tr><td>Cost of imperfect weather</td><td>+12% error</td><td>+29% error</td><td>Measured on the regression when forecast weather replaces actual weather.</td></tr>
+      <tr><td>Cost of imperfect weather</td><td>+12% error</td><td>+29% error</td><td>Measured on the regression when forecast weather replaces analysed weather (ECMWF IFS analysis).</td></tr>
     </table></div>
     <p class="note">Both zones have public hourly data back to 2019 and sit in different climates 400 km apart. If a method wins in one and not the other, the win depends on the zone, and that is what happened (see the receipt).</p>
   </div>
@@ -257,11 +264,51 @@ a { color: var(--model); }
     <svg id="board" role="img" aria-label="Error ratio of each model against the regression with temperature, DOM and JC side by side"></svg>
     <p class="note" id="board-caption"></p>
   </div>
-  <p class="note">Dots left of 1 beat the regression with temperature. Models without weather give the same forecast under either weather setting. The grey diamond row was scored on weeks the model may have been trained on.</p>
+  <p class="note">Dots left of 1 beat the regression with temperature. "Analysed weather" is the series these results first called actual weather; it is an ECMWF IFS analysis, not ERA5 reanalysis (see the Weather tab). Models without weather give the same forecast under either weather setting. The grey diamond row was scored on weeks the model may have been trained on.</p>
   <div class="panel stack">
     <div class="controls"><span class="note">Values for</span><div class="seg" id="lb-zone" role="group" aria-label="Zone shown in the table"></div><span class="note" id="board-table-regime"></span></div>
     <div class="scroll"><table id="board-table"></table></div>
   </div>
+</section>
+
+<section data-tab="weather">
+  <span class="eyebrow">Weather sources &#183; protocol-v1.2, secondary</span>
+  <h2>As the weather forecast gets better, the regressions catch up</h2>
+  <p>Every model gets the same temperature. Here that temperature comes from four sources, ordered by how well they forecast it: the GFS/HRRR mix used in the main results, ECMWF IFS at 0.25&#176;, ECMWF AIFS, and ERA5. ERA5 is the reference record of past weather, which we treat as the true temperature; using it for the forecast week gives perfect weather, which no forecast can beat.</p>
+  <p class="note">Secondary results under protocol-v1.2, scored once. They do not change the primary outcome on the Receipt tab.</p>
+  <div class="panel stack">
+    <h3>Load error under each weather source</h3>
+    <div class="legend" id="wx-legend"></div>
+    <div class="duo">
+      <svg id="wx-mae-DOM" role="img" aria-label="DOM: average load error of three models under four weather sources"></svg>
+      <svg id="wx-mae-JC" role="img" aria-label="JC: average load error of three models under four weather sources"></svg>
+    </div>
+    <p class="note" id="wx-mae-cap"></p>
+  </div>
+  <div class="panel stack">
+    <h3>The headline: Chronos-2 against the Vanilla benchmark with trend</h3>
+    <p id="wx-ratio-lede"></p>
+    <svg id="wx-ratio" role="img" aria-label="Chronos-2 error divided by Vanilla benchmark with trend error, per weather source, DOM and JC"></svg>
+    <p class="note" id="wx-ratio-cap"></p>
+  </div>
+  <div class="panel stack">
+    <h3>What "better weather" means: temperature error by forecast day</h3>
+    <div class="duo">
+      <svg id="wx-temp-DOM" role="img" aria-label="DOM: temperature forecast error against ERA5 by forecast day, per source"></svg>
+      <svg id="wx-temp-JC" role="img" aria-label="JC: temperature forecast error against ERA5 by forecast day, per source"></svg>
+    </div>
+    <p class="note">Root-mean-square error of the zone temperature against ERA5, in &#176;C, over the scored weeks. The grey line is the earlier "actual weather" series, an ECMWF IFS analysis: its error is the cost of having called it true.</p>
+  </div>
+  <div class="panel stack">
+    <h3>Read with care</h3>
+    <ul class="plain">
+      <li><strong>ERA5 is the temperature truth here.</strong> It is a weather model's reconstruction of the past, not station readings. AIFS was trained on ERA5, so measuring against ERA5 may favour AIFS.</li>
+      <li><strong>IFS 0.25&#176; was no better than the GFS/HRRR mix</strong> for load over this year.</li>
+      <li><strong>AIFS covers fewer weeks.</strong> Its archive is incomplete for three April weeks, so its column has <span id="wx-aifs-n"></span> weeks and the others <span id="wx-other-n"></span>. Its error levels are not strictly like-for-like; each ratio is paired within its own weeks.</li>
+      <li><strong>A correction.</strong> The series these results first called "actual weather" was an ECMWF IFS analysis, not ERA5 reanalysis. The Leaderboard now calls it analysed weather.</li>
+    </ul>
+  </div>
+  <div class="panel scroll"><table id="wx-table"></table></div>
 </section>
 
 <section data-tab="agents">
@@ -753,13 +800,13 @@ a { color: var(--model); }
           (r.n_after != null ? " \u00b7 " + r.n_after + " of " + r.n + " weeks after its weights" : "") + (it.f.kind === "flagged" ? "<br>not out-of-sample" : ""));
       });
     });
-    d3.select("#board-caption").text("Dot: the model's mean weekly error divided by the regression + temperature's, " + (lbRegime === "forecast" ? "forecast" : "actual") + " weather. Bar: 90% whole-week bootstrap interval over " + nW +
+    d3.select("#board-caption").text("Dot: the model's mean weekly error divided by the regression + temperature's, " + (lbRegime === "forecast" ? "forecast weather (GFS/HRRR)" : "analysed weather (an ECMWF IFS analysis, not ERA5 reanalysis)") + ". Bar: 90% whole-week bootstrap interval over " + nW +
       " weeks. Shaded: the pre-registered 10% bar. Log scale, so 0.5 and 2 sit equally far from 1. Only the first row is the primary comparison; every other row is secondary, and its interval is not adjusted for the number of rows compared.");
     drawTable();
   }
   function drawTable() {
     const t = d3.select("#board-table"); t.selectAll("*").remove();
-    d3.select("#board-table-regime").text(lbRegime === "forecast" ? "forecast weather" : "actual weather");
+    d3.select("#board-table-regime").text(lbRegime === "forecast" ? "forecast weather" : "analysed weather (ECMWF IFS analysis)");
     t.append("tr").selectAll("th").data(["Model", "Role", "Avg error, MW", "Error %", "Ratio", "90% range", "Unseen weeks", "Protocol"]).join("th").text(d => d);
     FAM.forEach(f => f.models.forEach(m => {
       const r = D.board.find(b => b.model === m && b.zone === lbZone && b.regime === lbRegime); if (!r) return;
@@ -768,8 +815,185 @@ a { color: var(--model); }
     }));
   }
   seg("lb-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], lbZone, v => { lbZone = v; drawTable(); });
-  seg("lb-regime", [{ label: "Forecast weather", value: "forecast" }, { label: "Actual weather", value: "oracle" }], lbRegime, v => { lbRegime = v; drawBoard(); });
+  seg("lb-regime", [{ label: "Forecast weather", value: "forecast" }, { label: "Analysed weather", value: "oracle" }], lbRegime, v => { lbRegime = v; drawBoard(); });
   drawBoard(); drawers.push(drawBoard);
-  d3.select("#proto-line").text("Prototype \u00b7 built from scored results, " + [].concat(D.protocol).join(" and ") + " (each row's version is in the leaderboard table)");
+  // ---------- weather sources (protocol-v1.2, secondary)
+  (function weather() {
+    const WX = D.weather_v12; if (!WX) return;
+    const SRC = [
+      { key: "forecast_gfs", short: "GFS/HRRR", long: "GFS/HRRR mix", col: "var(--src-gfs)" },
+      { key: "forecast_ifs", short: "IFS 0.25", long: "ECMWF IFS 0.25\u00b0", col: "var(--src-ifs)" },
+      { key: "forecast_aifs", short: "AIFS", long: "ECMWF AIFS", col: "var(--src-aifs)" },
+      { key: "oracle_era5", short: "ERA5", long: "ERA5 actuals (perfect weather)", col: "var(--ink-3)" }
+    ];
+    const MODELS = [
+      { key: MODEL, label: "Chronos-2 + temperature", short: "Chronos-2", col: "var(--model)", shape: "circle", dash: null },
+      { key: BASE, label: "Regression + temperature", short: "Regression", col: "var(--base)", shape: "circle", dash: null },
+      { key: STD, label: "Vanilla benchmark with trend", short: "Vanilla + trend", col: "var(--base)", shape: "square", dash: "6 4" }
+    ];
+    const row = (m, z, rg) => WX.rows.find(r => r.model === m && r.zone === z && r.regime === rg);
+    const pair = (k, z, rg) => WX.pairs.find(p => p.kind === k && p.zone === z && p.regime === rg);
+    const KV = "chronos2_vs_vanilla_benchmark_trend", KL = "chronos2_vs_lag_regression_temperature";
+    const weeks = rg => row(MODEL, "DOM", rg).n;
+    const readTxt = { worth_switching: "worth switching", practical_tie: "practical tie", inconclusive: "inconclusive" };
+    d3.select("#wx-aifs-n").text(weeks("forecast_aifs")); d3.select("#wx-other-n").text(weeks("forecast_gfs"));
+    function shapeMark(g, shape, cx, cy, col, r) {
+      if (shape === "square") return g.append("rect").attr("x", cx - r).attr("y", cy - r).attr("width", 2 * r).attr("height", 2 * r).attr("rx", 1.5)
+        .attr("fill", "var(--panel)").attr("stroke", col).attr("stroke-width", 2);
+      return g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", r).attr("fill", col).attr("stroke", "var(--panel)").attr("stroke-width", 2);
+    }
+    // Spread end labels apart and keep a thin leader to each line's end (never move a label without its leader).
+    function spread(items, minGap, top, bottom) {
+      items.sort((a, b) => a.y - b.y); items.forEach(it => it.ly = it.y);
+      for (let i = 1; i < items.length; i++) items[i].ly = Math.max(items[i].ly, items[i - 1].ly + minGap);
+      const over = items.length ? items[items.length - 1].ly - bottom : 0;
+      if (over > 0) items.forEach(it => it.ly -= over);
+      for (let i = items.length - 2; i >= 0; i--) items[i].ly = Math.min(items[i].ly, items[i + 1].ly - minGap);
+      items.forEach(it => it.ly = Math.max(top, it.ly));
+      return items;
+    }
+    (function legend() {
+      const lg = d3.select("#wx-legend");
+      MODELS.forEach(M => { const s = lg.append("span"), sv = s.append("svg").attr("viewBox", "0 0 22 14").attr("aria-hidden", "true").style("width", "22px");
+        sv.append("line").attr("x1", 0).attr("x2", 22).attr("y1", 7).attr("y2", 7).attr("stroke", M.col).attr("stroke-width", 2).attr("stroke-dasharray", M.dash);
+        shapeMark(sv, M.shape, 11, 7, M.col, M.shape === "square" ? 4 : 4.5); s.append("span").text(M.label); });
+    })();
+
+    // 1. load MAE by weather source, one panel (own y-axis from zero) per zone
+    function drawMae(zone) {
+      const svg = d3.select("#wx-mae-" + zone); svg.selectAll("*").remove();
+      const W = widthOf(svg.node(), 470), H = 290, m = { l: 50, r: 112, t: 44, b: 56 };
+      svg.attr("viewBox", "0 0 " + W + " " + H).attr("height", H);
+      const x = d3.scalePoint(SRC.map(s => s.key), [m.l, W - m.r]).padding(0.35), step = x.step();
+      const vals = SRC.flatMap(s => MODELS.map(M => row(M.key, zone, s.key).mae));
+      const y = d3.scaleLinear([0, d3.max(vals) * 1.08], [H - m.b, m.t]).nice();
+      svg.append("text").attr("x", 0).attr("y", 16).attr("style", "font-size:15px;font-weight:600;fill:var(--ink)").text(zone);
+      svg.append("text").attr("x", m.l - 6).attr("y", m.t - 14).attr("text-anchor", "end").text("MW");
+      const tight = step < 76;
+      // AIFS column: fewer weeks, so tinted and flagged under its tick
+      svg.append("rect").attr("x", x("forecast_aifs") - step * 0.42).attr("width", step * 0.84).attr("y", m.t - 6).attr("height", H - m.b - m.t + 6).attr("rx", 4).attr("fill", "var(--band)");
+      y.ticks(5).forEach(t => { svg.append("line").attr("x1", m.l).attr("x2", W - m.r + 4).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", t === 0 ? "var(--ink-3)" : "var(--grid)");
+        svg.append("text").attr("x", m.l - 6).attr("y", y(t) + 4).attr("text-anchor", "end").text(fmt(t)); });
+      SRC.forEach(s => { const n = row(MODEL, zone, s.key).n;
+        svg.append("text").attr("x", x(s.key)).attr("y", H - m.b + 17).attr("text-anchor", "middle").attr("fill", "var(--ink)").text(tight ? s.short.replace("/HRRR", "").replace(" 0.25", "") : s.short);
+        svg.append("text").attr("x", x(s.key)).attr("y", H - m.b + 32).attr("text-anchor", "middle").attr("fill", s.key === "forecast_aifs" ? "var(--warn)" : "var(--ink-3)").attr("font-weight", s.key === "forecast_aifs" ? 600 : 400).text(n + (tight ? " wk" : " weeks")); });
+      svg.append("text").attr("x", m.l).attr("y", H - 6).attr("fill", "var(--ink-3)").text("better weather \u2192");
+      const ends = [];
+      MODELS.forEach(M => {
+        const pts = SRC.map(s => [x(s.key), y(row(M.key, zone, s.key).mae)]);
+        svg.append("path").attr("d", d3.line()(pts)).attr("fill", "none").attr("stroke", M.col).attr("stroke-width", 2).attr("stroke-dasharray", M.dash).attr("stroke-linejoin", "round");
+        pts.forEach(p => shapeMark(svg, M.shape, p[0], p[1], M.col, M.shape === "square" ? 4.5 : 5));
+        ends.push({ M, x: pts[pts.length - 1][0], y: pts[pts.length - 1][1] });
+      });
+      spread(ends, 16, m.t, H - m.b).forEach(e => {
+        const lx = W - m.r + 16;
+        svg.append("path").attr("d", "M" + (e.x + 7) + "," + e.y + " L" + (lx - 10) + "," + e.ly + " L" + (lx - 4) + "," + e.ly).attr("fill", "none").attr("stroke", "var(--ink-3)").attr("stroke-width", 1);
+        svg.append("text").attr("x", lx).attr("y", e.ly + 4).attr("fill", "var(--ink)").text(e.M.short);
+      });
+      SRC.forEach(s => {
+        const lines = MODELS.map(M => { const r = row(M.key, zone, s.key); return M.label + " <b>" + fmt(Math.round(r.mae)) + " MW</b>"; }).join("<br>");
+        hit(svg.append("rect").attr("x", x(s.key) - step / 2).attr("y", m.t).attr("width", step).attr("height", H - m.b - m.t),
+          zone + ", " + s.long + ": " + MODELS.map(M => M.short + " " + fmt(Math.round(row(M.key, zone, s.key).mae)) + " MW").join(", "),
+          "<b>" + zone + " \u00b7 " + s.long + "</b><br>average error over " + row(MODEL, zone, s.key).n + " weeks<br>" + lines);
+      });
+    }
+    d3.select("#wx-mae-cap").text("Average load error per week, in MW. Each zone has its own scale, starting at zero. The AIFS column (shaded) covers " + weeks("forecast_aifs") +
+      " weeks, the others " + weeks("forecast_gfs") + ", so its level is not strictly like-for-like. Sources from left: GFS/HRRR mix (NOAA; HRRR on day 1, GFS on days 2 to 7), ECMWF IFS 0.25\u00b0, ECMWF AIFS, ERA5 actuals.");
+
+    // 2. Chronos-2 / Vanilla with trend, per source and zone: same visual language as the leaderboard
+    function drawRatio() {
+      const svg = d3.select("#wx-ratio"); svg.selectAll("*").remove();
+      const W = widthOf(svg.node(), 960), narrow = W < 600;
+      const labW = narrow ? 0 : Math.min(260, Math.round(W * 0.27)), gap = narrow ? 14 : 28;
+      const pw = (W - labW - gap) / 2, px = [labW, labW + pw + gap], zones = ["DOM", "JC"];
+      const x = d3.scaleLog([0.8, 1.25], [6, pw - 6]), rowH = narrow ? 44 : 32, head = narrow ? 30 : 46;
+      const top = head, bot = head + SRC.length * rowH, H = bot + 44;
+      svg.attr("viewBox", "0 0 " + W + " " + H).attr("height", H);
+      const cyOf = i => narrow ? top + i * rowH + rowH - 12 : top + i * rowH + rowH / 2;
+      const spans = narrow ? SRC.map((s, i) => [cyOf(i) - 11, cyOf(i) + 11]) : [[top - 2, bot + 2]];
+      const ticks = [0.8, 0.9, 1, 1.1, 1.2];
+      zones.forEach((z, k) => {
+        const g = svg.append("g").attr("transform", "translate(" + px[k] + ",0)");
+        g.append("text").attr("x", 6).attr("y", 16).attr("style", "font-size:15px;font-weight:600;fill:var(--ink)").text(z);
+        spans.forEach(([a, b]) => g.append("rect").attr("x", x(lo)).attr("width", x(hi) - x(lo)).attr("y", a).attr("height", b - a).attr("fill", "var(--band)"));
+        const shown = tickLabels(x, [1, 0.8, 1.2, 0.9, 1.1]);
+        ticks.forEach(t => { spans.forEach(([a, b]) => g.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", a).attr("y2", b).attr("stroke", t === 1 ? "var(--ink-3)" : "var(--grid)"));
+          const tx = Math.max(12, Math.min(pw - 12, x(t)));
+          if (shown.has(t)) { g.append("text").attr("x", tx).attr("y", bot + 18).attr("text-anchor", "middle").text(tickTxt(t));
+            if (!narrow) g.append("text").attr("x", tx).attr("y", top - 10).attr("text-anchor", "middle").text(tickTxt(t)); } });
+        g.append("text").attr("x", 6).attr("y", bot + 36).attr("fill", "var(--ink-3)").text(pw < 300 ? "\u2190 Chronos-2 better" : "\u2190 Chronos-2 better \u00b7 log scale");
+        SRC.forEach((s, i) => {
+          const p = pair(KV, z, s.key), cy = cyOf(i);
+          g.append("line").attr("x1", x(p.lo)).attr("x2", x(p.hi)).attr("y1", cy).attr("y2", cy).attr("stroke", "var(--model)").attr("stroke-width", 2.5).attr("stroke-linecap", "round");
+          g.append("circle").attr("cx", x(p.ratio)).attr("cy", cy).attr("r", 6).attr("fill", "var(--model)").attr("stroke", "var(--panel)").attr("stroke-width", 2);
+          const right = x(p.hi) + 8, fits = right + 34 < pw;
+          g.append("text").attr("class", "halo").attr("x", fits ? right : x(p.lo) - 8).attr("y", cy + 4).attr("text-anchor", fits ? "start" : "end").attr("fill", "var(--ink)").text(f2(p.ratio));
+          hit(g.append("rect").attr("x", 0).attr("y", top + i * rowH).attr("width", pw).attr("height", rowH),
+            z + ", " + s.long + ": ratio " + f3(p.ratio) + ", 90% range " + f3(p.lo) + " to " + f3(p.hi),
+            "<b>" + z + " \u00b7 " + s.long + "</b><br>Chronos-2 / Vanilla with trend " + f3(p.ratio) + "<br>90% range " + f3(p.lo) + " to " + f3(p.hi) + "<br>" + p.n + " weeks \u00b7 reading: " + readTxt[p.reading] + "<br>secondary, protocol-v1.2");
+        });
+      });
+      SRC.forEach((s, i) => {
+        const lab = s.long + (s.key === "forecast_aifs" ? " (" + weeks(s.key) + " weeks)" : "");
+        svg.append("text").attr("class", "lab halo").attr("x", narrow ? 0 : labW - 14).attr("y", narrow ? top + i * rowH + 14 : cyOf(i) + 4).attr("text-anchor", narrow ? "start" : "end").text(lab);
+      });
+    }
+    const dg = pair(KV, "DOM", "forecast_gfs"), de = pair(KV, "DOM", "oracle_era5"), jc = SRC.map(s => pair(KV, "JC", s.key).ratio);
+    d3.select("#wx-ratio-lede").text("Against the field's standard regression, Chronos-2 is level under every weather source. On DOM the ratio climbs from " + f2(dg.ratio) + " with GFS/HRRR weather to " +
+      f2(de.ratio) + " with perfect weather: the better the weather, the less Chronos-2's lead, because a regression that uses temperature well gains more from it. On JC it stays between " + f2(d3.min(jc)) + " and " + f2(d3.max(jc)) + ".");
+    d3.select("#wx-ratio-cap").text("Dot: Chronos-2's mean weekly error divided by the Vanilla benchmark with trend's, same weeks and same weather. Bar: 90% whole-week bootstrap interval (" +
+      weeks("forecast_gfs") + " weeks; " + weeks("forecast_aifs") + " for AIFS). Shaded: the 10% bar, 0.90 to 1.10. Log scale. Secondary results; intervals not adjusted for the number of comparisons.");
+
+    // 3. temperature RMSE against ERA5 by forecast day
+    const TS = [
+      { key: "forecast_gfs", label: "GFS/HRRR", col: "var(--src-gfs)", w: 2 }, { key: "forecast_ifs", label: "IFS 0.25", col: "var(--src-ifs)", w: 2 },
+      { key: "forecast_aifs", label: "AIFS", col: "var(--src-aifs)", w: 2 }, { key: "v1_oracle", label: "v1 analysis", col: "var(--ink-3)", w: 1.5 }];
+    const tmax = d3.max(WX.temp_rmse, t => t.rmse);
+    function drawTemp(zone) {
+      const svg = d3.select("#wx-temp-" + zone); svg.selectAll("*").remove();
+      const W = widthOf(svg.node(), 470), H = 220, m = { l: 40, r: 96, t: 30, b: 30 };
+      svg.attr("viewBox", "0 0 " + W + " " + H).attr("height", H);
+      const x = d3.scaleLinear([1, 7], [m.l + 10, W - m.r]), y = d3.scaleLinear([0, tmax], [H - m.b, m.t]).nice();
+      svg.append("text").attr("x", 0).attr("y", 16).attr("style", "font-size:15px;font-weight:600;fill:var(--ink)").text(zone);
+      svg.append("text").attr("x", m.l + 32).attr("y", 16).attr("fill", "var(--ink-3)").text("RMSE, \u00b0C");
+      y.ticks(4).forEach(t => { svg.append("line").attr("x1", m.l).attr("x2", W - m.r + 6).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", t === 0 ? "var(--ink-3)" : "var(--grid)");
+        svg.append("text").attr("x", m.l - 6).attr("y", y(t) + 4).attr("text-anchor", "end").text(t); });
+      d3.range(1, 8).forEach(d => svg.append("text").attr("x", x(d)).attr("y", H - 10).attr("text-anchor", "middle").text((W < 360 ? "D" : "Day ") + d));
+      const ends = [];
+      TS.forEach(S => {
+        const pts = WX.temp_rmse.filter(t => t.zone === zone && t.source === S.key).sort((a, b) => a.day - b.day);
+        svg.append("path").attr("d", d3.line().x(t => x(t.day)).y(t => y(t.rmse))(pts)).attr("fill", "none").attr("stroke", S.col).attr("stroke-width", S.w).attr("stroke-linejoin", "round");
+        pts.forEach(t => svg.append("circle").attr("cx", x(t.day)).attr("cy", y(t.rmse)).attr("r", S.key === "v1_oracle" ? 3 : 4).attr("fill", S.col).attr("stroke", "var(--panel)").attr("stroke-width", 1.5));
+        const last = pts[pts.length - 1]; ends.push({ S, x: x(last.day), y: y(last.rmse) });
+      });
+      spread(ends, 15, m.t, H - m.b).forEach(e => {
+        const lx = W - m.r + 18;
+        svg.append("path").attr("d", "M" + (e.x + 6) + "," + e.y + " L" + (lx - 8) + "," + e.ly + " L" + (lx - 3) + "," + e.ly).attr("fill", "none").attr("stroke", "var(--ink-3)").attr("stroke-width", 1);
+        svg.append("text").attr("x", lx).attr("y", e.ly + 4).attr("fill", "var(--ink)").text(e.S.label);
+      });
+      const cross = svg.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--ink-3)").attr("visibility", "hidden");
+      svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", W - m.r - m.l + 6).attr("height", H - m.t - m.b).attr("fill", "transparent")
+        .on("mousemove", ev => { const d = Math.max(1, Math.min(7, Math.round(x.invert(d3.pointer(ev)[0]))));
+          cross.attr("x1", x(d)).attr("x2", x(d)).attr("visibility", "visible");
+          showTip(ev, "<b>" + zone + ", forecast day " + d + "</b><br>" + TS.map(S => { const t = WX.temp_rmse.find(r => r.zone === zone && r.source === S.key && r.day === d); return S.label + " <b>" + t.rmse.toFixed(2) + " \u00b0C</b>"; }).join("<br>")); })
+        .on("mouseleave", () => { cross.attr("visibility", "hidden"); hideTip(); });
+    }
+
+    // values table
+    (function table() {
+      const t = d3.select("#wx-table");
+      t.append("tr").selectAll("th").data(["Zone", "Weather source", "Weeks", "Chronos-2, MW", "Regression, MW", "Vanilla + trend, MW", "Chronos-2 / Vanilla + trend", "Reading", "Chronos-2 / regression", "Reading", "Protocol"]).join("th").text(d => d);
+      ["DOM", "JC"].forEach(z => SRC.forEach(s => {
+        const v = pair(KV, z, s.key), l = pair(KL, z, s.key), r = MODELS.map(M => row(M.key, z, s.key));
+        t.append("tr").selectAll("td").data([z, s.key === "oracle_era5" ? "ERA5 (perfect)" : s.short, r[0].n, fmt(Math.round(r[0].mae)), fmt(Math.round(r[1].mae)), fmt(Math.round(r[2].mae)),
+          f3(v.ratio) + " (" + f3(v.lo) + " to " + f3(v.hi) + ")", readTxt[v.reading], f3(l.ratio) + " (" + f3(l.lo) + " to " + f3(l.hi) + ")", readTxt[l.reading], protoShort(r[0].protocol)])
+          .join("td").attr("class", (d, i) => i >= 2 ? "num" : null).text(d => d);
+      }));
+    })();
+
+    const all = () => { drawMae("DOM"); drawMae("JC"); drawRatio(); drawTemp("DOM"); drawTemp("JC"); };
+    all(); drawers.push(all);
+  })();
+  d3.select("#proto-line").text("Prototype \u00b7 built from scored results, " + [].concat(D.protocol).join(" and ") + " (each table shows its rows' version)");
 })();
 </script>

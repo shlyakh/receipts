@@ -194,8 +194,65 @@ def main() -> None:
             "url": "https://zenodo.org/records/24161799",
         },
     }
+    out["weather_v12"] = weather_v12(res / "weather_v12")
+    out["protocol"] = sorted(set(out["protocol"]) | set(out["weather_v12"]["protocol"]))
     (ROOT / "dashboard" / "data.js").write_text("window.DATA = " + json.dumps(out) + ";\n")
     print("data.js:", len(board), "leaderboard rows,", len(weeks), "sample weeks")
+
+
+def weather_v12(d: Path) -> dict:
+    """protocol-v1.2 (secondary): three models under four weather sources, ERA5 truth."""
+    lb = pd.read_csv(d / "leaderboard.csv")
+    st = pd.read_csv(d / "stats.csv")
+    te = pd.read_csv(d / "temperature_error_by_lead.csv")
+    rows = [
+        {
+            "model": r.model,
+            "zone": r.unique_id,
+            "regime": r.regime,
+            "n": int(r.n_windows),
+            "mae": round(r.mae, 1),
+            "protocol": r.protocol_version,
+        }
+        for r in lb.itertuples()
+    ]
+    pairs = [
+        {
+            "kind": r.kind,
+            "zone": r.unique_id,
+            "regime": r.regime,
+            "n": int(r.n_windows),
+            "ratio": round(r.ratio, 3),
+            "lo": round(r.ci90_low, 3),
+            "hi": round(r.ci90_high, 3),
+            "reading": r.reading_10pct_bar,
+        }
+        for r in st[
+            st["kind"].isin(
+                [
+                    "chronos2_vs_vanilla_benchmark_trend",
+                    "chronos2_vs_lag_regression_temperature",
+                ]
+            )
+            & (st["metric"] == "mae")
+        ].itertuples()
+    ]
+    temp = [
+        {
+            "zone": r.unique_id,
+            "source": r.source.split(" ")[0] if r.source.startswith("forecast_") else "v1_oracle",
+            "day": int(r.day),
+            "n": int(r.n),
+            "rmse": round(r.rmse, 2),
+        }
+        for r in te.itertuples()
+    ]
+    return {
+        "protocol": sorted(lb["protocol_version"].dropna().unique().tolist()),
+        "rows": rows,
+        "pairs": pairs,
+        "temp_rmse": temp,
+    }
 
 
 if __name__ == "__main__":

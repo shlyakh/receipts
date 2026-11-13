@@ -12,12 +12,17 @@ Provider is `claude` unless given (see `.claude/skills/providers.md`).
 1b. Read the direct listings first (same for every provider):
    `uv run --project core python tools/feeds.py --date <YYYY-MM-DD>`
    It writes `candidates/feeds/feeds_<date>.jsonl`: arXiv, Hugging Face and Zenodo items
-   already inside the window, with exact dates, titles and URLs only. If a feed reports
+   already inside the window, with exact dates, titles and URLs. If a feed reports
    FAILED, say so in the report. Shortlist by title: at most 40 rows that could bear on
    the spec's `problem` (load or energy forecasting, pretrained forecasting models,
    covariates, pre-registered or benchmark-style backtests). Skip re-uploads and
-   conversions of existing models. Shortlisted rows are hits like any other (ledger row
-   with `Query: feed:<source>`); their dates need no confirmation.
+   conversions of existing models. Then read the abstracts of the shortlisted rows:
+   `uv run --project core python tools/feeds.py --date <YYYY-MM-DD> --show <url> <url> ...`
+   Abstracts are stored locally and git-ignored: read them, paraphrase them, never copy
+   them into a ledger note or a candidates file. Drop shortlisted rows whose abstract
+   shows they are off the problem. A listing date is the date of that record; if the
+   abstract says the work is a new version of something older, treat it as older.
+   Shortlisted rows are hits like any other (ledger row with `Query: feed:<source>`).
 2. Run each query in `scan.queries` once per domain group in `scan.domains`, using the
    provider's `search` (first page of results only). Pass the start date if the
    provider's search takes one; Claude's web search does not, so expect out-of-window
@@ -43,7 +48,9 @@ Provider is `claude` unless given (see `.claude/skills/providers.md`).
    `candidate_id` (slug), `title`, `primary_url`, `other_urls` (list), `published_at`
    (YYYY-MM-DD), `candidate_type` (enum in `schemas/scorecard.schema.json`), `claim`
    (one paraphrased sentence), `why_relevant` (one sentence against `problem`),
-   `query` (the query text that found it).
+   `query` (the query text that found it), `claim_basis` (`abstract`, `page` or
+   `search summary`: what the claim was paraphrased from). Order the file by fit to the
+   spec's `problem`, closest first.
 8. Report: queries run, distinct hits, candidates kept, the five closest to the spec's
    problem (a ranking by fit, not a judgement), what was dropped and why, anything
    worth a manual look, and every date or claim not confirmed by a fetch.

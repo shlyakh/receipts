@@ -40,8 +40,6 @@ to beat; the LightGBM row uses exactly the lag regression's input columns.
 - Confirm inside the Zenodo 24161799 zip (`weather_study/RESULTS.md`) the GB
   weather-study ratios quoted in the post. The weather gains (34 / 32 / 23 / 6%)
   appear in the record's description. Friday.
-- Confirm the weight dates for Chronos-2 and TimesFM 2.5; both are believed to
-  predate the whole scored window. Friday.
 - How wide is a 90% interval on the ratio with 52 weekly blocks? If it is wider
   than the 10% bar on both sides, most outcomes will read "inconclusive".
 - Is the prior-work rule at this event compatible with decisions 9 and 14? Ask at
@@ -49,6 +47,13 @@ to beat; the LightGBM row uses exactly the lag regression's input columns.
 - Which foundation models are fast enough on the laptop for a full 52-window run?
   Benchmark one window each on Friday morning.
 - Whether to tell the GB study's author before Saturday. Yuri's call.
+- RESEARCH TASK, deferred (Yuri, Nov 13): how to evaluate the newest foundation
+  models fairly when their weights were fixed inside the scored window. Checked on
+  Nov 13 from each weights file's commit date: Chronos-2 (2025-10-30) and TimesFM 2.5
+  (2025-10-01) predate all 52 scored weeks; TimesFM-3 (2026-08-24) predates only 11.
+  Candidate answers: a rolling forward window scored as new weeks arrive; the
+  post-weights subset as the only reported number; a live check like the GB study's
+  part 2.
 
 ## Out of scope for the hackathon
 

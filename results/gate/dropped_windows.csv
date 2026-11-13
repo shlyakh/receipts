@@ -1,4 +1,12 @@
 unique_id,cutoff,model,regime
+DOM,2025-10-27 04:00:00+00:00,chronos2,forecast
+DOM,2025-10-27 04:00:00+00:00,chronos2,oracle
+JC,2025-10-27 04:00:00+00:00,chronos2,forecast
+JC,2025-10-27 04:00:00+00:00,chronos2,oracle
+DOM,2025-10-27 04:00:00+00:00,chronos2_temperature,forecast
+DOM,2025-10-27 04:00:00+00:00,chronos2_temperature,oracle
+JC,2025-10-27 04:00:00+00:00,chronos2_temperature,forecast
+JC,2025-10-27 04:00:00+00:00,chronos2_temperature,oracle
 DOM,2025-10-27 04:00:00+00:00,lag_regression,forecast
 DOM,2025-11-03 05:00:00+00:00,lag_regression,forecast
 DOM,2025-10-27 04:00:00+00:00,lag_regression,oracle

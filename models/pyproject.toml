@@ -1,0 +1,28 @@
+[project]
+name = "receipts-models"
+version = "0.1.0"
+description = "Foundation-model adapters for the receipts benchmark"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "chronos-forecasting>=2.3.2",
+    "holidays>=0.108",
+    "huggingface-hub>=2.4.0",
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+    "python-dotenv>=1.2.4",
+    "pyyaml>=6.0.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.5",
+]

@@ -180,7 +180,7 @@ Candidate rows and notes:
 |-------|-------|------------|-------|
 | Chronos-2 | `amazon/chronos-2` | known-future | first row to add |
 | Timestral | `mistralai/Timestral-209M` (also `-5M`) | known-future | Modified MIT weights |
-| t0-gamma | `theforecastingcompany/t0-gamma` | known-future | gated: accept terms, set `HF_TOKEN` |
+| t0-gamma | `theforecastingcompany/t0-gamma` | known-future | not gated as of Nov 13, 2026 (the earlier note said gated) |
 | TiRex-2 | `NX-AI/TiRex-2` | per FF docs | Apache-2.0 |
 | TimesFM 2.5 | `google/timesfm-2.5-200m-pytorch` | treat as univariate | |
 | TimesFM-3 | `google/timesfm-3.0-pytorch` | past + known-future | non-commercial weights |
@@ -279,7 +279,6 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
   takes `X_df` exactly as shown; `cross_validation()` argument names; MPS behaviour.
   Check with `python -c "import foundationforecast.models as m; print(dir(m))"`.
 - `Chronos2Pipeline.predict_df` argument names (written from memory).
-- Hugging Face ids for TiRex-2 and TimesFM 2.5.
 - All runtime estimates. Time one window per model first.
 - The GB study's weather-run ratios (0.97x, 1.07x). The weather gains are in the
   description of Zenodo record 24161799; the ratios should be in the zip's
@@ -287,9 +286,10 @@ The research tool must be requested explicitly (`?tools=you-search,you-contents,
   results are verified.
 - Whether Open-Meteo Previous Runs serves wind, solar and dew point at each lead
   day (only matters for a later protocol version).
-- Weight dates. Chronos-2 (believed Oct 2025) and TimesFM 2.5 (believed Sep 2025)
-  would both predate the whole scored window; check the pinned revisions' dates.
-  Models released during 2026 overlap the window in part.
+- VERIFIED Nov 13, 2026 from the Hugging Face API: all eight model ids in the table
+  above resolve and none is gated. Weights-file commit dates: Chronos-2 2025-10-30,
+  TimesFM 2.5 2025-10-01, TimesFM-3 2026-08-24. Not yet checked per file: Timestral,
+  t0-gamma, TiRex-2, Kumo Forecast (their repos changed in autumn 2026).
 - Residual overlap for every model: earlier years of the same public series may be
   in training, so a model may know these zones' typical shape.
 - That the Zenodo record is findable through You.com search (Friday smoke test).

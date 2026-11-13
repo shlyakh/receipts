@@ -1,0 +1,9 @@
+{
+ "amazon/chronos-2": {
+  "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
+  "weights_date": "2025-10-30T14:58:57+00:00",
+  "weights_files": {
+   "model.safetensors": "2025-10-30T14:58:57+00:00"
+  }
+ }
+}

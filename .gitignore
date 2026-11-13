@@ -11,3 +11,4 @@ models_cache/
 evidence/raw/
 nohup.out
 !.env.example
+data/model_inputs/

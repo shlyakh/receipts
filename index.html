@@ -36,6 +36,12 @@ h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 600; }
 h3 { font-size: 17px; font-weight: 600; }
 p { margin: 0; max-width: 65ch; color: var(--ink-2); }
 p strong, li strong { color: var(--ink); font-weight: 600; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-top: -28px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5; padding-block: 8px 0; }
+.tabs a { font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; padding: 8px 14px; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--model); }
+.tabs a:focus-visible { outline: 2px solid var(--model); outline-offset: -2px; }
+.tabs .count { font-size: 11px; background: var(--flag-bg); color: var(--ink-2); border-radius: 999px; padding: 1px 7px; margin-left: 4px; font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
 .eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
 .lede { font-size: 19px; color: var(--ink); }
 section { display: flex; flex-direction: column; gap: 18px; }
@@ -102,7 +108,16 @@ a { color: var(--model); }
   <p class="lede">Every week a new model claims to forecast better. This agent reads the claim, checks its sources, runs the model on our own electricity data, and hands back a receipt: what was claimed, and what we measured.</p>
 </header>
 
-<section>
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <a href="#story" data-tab="story">The problem</a>
+  <a href="#methods" data-tab="methods">Methods</a>
+  <a href="#receipt" data-tab="receipt">Receipt</a>
+  <a href="#leaderboard" data-tab="leaderboard">Leaderboard</a>
+  <a href="#candidates" data-tab="candidates">New claims <span class="count" id="tab-count"></span></a>
+  <a href="#agents" data-tab="agents">How it works</a>
+</nav>
+
+<section data-tab="story">
   <span class="eyebrow">The grid</span>
   <h2>Electricity has to be forecast before it is made</h2>
   <div class="split">
@@ -116,7 +131,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="story">
   <span class="eyebrow">Our benchmark</span>
   <h2>Two PJM zones that behave differently</h2>
   <div class="split">
@@ -144,7 +159,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="story">
   <span class="eyebrow">The task</span>
   <h2>Every Monday at midnight, forecast the next 168 hours</h2>
   <p>Each line below is one forecast made before the week began. The baseline is a plain regression on last week's load, the calendar and temperature. The challenger is Chronos-2, a pretrained model used without any training on our data.</p>
@@ -163,7 +178,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="methods">
   <span class="eyebrow">The methods</span>
   <h2>What is being compared, in plain terms</h2>
   <p>A week ahead is hard for three reasons: the weather forecast itself gets worse each day out, holidays and heat waves break the weekly rhythm, and nothing after Monday midnight may be used. Each method below gets the same history and the same temperature.</p>
@@ -187,7 +202,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="receipt">
   <span class="eyebrow">The receipt</span>
   <h2>A study said the model and the regression tie. Does that hold here?</h2>
   <p>A pre-registered study of Great Britain's demand, published this week, found that once both get the same weather, Chronos-2's error is <strong>0.97</strong> of a regression's, a rough tie. We ran the same question on PJM, a week ahead, on <span id="n-weeks"></span> weeks the model cannot have seen in training.</p>
@@ -202,7 +217,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="leaderboard">
   <span class="eyebrow">Leaderboard</span>
   <h2>Every model against the same baseline</h2>
   <div class="controls">
@@ -214,7 +229,7 @@ a { color: var(--model); }
   <div class="panel scroll"><table id="board-table"></table></div>
 </section>
 
-<section>
+<section data-tab="agents">
   <span class="eyebrow">What the agents do</span>
   <h2>From a new claim to a receipt, without a person in the loop</h2>
   <div class="steps">
@@ -225,7 +240,7 @@ a { color: var(--model); }
   </div>
 </section>
 
-<section>
+<section data-tab="candidates">
   <span class="eyebrow">What the scan found</span>
   <h2>New forecasting claims from the last <span id="scan-days"></span> days</h2>
   <p>The scan reads three public listings (arXiv papers, Hugging Face models, Zenodo records), runs web searches, and keeps items that are dated, about forecasting, and point at a primary source. Nothing here has been judged yet. Closest to our problem first.</p>
@@ -243,7 +258,7 @@ a { color: var(--model); }
   <p class="note">Claims are the agent's one-line paraphrase. Open the link for the source itself. File: <span id="scan-file"></span>.</p>
 </section>
 
-<section>
+<section data-tab="agents">
   <span class="eyebrow">Why trust it</span>
   <h2>The rules were fixed before the scores existed</h2>
   <ul class="plain">
@@ -255,7 +270,7 @@ a { color: var(--model); }
   </ul>
 </section>
 
-<section>
+<section data-tab="agents">
   <span class="eyebrow">Where this goes</span>
   <h2>From two zones to a product</h2>
   <div class="panel scroll">
@@ -293,6 +308,17 @@ a { color: var(--model); }
       .attr("aria-pressed", d => String(d.value === value))
       .on("click", (ev, d) => { el.selectAll("button").attr("aria-pressed", o => String(o.value === d.value)); onChange(d.value); });
   }
+
+  // ---------- tabs: one view at a time, chosen by the link's #name
+  const tabNames = Array.from(document.querySelectorAll("#tabs a")).map(a => a.dataset.tab);
+  function showTab() {
+    const want = location.hash.replace("#", ""), tab = tabNames.includes(want) ? want : tabNames[0];
+    document.querySelectorAll("section[data-tab]").forEach(el => { el.hidden = el.dataset.tab !== tab; });
+    document.querySelectorAll("#tabs a").forEach(a => { if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  }
+  window.addEventListener("hashchange", () => { showTab(); window.scrollTo(0, 0); });
+  showTab();
+  if (D.scan && D.scan.claude) document.getElementById("tab-count").textContent = D.scan.claude.candidates.length;
 
   // ---------- maps
   const ISO = { CAISO: [6], ERCOT: [48], NYISO: [36], "ISO-NE": [9, 23, 25, 33, 44, 50],

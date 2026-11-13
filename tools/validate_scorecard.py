@@ -27,6 +27,8 @@ def errors(card: dict) -> list[str]:
 
 
 def main() -> None:
+    if not sys.argv[1:] or sys.argv[1] in ("-h", "--help"):
+        sys.exit(__doc__)
     bad = 0
     for name in sys.argv[1:]:
         errs = errors(json.loads(Path(name).read_text()))

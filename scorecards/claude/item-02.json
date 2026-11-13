@@ -1,0 +1,174 @@
+{
+ "candidate_id": "item-02",
+ "title": "Weather and zero-shot models on GB electricity demand (pre-registered backtest)",
+ "spec_version": "spec-v1",
+ "discovered_via": {
+  "url": "https://www.linkedin.com/posts/andy-graham-moran_energyforecasting-foundationmodels-timeseries-share-7526664711933820928-nIBz/",
+  "provider": "manual",
+  "retrieved_at": "2026-11-13T14:37:28Z"
+ },
+ "candidate_type": "practitioner_backtest",
+ "primary_sources": [
+  {
+   "url": "https://zenodo.org/records/24161799",
+   "kind": "zenodo",
+   "paraphrase": "Archived report (MIT, 12 Nov 2026): day-ahead GB national demand, 960-day backtest. Three zero-shot models and a weekly-lag regression got the same ECMWF forecast weather. Weather cut error 34% for the regression, 32% Chronos-2, 23% Timestral, 6% TimesFM 2.5. Plan frozen 10 Nov 2026 before scoring. Possible training overlap is acknowledged.",
+   "evidence_id": "6a48bb94a16a"
+  },
+  {
+   "url": "https://github.com/AndyMoran/gb-foundation-model-tests",
+   "kind": "github",
+   "paraphrase": "Public MIT repository with plans, lock files, deviation log and results. Earlier no-weather study (1,035 days): error ratio to the regression 0.928 Chronos-2, 0.910 Timestral, 1.009 TimesFM 2.5. Weights are fetched at pinned revisions.",
+   "evidence_id": "d0124afe2da0"
+  },
+  {
+   "url": "https://github.com/AndyMoran/gb-foundation-model-tests/blob/main/weather_study/RESULTS.md",
+   "kind": "github",
+   "paraphrase": "Results note: 960 daily origins, MAE in MW. With/without-weather ratios 0.658 regression, 0.683 Chronos-2, 0.773 Timestral, 0.941 TimesFM 2.5, all passing at 0.0125. Both with weather, model over regression: Chronos-2 0.966 (0.931-1.001), Timestral 1.074 (1.034-1.115), TimesFM 2.5 1.453 (1.394-1.510). No MAPE.",
+   "evidence_id": "76552f2ea0c4"
+  },
+  {
+   "url": "https://github.com/AndyMoran/gb-foundation-model-tests/blob/main/weather_study/PLAN.md",
+   "kind": "github",
+   "paraphrase": "Plan agreed 8 Nov 2026 and amended 9 Nov. The only confirmatory test is each forecaster's error with weather over without (four one-sided tests at 0.0125). The model-versus-regression comparison with weather is not confirmatory. Forecast weather is the ECMWF 00 UTC run of the day before; temperature, wind and solar.",
+   "evidence_id": "64998b44485e"
+  },
+  {
+   "url": "https://huggingface.co/amazon/chronos-2",
+   "kind": "hf_card",
+   "paraphrase": "Apache-2.0 model card: zero-shot, about 120M parameters, takes past and known-future covariates, loaded with chronos-forecasting 2.0 or later; CPU said to be supported. Links a paper dated 17 Oct 2025; the weights' own release or commit date is not shown.",
+   "evidence_id": "f090fb358b2c"
+  }
+ ],
+ "claims": [
+  {
+   "text": "Given the same forecast weather, the best zero-shot model (Chronos-2) has about 3% lower error than the weekly-lag regression, with a 90% interval that reaches 1.0: roughly a tie. This comparison was descriptive, not a confirmatory test.",
+   "metric": "MAE ratio, model with weather / regression with weather",
+   "value": 0.966,
+   "dataset": "GB national electricity demand, half-hourly, 16 Mar 2024 to 31 Oct 2026",
+   "horizon": "day-ahead",
+   "baseline": "weekly-lag regression with weather",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 960,
+   "citation_idx": 2
+  },
+  {
+   "text": "With the same weather the other two zero-shot models are worse than the regression: Timestral 1.074 (1.034-1.115) and TimesFM 2.5 1.453 (1.394-1.510).",
+   "metric": "MAE ratio, model with weather / regression with weather",
+   "value": null,
+   "dataset": "GB national electricity demand, half-hourly, 16 Mar 2024 to 31 Oct 2026",
+   "horizon": "day-ahead",
+   "baseline": "weekly-lag regression with weather",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 960,
+   "citation_idx": 2
+  },
+  {
+   "text": "Weather improves the regression: error with weather is 0.658 of error without (0.631-0.686), a pre-registered confirmatory test.",
+   "metric": "MAE ratio, with weather / without weather",
+   "value": 0.658,
+   "dataset": "GB national electricity demand, half-hourly, 16 Mar 2024 to 31 Oct 2026",
+   "horizon": "day-ahead",
+   "baseline": "same forecaster without weather",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 960,
+   "citation_idx": 2
+  },
+  {
+   "text": "Weather improves Chronos-2: error with weather is 0.683 of error without (0.658-0.707), a pre-registered confirmatory test.",
+   "metric": "MAE ratio, with weather / without weather",
+   "value": 0.683,
+   "dataset": "GB national electricity demand, half-hourly, 16 Mar 2024 to 31 Oct 2026",
+   "horizon": "day-ahead",
+   "baseline": "same forecaster without weather",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 960,
+   "citation_idx": 2
+  },
+  {
+   "text": "Weather also improves Timestral (0.773, 0.751-0.796) and TimesFM 2.5 (0.941, 0.913-0.968); all four pre-registered tests pass at 0.0125.",
+   "metric": "MAE ratio, with weather / without weather",
+   "value": null,
+   "dataset": "GB national electricity demand, half-hourly, 16 Mar 2024 to 31 Oct 2026",
+   "horizon": "day-ahead",
+   "baseline": "same forecaster without weather",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 960,
+   "citation_idx": 2
+  },
+  {
+   "text": "The plan was frozen before any model was scored with real weather, and the backtest was scored once.",
+   "metric": null,
+   "value": null,
+   "dataset": null,
+   "horizon": null,
+   "baseline": null,
+   "baseline_same_inputs": "unknown",
+   "test_window_days": null,
+   "citation_idx": 0
+  }
+ ],
+ "relevance": {
+  "target_match": 3,
+  "horizon_match": 2,
+  "covariates_match": 3,
+  "rationale": "Electric load at sub-daily resolution (half-hourly national GB demand, not hourly PJM zones), so target 3. Horizon is day-ahead, not a week, so 2. Forecast weather is given as a known-future input to every forecaster, so 3; the study uses temperature, wind and solar where our spec requires temperature only."
+ },
+ "checks": {
+  "pre_registered": "yes",
+  "training_overlap_risk": "low",
+  "independent_replication": "unknown"
+ },
+ "evidence_strength": "moderate",
+ "license": "MIT",
+ "license_ok_for_commercial": true,
+ "runnable_class": "direct_adapter",
+ "label": "ACCEPT_RUN",
+ "label_reason": "On target (electric load, known-future forecast weather, zero-shot models against a regression given the same weather) with a Zenodo record, a public repository, a dated plan and a results note that carry the numbers; the model it finds best, Chronos-2, has public Apache-2.0 weights and can be run with temperature on our benchmark now. Evidence is moderate, not strong: the weather-helps result is pre-registered and confirmatory, but the rough tie with the regression (0.966, interval 0.931 to 1.001) is descriptive, from one author, day-ahead on GB data, with no independent replication found in one search. Training overlap is marked low for our own run only because the Chronos-2 paper (17 Oct 2025) predates our scored window; the weights' commit date was not found, and the study itself says its backtest may overlap the models' training data.",
+ "implementation_hint": "Chronos-2 with temperature through the direct adapter models/chronos2.py (chronos-forecasting package), weights repository huggingface.co/amazon/chronos-2, compared with the temperature-only regression. Timestral (mistralai/Timestral-209M) can run through models_ff/run_ff.py; TimesFM 2.5 with covariates (google/timesfm-2.5-200m-pytorch) needs models_ff/timesfm25_xreg.py. Horizon mismatch to state: source is day-ahead, ours is 168 h.",
+ "receipt": {
+  "claimed": "Given the same forecast weather, Chronos-2's error is 0.966 of a weekly-lag regression's (90% interval 0.931 to 1.001) on GB national demand: a rough tie.",
+  "measured": [
+   {
+    "zone": "DOM",
+    "regime": "forecast",
+    "error_ratio": 0.73,
+    "ci90": [
+     0.665,
+     0.805
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "forecast",
+    "error_ratio": 0.817,
+    "ci90": [
+     0.686,
+     0.96
+    ]
+   },
+   {
+    "zone": "DOM",
+    "regime": "oracle",
+    "error_ratio": 0.663,
+    "ci90": [
+     0.579,
+     0.759
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "oracle",
+    "error_ratio": 0.698,
+    "ci90": [
+     0.589,
+     0.824
+    ]
+   }
+  ],
+  "horizon_mismatch": "The study is day-ahead on GB national half-hourly demand with temperature, wind and solar and a regression with 2-day and 7-day lags; ours is a week ahead (168 h) on two PJM zones with temperature only and a 7-day lag.",
+  "n_windows": 48,
+  "n_windows_after_weights": 48,
+  "verdict": "partially"
+ }
+}

@@ -4,39 +4,125 @@
   "description": "One judged candidate. Written by /judge; the receipt is filled by /run-candidate.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["candidate_id", "title", "discovered_via", "candidate_type", "primary_sources", "claims", "relevance", "checks", "evidence_strength", "runnable_class", "label", "label_reason", "spec_version"],
+  "required": [
+    "candidate_id",
+    "title",
+    "discovered_via",
+    "candidate_type",
+    "primary_sources",
+    "claims",
+    "relevance",
+    "checks",
+    "evidence_strength",
+    "runnable_class",
+    "label",
+    "label_reason",
+    "spec_version"
+  ],
   "$defs": {
-    "ynu": {"enum": ["yes", "no", "unknown"]},
-    "score": {"type": "integer", "minimum": 0, "maximum": 3},
-    "not_linkedin": {"type": "string", "format": "uri", "not": {"pattern": "linkedin\\.com"}}
+    "ynu": {
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "not_linkedin": {
+      "type": "string",
+      "format": "uri",
+      "not": {
+        "pattern": "linkedin\\.com"
+      }
+    }
   },
   "properties": {
-    "candidate_id": {"type": "string", "minLength": 1},
-    "title": {"type": "string", "minLength": 1},
-    "spec_version": {"type": "string"},
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spec_version": {
+      "type": "string"
+    },
     "discovered_via": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["url", "provider", "retrieved_at"],
+      "required": [
+        "url",
+        "provider",
+        "retrieved_at"
+      ],
       "properties": {
-        "url": {"type": "string", "description": "May be a LinkedIn URL: an identifier only, never fetched."},
-        "provider": {"enum": ["claude", "youcom", "manual"]},
-        "retrieved_at": {"type": "string", "format": "date-time"}
+        "url": {
+          "type": "string",
+          "description": "May be a LinkedIn URL: an identifier only, never fetched."
+        },
+        "provider": {
+          "enum": [
+            "claude",
+            "youcom",
+            "manual"
+          ]
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
-    "candidate_type": {"enum": ["model_release", "library_feature", "practitioner_backtest", "paper", "vendor_claim", "off_target"]},
+    "candidate_type": {
+      "enum": [
+        "model_release",
+        "library_feature",
+        "practitioner_backtest",
+        "paper",
+        "benchmark",
+        "vendor_claim",
+        "off_target"
+      ]
+    },
     "primary_sources": {
       "type": "array",
       "description": "Empty when none was found. The judge never invents one.",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["url", "kind", "paraphrase"],
+        "required": [
+          "url",
+          "kind",
+          "paraphrase"
+        ],
         "properties": {
-          "url": {"$ref": "#/$defs/not_linkedin"},
-          "kind": {"enum": ["hf_card", "github", "arxiv", "zenodo", "blog", "docs"]},
-          "paraphrase": {"type": "string", "maxLength": 400, "description": "Short paraphrase of what the source says; not copied text."},
-          "evidence_id": {"type": "string", "description": "Row id in evidence/*.jsonl."}
+          "url": {
+            "$ref": "#/$defs/not_linkedin"
+          },
+          "kind": {
+            "enum": [
+              "hf_card",
+              "github",
+              "arxiv",
+              "zenodo",
+              "blog",
+              "docs"
+            ]
+          },
+          "paraphrase": {
+            "type": "string",
+            "maxLength": 400,
+            "description": "Short paraphrase of what the source says; not copied text."
+          },
+          "evidence_id": {
+            "type": "string",
+            "description": "Row id in evidence/*.jsonl."
+          }
         }
       }
     },
@@ -45,72 +131,255 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["text", "citation_idx"],
+        "required": [
+          "text",
+          "citation_idx"
+        ],
         "properties": {
-          "text": {"type": "string"},
-          "metric": {"type": ["string", "null"]},
-          "value": {"type": ["number", "null"]},
-          "dataset": {"type": ["string", "null"]},
-          "horizon": {"type": ["string", "null"]},
-          "baseline": {"type": ["string", "null"]},
-          "baseline_same_inputs": {"$ref": "#/$defs/ynu"},
-          "test_window_days": {"type": ["integer", "null"], "minimum": 0},
-          "citation_idx": {"type": ["integer", "null"], "minimum": 0, "description": "Index into primary_sources; null when the claim has no primary source."}
+          "text": {
+            "type": "string"
+          },
+          "metric": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "dataset": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "horizon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "baseline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "baseline_same_inputs": {
+            "enum": [
+              "yes",
+              "partly",
+              "no",
+              "unknown"
+            ]
+          },
+          "test_window_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "citation_idx": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Index into primary_sources; null when the claim has no primary source."
+          },
+          "ci90": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
         }
       }
     },
     "relevance": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["target_match", "horizon_match", "covariates_match", "rationale"],
+      "required": [
+        "target_match",
+        "horizon_match",
+        "covariates_match",
+        "rationale"
+      ],
       "properties": {
-        "target_match": {"$ref": "#/$defs/score"},
-        "horizon_match": {"$ref": "#/$defs/score"},
-        "covariates_match": {"$ref": "#/$defs/score"},
-        "rationale": {"type": "string"}
+        "target_match": {
+          "$ref": "#/$defs/score"
+        },
+        "horizon_match": {
+          "$ref": "#/$defs/score"
+        },
+        "covariates_match": {
+          "$ref": "#/$defs/score"
+        },
+        "rationale": {
+          "type": "string"
+        }
       }
     },
     "checks": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pre_registered", "training_overlap_risk", "independent_replication"],
+      "required": [
+        "pre_registered",
+        "training_overlap_risk",
+        "independent_replication"
+      ],
       "properties": {
-        "pre_registered": {"$ref": "#/$defs/ynu"},
-        "training_overlap_risk": {"enum": ["low", "med", "high", "unknown"]},
-        "independent_replication": {"$ref": "#/$defs/ynu"}
+        "pre_registered": {
+          "$ref": "#/$defs/ynu"
+        },
+        "training_overlap_risk": {
+          "enum": [
+            "low",
+            "med",
+            "high",
+            "unknown"
+          ]
+        },
+        "independent_replication": {
+          "$ref": "#/$defs/ynu"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Why each check got its value, and what could not be verified."
+        }
       }
     },
-    "evidence_strength": {"enum": ["strong", "moderate", "weak", "none"]},
-    "license": {"type": ["string", "null"]},
-    "license_ok_for_commercial": {"type": ["boolean", "null"]},
-    "runnable_class": {"enum": ["ff_native_exog", "ff_univariate", "direct_adapter", "not_runnable"]},
-    "label": {"enum": ["ACCEPT_RUN", "ACCEPT_STAGE3", "PARTIAL", "REJECT"]},
-    "label_reason": {"type": "string"},
-    "implementation_hint": {"type": ["string", "null"]},
+    "evidence_strength": {
+      "enum": [
+        "strong",
+        "moderate",
+        "weak",
+        "none"
+      ]
+    },
+    "license": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Licence of the thing we would run (the model weights), not of the write-up."
+    },
+    "license_ok_for_commercial": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "runnable_class": {
+      "enum": [
+        "ff_native_exog",
+        "ff_univariate",
+        "direct_adapter",
+        "not_runnable"
+      ]
+    },
+    "label": {
+      "enum": [
+        "ACCEPT_RUN",
+        "ACCEPT_STAGE3",
+        "PARTIAL",
+        "REJECT"
+      ]
+    },
+    "label_reason": {
+      "type": "string"
+    },
+    "implementation_hint": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "receipt": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "additionalProperties": false,
-      "required": ["claimed", "measured", "horizon_mismatch", "n_windows", "n_windows_after_weights", "verdict"],
+      "required": [
+        "claimed",
+        "measured",
+        "horizon_mismatch",
+        "n_windows",
+        "n_windows_after_weights",
+        "verdict"
+      ],
       "properties": {
-        "claimed": {"type": "string"},
+        "claimed": {
+          "type": "string"
+        },
         "measured": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["zone", "regime", "error_ratio", "ci90"],
+            "required": [
+              "zone",
+              "regime",
+              "error_ratio",
+              "ci90"
+            ],
             "properties": {
-              "zone": {"type": "string"},
-              "regime": {"enum": ["oracle", "forecast"]},
-              "error_ratio": {"type": "number"},
-              "ci90": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+              "zone": {
+                "type": "string"
+              },
+              "regime": {
+                "enum": [
+                  "oracle",
+                  "forecast"
+                ]
+              },
+              "error_ratio": {
+                "type": "number"
+              },
+              "ci90": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
             }
           }
         },
-        "horizon_mismatch": {"type": "string"},
-        "n_windows": {"type": "integer", "minimum": 0},
-        "n_windows_after_weights": {"type": ["integer", "null"], "minimum": 0},
-        "verdict": {"enum": ["transfers", "partially", "does_not_transfer", "untestable"]}
+        "horizon_mismatch": {
+          "type": "string"
+        },
+        "n_windows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "n_windows_after_weights": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "verdict": {
+          "enum": [
+            "transfers",
+            "partially",
+            "does_not_transfer",
+            "untestable"
+          ]
+        }
       }
     }
   },
@@ -118,10 +387,36 @@
     {
       "description": "missing_source_rule: no primary source caps the label at PARTIAL unless the candidate is a runnable model release.",
       "if": {
-        "properties": {"primary_sources": {"maxItems": 0}},
-        "not": {"properties": {"candidate_type": {"const": "model_release"}, "runnable_class": {"enum": ["ff_native_exog", "ff_univariate", "direct_adapter"]}}}
+        "properties": {
+          "primary_sources": {
+            "maxItems": 0
+          }
+        },
+        "not": {
+          "properties": {
+            "candidate_type": {
+              "const": "model_release"
+            },
+            "runnable_class": {
+              "enum": [
+                "ff_native_exog",
+                "ff_univariate",
+                "direct_adapter"
+              ]
+            }
+          }
+        }
       },
-      "then": {"properties": {"label": {"enum": ["PARTIAL", "REJECT"]}}}
+      "then": {
+        "properties": {
+          "label": {
+            "enum": [
+              "PARTIAL",
+              "REJECT"
+            ]
+          }
+        }
+      }
     }
   ]
 }

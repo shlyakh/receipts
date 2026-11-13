@@ -5,6 +5,10 @@
     uv run --project core python tools/ledger.py show --provider claude --candidate item-02
 
 Stores URLs and short paraphrases only (CLAUDE.md rule 9). LinkedIn is refused (rule 10).
+A note is at most 400 characters. A page with more to record gets several rows: call
+`add` again with the same URL and a different note. `--published` is the date the page
+was first published (YYYY-MM-DD), or `unknown`. A search that found nothing is recorded
+with `--url` set to the search engine's address and the query and outcome in the note.
 """
 
 from __future__ import annotations
@@ -44,8 +48,8 @@ def add(a: argparse.Namespace) -> None:
     }
     p = path(a.provider, a.candidate)
     p.parent.mkdir(parents=True, exist_ok=True)
-    seen = {json.loads(line)["url"] for line in p.read_text().splitlines()} if p.exists() else set()
-    if a.url in seen:
+    old = [json.loads(line) for line in p.read_text().splitlines()] if p.exists() else []
+    if any(r["url"] == a.url and r["note"] == a.note for r in old):
         print("already in ledger:", row["evidence_id"])
         return
     with p.open("a") as f:

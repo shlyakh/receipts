@@ -35,6 +35,37 @@ weights_rule: >
   start after the weights file's commit date. A model whose weights fall inside the
   scored window is run only with that label.
 
+# Models we can run today, for runnable_class and implementation_hint.
+runnable_models:
+  amazon/chronos-2: {class: direct_adapter, script: models/chronos2.py, temperature: true}
+  mistralai/Timestral-209M: {class: ff_native_exog, script: models_ff/run_ff.py, temperature: true}
+  google/timesfm-2.5-200m-pytorch: {class: ff_univariate, script: models_ff/run_ff.py, temperature: false}
+  other FoundationForecast wrappers: >
+    Chronos, TimesFM, Timestral, T0, TiRex, Kumo, Moirai, Toto, Sundial, TabPFN, FlowState,
+    PatchTSTFM, TimeH2O, Tabby, Tafsut (ff_native_exog only for Chronos-2, Timestral, T0,
+    TiRex-2, TimeH2O and TimesFM 3.0; ff_univariate otherwise)
+scored_window: {first_week: 2025-11-10, last_week: 2026-11-02}
+
+# How the judge fills the scorecard's judgement fields.
+judging:
+  central_model: >
+    A study that tests several models is judged on the model in its headline claim.
+    runnable_class, license and training_overlap_risk refer to that model; the others go
+    in implementation_hint and checks.notes.
+  training_overlap_risk: >
+    About OUR run, from the weights file's commit date on its repository (fall back to
+    the release date the source states, and say so). low = before the first scored week;
+    med = inside the window with at least half the weeks after it; high = fewer than half
+    the weeks after it; unknown = no date found.
+  evidence_strength: >
+    strong = pre-registered or independently replicated, test window at least
+    min_evidence.test_window_days, baseline given the same inputs. moderate = a public,
+    reproducible result that misses one of those, or whose headline claim is descriptive.
+    weak = numbers without code or data, or a window under the minimum. none = no primary
+    source.
+  independent_replication: yes or no only with a source; unknown when a search finds nothing.
+  accept_run_for_a_study: its headline comparison can be re-measured with a model in runnable_models.
+
 license_policy: {prefer: [Apache-2.0, MIT], flag_noncommercial: true}
 metrics: [MAE, MAPE, RMSE, MASE, error_ratio_vs_regression]
 min_evidence: {test_window_days: 90, primary_source_required: true}

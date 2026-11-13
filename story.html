@@ -1,0 +1,773 @@
+<title>Does the Tie Transfer?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column for prose, wider figure cards, a till-receipt figure at the centre of the story.
+   Colour meanings, the same in every figure:
+     --model  blue    = a pretrained model (Chronos-2 and the others)
+     --base   orange  = the regression with temperature (the baseline, ratio 1.00)
+     --ink            = measured load, and neutral facts
+     --band   grey    = the 10% bar fixed in advance
+     hatching         = weeks or scores that are not out-of-sample */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --panel: #e8ecf1; --ink: #0f1720; --ink2: #414c59; --muted: #63707e;
+  --rule: #d0d7df; --model: #2a78d6; --base: #eb6834; --band: #dde3ea; --soft: #8e9aa7;
+  --map-none: #e2e7ed; --map-iso: #b5c0cc; --map-hi: #22344a; --map-stroke: #ffffff;
+  --display: "Bricolage Grotesque", "Arial Narrow", Arial, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #171e26; --panel: #202a35; --ink: #eef1f4; --ink2: #c3cbd4; --muted: #96a2af;
+    --rule: #303b48; --model: #3987e5; --base: #d95926; --band: #27323e; --soft: #6a7684;
+    --map-none: #1c242d; --map-iso: #3b4858; --map-hi: #dfe6ee; --map-stroke: #0f141a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #171e26; --panel: #202a35; --ink: #eef1f4; --ink2: #c3cbd4; --muted: #96a2af;
+  --rule: #303b48; --model: #3987e5; --base: #d95926; --band: #27323e; --soft: #6a7684;
+  --map-none: #1c242d; --map-iso: #3b4858; --map-hi: #dfe6ee; --map-stroke: #0f141a; color-scheme: dark;
+}
+[hidden] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.65; margin: 0; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 80px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.02em; }
+h1 { font-size: clamp(36px, 6vw, 68px); line-height: 1.02; font-weight: 700; letter-spacing: -0.035em; }
+h2 { font-size: clamp(27px, 3.8vw, 42px); line-height: 1.1; font-weight: 700; }
+h3 { font-size: 21px; line-height: 1.25; font-weight: 500; }
+p { margin: 0; }
+a { color: inherit; text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--model); outline-offset: 2px; border-radius: 4px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* hero */
+.hero { padding-block: 40px 28px; display: grid; gap: 28px; }
+.hero-top { display: grid; gap: 18px; max-width: 860px; }
+.deck { font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; color: var(--ink2); max-width: 62ch; }
+.hero-strip { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; border-top: 1px solid var(--rule); padding-top: 16px; color: var(--ink2); font-size: 15px; }
+.hero-strip b { font-family: var(--mono); font-size: 30px; font-weight: 600; color: var(--ink); margin-right: 8px; }
+
+/* chapter nav */
+.chapters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; scrollbar-width: none; }
+.chapters a { flex: none; font-size: 14px; text-decoration: none; color: var(--muted); padding: 6px 10px; border-radius: 6px; white-space: nowrap; }
+.chapters a[aria-current="true"] { color: var(--ink); background: var(--panel); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+
+/* chapters */
+.chapter { padding-block: 64px 8px; display: grid; gap: 24px; scroll-margin-top: 56px; }
+.intro { display: grid; gap: 10px; max-width: 820px; }
+.prose { display: grid; gap: 16px; max-width: 66ch; }
+.prose strong { font-weight: 600; }
+.figure { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 24px; display: grid; gap: 16px; min-width: 0; margin: 0; }
+.fig-head { display: grid; gap: 4px; }
+.fig-kicker { font-size: 13px; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.seg { justify-self: start; display: inline-flex; flex-wrap: wrap; background: var(--panel); border-radius: 8px; padding: 3px; gap: 2px; }
+.seg button, .btn { font: 500 14px var(--body); color: var(--ink2); background: transparent; border: 0; border-radius: 6px; padding: 7px 12px; cursor: pointer; min-height: 34px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--rule); }
+.btn { background: var(--panel); }
+select { font: 500 14px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; min-height: 34px; max-width: 100%; }
+.ctl { font-size: 14px; color: var(--ink2); display: inline-flex; gap: 8px; align-items: center; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; color: var(--ink2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; background: var(--ink); flex: none; }
+.legend i.dot { width: 11px; height: 11px; border-radius: 50%; }
+.legend i.ring { width: 11px; height: 11px; border-radius: 50%; background: var(--surface); border: 2px solid var(--model); }
+.legend i.box { width: 16px; height: 11px; border-radius: 2px; }
+.legend i.hatch { width: 16px; height: 11px; border-radius: 2px; background: repeating-linear-gradient(-45deg, var(--soft) 0 2px, transparent 2px 5px); border: 1px solid var(--soft); }
+.legend i.empty { width: 16px; height: 11px; border-radius: 2px; background: transparent; border: 1px dashed var(--soft); }
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.read { background: var(--panel); border-radius: 8px; padding: 12px 14px; font-size: 15px; line-height: 1.5; color: var(--ink2); min-height: 48px; }
+.read b { color: var(--ink); font-weight: 600; }
+figcaption, .caption { font-size: 14px; line-height: 1.55; color: var(--muted); max-width: 80ch; }
+details { font-size: 14px; color: var(--ink2); }
+summary { cursor: pointer; padding-block: 4px; width: fit-content; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+th, td { text-align: left; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.takeaway { border-left: 3px solid var(--ink); padding: 4px 0 4px 18px; max-width: 66ch; display: grid; gap: 4px; }
+.takeaway .label { color: var(--ink2); }
+svg text { font-family: var(--mono); font-size: 13px; fill: var(--ink2); }
+svg text.strong { fill: var(--ink); font-weight: 600; }
+svg text.sans { font-family: var(--body); }
+
+/* ch1, ch2 maps */
+.split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.opgrid { display: flex; flex-wrap: wrap; gap: 6px; }
+.opgrid button { font: 500 14px var(--mono); color: var(--ink2); background: var(--panel); border: 1px solid transparent; border-radius: 6px; padding: 7px 11px; cursor: pointer; min-height: 34px; }
+.opgrid button[aria-pressed="true"] { background: var(--map-hi); color: var(--surface); }
+.stack { display: grid; gap: 14px; min-width: 0; }
+.bars { display: grid; gap: 16px; }
+.bargroup { display: grid; gap: 6px; }
+.barrow { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; color: var(--ink2); }
+.bartrack { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.bar { height: 20px; border-radius: 0 4px 4px 0; background: var(--soft); transition: width 0.7s cubic-bezier(0.22, 0.8, 0.24, 1); min-width: 2px; }
+.bar.peak { background: var(--map-hi); }
+.barval { font-family: var(--mono); font-size: 14px; color: var(--ink); white-space: nowrap; }
+
+/* ch3 explorer */
+.explorer { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.mgrid { display: grid; gap: 6px; }
+.mgrid button { text-align: left; font: 500 15px var(--body); color: var(--ink2); background: var(--panel); border: 1px solid transparent; border-radius: 8px; padding: 10px 12px; cursor: pointer; display: flex; gap: 10px; align-items: center; }
+.mgrid button[aria-pressed="true"] { background: var(--surface); border-color: var(--ink); color: var(--ink); }
+.mgrid i { width: 11px; height: 11px; border-radius: 50%; flex: none; background: var(--ink2); }
+.mgrid i.model { background: var(--model); } .mgrid i.base { background: var(--base); }
+.answer { display: grid; gap: 14px; min-width: 0; }
+.answer dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 15px; }
+.answer dt { color: var(--muted); } .answer dd { margin: 0; }
+.tag { font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--soft); border-radius: 4px; padding: 2px 6px; color: var(--ink2); white-space: nowrap; }
+
+/* ch4 receipt */
+.receipt { background: var(--surface); border: 1px solid var(--rule); border-top: 2px dashed var(--soft); border-bottom: 2px dashed var(--soft); border-radius: 2px; padding: 24px; display: grid; gap: 16px; font-family: var(--mono); min-width: 0; max-width: 880px; }
+.receipt-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; font-size: 13px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.items { display: grid; gap: 0; }
+.item { display: grid; grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr); gap: 4px 20px; align-items: baseline; width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px dashed var(--rule); padding: 14px 8px; cursor: pointer; color: var(--ink2); font: 400 14px var(--mono); }
+.item[aria-pressed="true"] { background: var(--panel); }
+.item .what b { display: block; color: var(--ink); font-weight: 600; font-size: 15px; }
+.item .big { font-size: clamp(30px, 5vw, 46px); font-weight: 600; color: var(--ink); line-height: 1; letter-spacing: -0.03em; }
+.item .verdict { display: grid; gap: 4px; justify-items: start; }
+.receipt .read { font-family: var(--body); }
+@media (max-width: 640px) { .item { grid-template-columns: minmax(0, 1fr) auto; } .item .verdict { grid-column: 1 / -1; } }
+
+/* ch6 */
+.bigstat { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; }
+.bigstat b { font-family: var(--mono); font-size: clamp(34px, 6vw, 52px); font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
+.bigstat span { color: var(--ink2); font-size: 15px; }
+
+/* closing */
+.closing { font-family: var(--display); font-size: clamp(24px, 3.4vw, 36px); line-height: 1.2; font-weight: 500; max-width: 26ch; text-wrap: balance; }
+.ledger { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; font-size: 15px; max-width: 80ch; }
+.ledger li { border-top: 1px solid var(--rule); padding-top: 10px; overflow-wrap: anywhere; }
+.ledger b { font-weight: 600; }
+ul.plain { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 66ch; }
+
+@media (max-width: 820px) { .split, .explorer { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .figure, .receipt { padding: 16px; }
+  .chapter { padding-block: 48px 4px; }
+  .answer dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .answer dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="5" height="5" fill="var(--surface)"></rect><rect width="2" height="5" fill="var(--soft)"></rect>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+<header class="hero" id="top">
+  <div class="hero-top">
+    <span class="label">Receipts for forecasting papers &middot; a transfer test &middot; 13 Nov 2026</span>
+    <h1>A model and a regression tied in Britain. Do they tie on a US grid?</h1>
+    <p class="deck">A study published this week found that a pretrained forecasting model and a plain regression roughly tie on Great Britain's electricity demand once both get the same weather. We asked the same question of two zones of PJM, a US grid operator, forecasting a full week ahead.</p>
+  </div>
+  <figure class="figure" aria-labelledby="hero-title">
+    <div class="fig-head">
+      <span class="fig-kicker">One week of hourly demand, forecast before the week began &middot; 12 sample weeks from the scored year</span>
+      <h3 id="hero-title">Measured load and two forecasts</h3>
+    </div>
+    <div class="controls">
+      <div class="seg" id="hero-zone" role="group" aria-label="Zone"></div>
+      <label class="ctl" for="hero-week">Week of <select id="hero-week"></select></label>
+      <button class="btn" type="button" id="hero-play" aria-pressed="false">Pause</button>
+    </div>
+    <div class="legend">
+      <span><i></i>Measured load</span>
+      <span><i style="background:var(--base)"></i>Regression with temperature</span>
+      <span><i style="background:var(--model)"></i>Chronos-2 with temperature (pretrained model)</span>
+    </div>
+    <div class="chart" id="hero-chart" role="img" aria-label="Line chart of hourly load for one week with the regression forecast and the Chronos-2 forecast. Daily averages are in the table below."></div>
+    <div class="read" id="hero-read" aria-live="off"></div>
+    <details><summary>Read the values (daily averages for this week)</summary><div class="scroll" id="hero-table"></div></details>
+    <figcaption>Both forecasts were made at Monday 00:00 local time for the next 168 hours, using archived weather forecasts. The average miss in the read-out is computed on this page from the hourly values of the week shown. Source: results of protocol-v1.</figcaption>
+  </figure>
+  <div class="hero-strip">
+    <span><b id="strip-claim"></b>error ratio claimed for Great Britain, day ahead</span>
+    <span><b id="strip-dom"></b>measured on DOM, week ahead</span>
+    <span><b id="strip-jc"></b>measured on JC, week ahead</span>
+  </div>
+</header>
+
+<nav class="chapters" aria-label="Chapters">
+  <a href="#c1">1 Why forecast</a><a href="#c2">2 Two zones</a><a href="#c3">3 The methods</a><a href="#c4">4 The receipt</a><a href="#c5">5 Inside the week</a><a href="#c6">6 Timestral</a><a href="#sources">Sources</a>
+</nav>
+
+<section class="chapter" id="c1">
+  <div class="intro"><span class="label">Background</span><h2>Electricity demand is forecast before the power is made.</h2></div>
+  <div class="prose">
+    <p>Power cannot be stored cheaply at grid scale, so supply must match demand every hour. Grid operators decide days ahead which power plants will run. They decide from a forecast of demand, called <strong>load</strong>.</p>
+    <p>Seven regional operators run the wholesale grid for most of the United States. PJM is the largest, with about 65 million people across 13 states and Washington DC.</p>
+    <p>A forecast that is too low means expensive last-minute power. One that is too high means plants paid to stand by.</p>
+  </div>
+  <figure class="figure" aria-labelledby="f1-title">
+    <div class="fig-head"><span class="fig-kicker">Regional grid operators, shaded by whole state</span><h3 id="f1-title">Pick an operator to see the states shaded for it</h3></div>
+    <div class="opgrid" id="op-buttons" role="group" aria-label="Operator"></div>
+    <div class="split">
+      <div class="chart" id="us-map"></div>
+      <div class="stack"><div class="read" id="op-read" aria-live="polite"></div>
+        <div class="legend"><span><i class="box" style="background:var(--map-hi)"></i>Selected operator</span><span><i class="box" style="background:var(--map-iso)"></i>Another regional operator</span><span><i class="box" style="background:var(--map-none)"></i>No regional operator (mostly)</span></div>
+      </div>
+    </div>
+    <figcaption>States are shaded whole for readability. Real operator territories cut across state lines: PJM also covers parts of Illinois, Indiana, Michigan, Kentucky, North Carolina and Tennessee.</figcaption>
+  </figure>
+  <div class="takeaway"><span class="label">What this establishes</span><p>Load forecasts decide which plants are scheduled, days ahead. A few percent of error is real money, which is why each new forecasting model gets attention.</p></div>
+</section>
+
+<section class="chapter" id="c2">
+  <div class="intro"><span class="label">The benchmark</span><h2>Two PJM zones that behave differently.</h2></div>
+  <div class="prose">
+    <p>PJM is split into about twenty delivery zones. The benchmark forecasts two of them, one hour at a time, a full week ahead. <strong>JC</strong> is Jersey Central in New Jersey: residential, and driven by summer heat. <strong>DOM</strong> is Dominion in Virginia: large and growing, with heavy data-centre demand.</p>
+    <p>Temperature is the main driver in both, so every method gets the same temperature series: the average of three weather stations per zone. Both zones have public hourly data back to 2019 and sit in different climates 400 km apart.</p>
+  </div>
+  <figure class="figure" aria-labelledby="f2-title">
+    <div class="fig-head"><span class="fig-kicker">Average and peak hourly load per zone</span><h3 id="f2-title">DOM is larger. JC swings further from its own average.</h3></div>
+    <div class="split">
+      <div class="stack">
+        <div class="chart" id="zone-map" role="img" aria-label="Map of the mid-Atlantic states with the three weather stations of each zone. JC stations: Morristown, Monmouth shore, Toms River. DOM stations: Richmond, Norfolk, Dulles."></div>
+        <p class="caption" id="zone-read">Dots are the weather stations whose temperatures are averaged. The JC stations are Morristown, Monmouth shore and Toms River, and the DOM stations are Richmond, Norfolk and Dulles. Zone boundaries are not drawn.</p>
+      </div>
+      <div class="stack">
+        <div class="seg" id="bar-mode" role="group" aria-label="Scale"></div>
+        <div class="legend"><span><i class="box" style="background:var(--soft)"></i>Average load</span><span><i class="box" style="background:var(--map-hi)"></i>Peak load</span></div>
+        <div class="bars" id="zone-bars"></div>
+        <div class="read" id="bar-read" aria-live="polite"></div>
+      </div>
+    </div>
+    <details><summary>Read the values</summary><div class="scroll"><table>
+      <tr><th></th><th class="n">JC</th><th class="n">DOM</th></tr>
+      <tr><td>Average load, MW</td><td class="n" id="t-jc-mean"></td><td class="n" id="t-dom-mean"></td></tr>
+      <tr><td>Peak load, MW</td><td class="n" id="t-jc-peak"></td><td class="n" id="t-dom-peak"></td></tr>
+      <tr><td>Peak as a multiple of average</td><td class="n" id="t-jc-x"></td><td class="n" id="t-dom-x"></td></tr>
+      <tr><td>Trend</td><td>Flat</td><td>Growing; a regression fitted on the past year ran about 2% low</td></tr>
+      <tr><td>Extra regression error when forecast weather replaces actual weather</td><td class="n">+12%</td><td class="n">+29%</td></tr>
+    </table></div></details>
+    <figcaption>Load: EIA hourly data, 2019 onward. Weather: Open-Meteo. The multiples are computed on this page as peak divided by average.</figcaption>
+  </figure>
+  <div class="takeaway"><span class="label">Try this</span><p>Switch the bars to "Multiple of own average". In megawatts DOM dwarfs JC. Measured against its own average, JC's peak is the larger of the two. A method that wins in one zone and not the other has a win that depends on the zone.</p></div>
+</section>
+
+<section class="chapter" id="c3">
+  <div class="intro"><span class="label">The methods</span><h2>Seven methods, the same history and the same temperature.</h2></div>
+  <div class="prose">
+    <p>Every Monday at midnight each method forecasts the next 168 hours. Nothing after that moment may be used. A week ahead is hard because the weather forecast gets worse each day out, and because holidays and heat waves break the weekly rhythm.</p>
+    <p>Error is the average gap in megawatts between forecast and measured load over the 168 hours, averaged over 48 test weeks. Two methods are compared by dividing one error by the other. A ratio of 0.73 means 27% less error than the regression with temperature.</p>
+  </div>
+  <figure class="figure" aria-labelledby="f3-title">
+    <div class="fig-head"><span class="fig-kicker">Error ratio to the regression with temperature &middot; forecast weather &middot; 48 weeks &middot; bars are 90% ranges</span><h3 id="f3-title">Pick a method to see how it works and how it scored</h3></div>
+    <div class="explorer">
+      <div class="mgrid" id="m-buttons" role="group" aria-label="Method"></div>
+      <div class="answer" aria-live="polite">
+        <div id="m-answer" class="stack"></div>
+        <div class="legend" id="m-legend"></div>
+        <div class="chart" id="m-chart"></div>
+        <div class="read" id="m-read"></div>
+      </div>
+    </div>
+    <details><summary>Read the values (all methods, forecast weather)</summary><div class="scroll" id="m-table"></div></details>
+    <figcaption>Left of 1.00 a method has less error than the regression with temperature. Ranges come from reshuffling the 48 weeks 2,000 times. Methods without weather give the same forecast under either weather setting. Source: results of protocol-v1.</figcaption>
+  </figure>
+  <div class="takeaway"><span class="label">What this establishes</span><p>Every score in this story is a ratio to one baseline, the regression with temperature, on the same weeks and the same inputs. The baseline was named before any scoring.</p></div>
+</section>
+
+<section class="chapter" id="c4">
+  <div class="intro"><span class="label">The receipt</span><h2>The tie does not transfer to DOM and is undecided on JC.</h2></div>
+  <div class="prose">
+    <p>The Great Britain study forecast one day ahead over 960 days. With the same weather given to both, Chronos-2's error was 0.966 of the regression's, and the 90% range reached 1.</p>
+    <p>The rule for reading our result was fixed before scoring. If the whole 90% range sits below 0.90, the model is worth switching to. If the whole range sits between 0.90 and 1.10, the two are a practical tie and the claim transfers. Anything else is undecided.</p>
+  </div>
+  <div class="receipt" id="receipt">
+    <div class="receipt-head"><span>Claimed against measured</span><span id="rc-meta"></span></div>
+    <div class="controls"><div class="seg" id="rc-regime" role="group" aria-label="Weather given to both methods"></div></div>
+    <div class="items" id="rc-items" role="group" aria-label="Line items"></div>
+    <div class="legend" style="font-family:var(--body)">
+      <span><i class="dot" style="background:var(--model)"></i>Chronos-2 with temperature, measured on PJM</span>
+      <span><i class="ring" style="border-color:var(--ink2)"></i>Chronos-2 as claimed for Great Britain</span>
+      <span><i style="background:var(--base)"></i>Regression with temperature = 1.00</span>
+      <span><i class="box" style="background:var(--band)"></i>Practical tie, 0.90 to 1.10</span>
+    </div>
+    <div class="chart" id="rc-chart"></div>
+    <div class="read" id="rc-read" aria-live="polite"></div>
+    <details style="font-family:var(--body)"><summary>Read the values</summary><div class="scroll" id="rc-table"></div></details>
+  </div>
+  <p class="caption">Error ratio: Chronos-2's average error divided by the regression's, both with temperature. Below 1 the model has less error, and the bars are 90% ranges. Claim: Zenodo record 24161799. Measured: results of protocol-v1, 48 weeks from 10 Nov 2025 to 19 Oct 2026.</p>
+  <div class="takeaway"><span class="label">Keep the two studies separate</span><p>This is a transfer test and says nothing about whether the Great Britain result is correct. That study is day ahead, and its regression also had a 2-day lag, wind and solar. Ours is a week ahead with a 7-day lag and temperature only. Our regression is also not the strongest simple method: LightGBM on the same inputs scores 0.857 on JC and 0.947 on DOM.</p></div>
+</section>
+
+<section class="chapter" id="c5">
+  <div class="intro"><span class="label">Inside the week</span><h2>The lead is largest on day 1, and it depends on temperature.</h2></div>
+  <div class="prose">
+    <p>The week-ahead ratio averages seven forecast days. Day 1 is the closest match to the Great Britain study's day-ahead setting, and there the model leads in both zones. On JC the ranges for days 3 to 5 include 1.</p>
+    <p>Two checks test where the lead comes from. In the scored run the model sees load up to the cutoff, while real load data arrives 1 to 2 days late, so one row withholds the last 48 hours. Another row gives Chronos-2 no weather at all.</p>
+  </div>
+  <figure class="figure" aria-labelledby="f5-title">
+    <div class="fig-head"><span class="fig-kicker">Error ratio to the regression with temperature &middot; forecast weather &middot; secondary results</span><h3 id="f5-title">Ratio by forecast day, and under two changes</h3></div>
+    <div class="controls">
+      <div class="seg" id="d-zone" role="group" aria-label="Zone"></div>
+      <div class="seg" id="d-scen" role="group" aria-label="Change applied to Chronos-2"></div>
+    </div>
+    <div class="legend" id="d-legend"></div>
+    <div class="chart" id="d-chart"></div>
+    <div class="read" id="d-read" aria-live="polite"></div>
+    <details><summary>Read the values</summary><div class="scroll" id="d-table"></div></details>
+    <figcaption>Points are ratios; bars are 90% ranges. For the 2-day delay the results give the whole week and day 1 only. For the no-weather row they give the whole week only. Source: results of protocol-v1.</figcaption>
+  </figure>
+  <div class="takeaway"><span class="label">What this establishes</span><p>A realistic data delay shrinks the day-1 lead and leaves the week-ahead verdicts unchanged. Without temperature, Chronos-2 is worse than the regression with temperature on DOM and no better on JC. Its lead comes from using temperature well, more than from the load history alone.</p></div>
+</section>
+
+<section class="chapter" id="c6">
+  <div class="intro"><span class="label">Out-of-sample check</span><h2>Timestral has the lowest error and one unseen week.</h2></div>
+  <div class="prose">
+    <p>A pretrained model may have been trained on the public series it is later tested on. The check is a date: only weeks that start after the model's weights were published count as unseen. Earlier years of the same series may still be in the training data of any of these models.</p>
+    <p>Timestral with temperature has the lowest error on the board in every zone and weather setting. Its only weights file is dated 15 Oct 2026, after all but one of the 48 scored weeks began. The Great Britain study also treats Timestral as having no usable unseen backtest.</p>
+  </div>
+  <figure class="figure" aria-labelledby="f6-title">
+    <div class="fig-head"><span class="fig-kicker">52 Monday origins, 10 Nov 2025 to 2 Nov 2026 &middot; 48 scored</span><h3 id="f6-title">Which scored weeks start after each model's weights</h3></div>
+    <div class="seg" id="w-model" role="group" aria-label="Model"></div>
+    <div class="bigstat" id="w-stat" aria-live="polite"></div>
+    <div class="legend">
+      <span><i class="box" style="background:var(--ink)"></i>Starts after the weights (unseen)</span>
+      <span><i class="hatch"></i>Starts before the weights (may have been seen)</span>
+      <span><i class="empty"></i>Dropped: data gap at a clock change</span>
+    </div>
+    <div class="chart" id="w-chart" role="img" aria-label="Strip of 52 weeks marked as starting before or after the selected model's weights date. Counts are in the text below."></div>
+    <div class="read" id="w-read" aria-live="polite"></div>
+    <details><summary>Read the values</summary><div class="scroll" id="w-table"></div></details>
+    <figcaption>Weights dates are the commit dates of the pinned files. Four origins are dropped in every zone because the load source has no rows for the days of the clock changes. Source: results of protocol-v1.</figcaption>
+  </figure>
+  <div class="takeaway"><span class="label">What this establishes</span><p>Timestral's score cannot be told apart from leakage with this window, so it is shown and marked as not out-of-sample. The ratio on weeks after the weights would rest on a single week and is not reported.</p></div>
+</section>
+
+<section class="chapter" id="close">
+  <div class="intro"><span class="label">Conclusion</span><h2>What the evidence supports.</h2></div>
+  <div class="prose">
+    <p>Under a protocol frozen before scoring, the rough tie reported for Great Britain does not transfer to DOM, where Chronos-2 with temperature clears the 10% bar. On JC the range crosses the bar, so 48 weeks cannot separate a tie from a real difference.</p>
+    <p>The result has limits. The model saw load up to the cutoff, the regression has a 7-day lag and temperature only, LightGBM on the same inputs is closer to the model than the regression is, and one year of weekly origins gives wide ranges.</p>
+  </div>
+  <p class="closing">Would the tie return against a stronger simple method, or on the other PJM zones?</p>
+  <div class="prose"><p>Not done yet, as listed in the results:</p></div>
+  <ul class="plain">
+    <li>A fair test of Timestral and other models whose weights fall inside the scored window.</li>
+    <li>A test of TimesFM 2.5 with a curved temperature term in place of the straight line.</li>
+    <li>Runs of other pretrained models on the same 48 weeks.</li>
+  </ul>
+</section>
+
+<section class="chapter" id="sources">
+  <div class="intro"><span class="label">Source ledger</span><h2>Where each number comes from.</h2></div>
+  <ol class="ledger">
+    <li><b>The claim.</b> "Weather and zero-shot forecasting models: backtest results for GB electricity demand (part 1 of 2)", Zenodo record 24161799, published 12 Nov 2026. <a href="https://zenodo.org/records/24161799">zenodo.org/records/24161799</a>. Figure used: Chronos-2 error divided by the regression's, same weather, day ahead, 960 days: 0.966 (0.931 to 1.001). Read from the record's results file on 13 Nov 2026.</li>
+    <li><b>Measured results.</b> Project results summary for protocol-v1 (results/README.md) and the dashboard data file built from it (dashboard/data.js): ratios, 90% ranges, per-day ratios, weights dates, zone averages and peaks, and the 12 sample weeks of hourly load and forecasts. Scored once, on 12 and 13 Nov 2026.</li>
+    <li><b>What was fixed in advance.</b> protocol.yaml, tagged protocol-v1 on 12 Nov 2026: the 52 Monday origins, the baseline, the 10% bar, the verdict rule, the wording of each outcome, and the bootstrap (whole weeks, 2,000 draws, 90% percentile range).</li>
+    <li><b>Load data.</b> EIA Open Data API v2, hourly demand by PJM sub-area, zones JC and DOM. Operator-reported, not settlement quality.</li>
+    <li><b>Weather data.</b> Open-Meteo: reanalysis archive for the weather that occurred, and archived earlier forecast runs matched by lead day for forecast weather. Temperature only.</li>
+    <li><b>Model weights.</b> Chronos-2 weights file dated 30 Oct 2025; TimesFM 2.5 dated 1 Oct 2025; Timestral dated 15 Oct 2026.</li>
+    <li><b>Background on operators and zones.</b> The project dashboard (dashboard/index.html). The map uses its state-level shading, which is a simplification.</li>
+  </ol>
+  <div class="prose">
+    <p class="caption">Method notes. The ratio is the mean weekly error of one method divided by another's over the same 48 weeks. Ranges are 90% percentile intervals from resampling whole weeks, the same weeks for both methods. The primary comparison is Chronos-2 with temperature against the regression with temperature under forecast weather, per zone. Every other number here is secondary and does not change the verdicts. Average-miss figures in the first chart and the peak-to-average multiples are computed on this page from the data file.</p>
+  </div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="data.js"></script>
+<script src="us.js"></script>
+<script>
+(function () {
+  "use strict";
+  const D = window.DATA, US = window.US;
+  const $ = s => document.querySelector(s);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fmt = d3.format(","), f3 = d3.format(".3f"), f2 = d3.format(".2f");
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const fd = s => { const p = s.split("-").map(Number); return p[2] + " " + MON[p[1] - 1] + " " + p[0]; };
+  const rng = r => r.lo == null ? "" : " (" + f3(r.lo) + " to " + f3(r.hi) + ")";
+  const row = (model, zone, regime) => D.board.find(b => b.model === model && b.zone === zone && b.regime === regime);
+
+  function seg(id, options, value, onChange) {
+    const el = d3.select("#" + id);
+    el.selectAll("button").data(options).join("button").attr("type", "button").text(d => d.label)
+      .attr("aria-pressed", d => String(d.value === value))
+      .on("click", (ev, d) => { el.selectAll("button").attr("aria-pressed", o => String(o.value === d.value)); onChange(d.value); });
+  }
+  function sized(id, draw) {
+    const el = document.getElementById(id); let last = 0;
+    const run = () => { const w = Math.floor(el.clientWidth); if (w > 0) { last = w; draw(w); } };
+    if (window.ResizeObserver) new ResizeObserver(() => { if (Math.abs(el.clientWidth - last) > 1) run(); }).observe(el);
+    run(); return run;
+  }
+  function table(id, head, rows) {
+    const t = d3.select("#" + id).html("").append("table");
+    t.append("tr").selectAll("th").data(head).join("th").attr("class", (d, i) => i ? "n" : null).text(d => d);
+    t.selectAll(null).data(rows).join("tr").selectAll("td").data(d => d).join("td").attr("class", (d, i) => i ? "n" : null).text(d => d);
+  }
+
+  /* ---------------- hero: one week, three lines */
+  const hero = { zone: "DOM", i: 0, playing: !reduce, latch: false, inView: true, timer: null };
+  const SER = [["actual", "var(--ink)", "Measured"], ["lag_regression_temperature", "var(--base)", "Regression"], ["chronos2_temperature", "var(--model)", "Chronos-2"]];
+  const mae = (a, f) => d3.mean(a, (v, i) => Math.abs(v - f[i]));
+  function heroDefault() {
+    const w = D.weeks[hero.i], z = w[hero.zone];
+    $("#hero-read").innerHTML = "<b>Week of " + fd(w.start) + ", " + hero.zone + ".</b> Average miss over the 168 hours: regression with temperature <b class='num'>" +
+      fmt(Math.round(mae(z.actual, z.lag_regression_temperature))) + " MW</b>, Chronos-2 with temperature <b class='num'>" +
+      fmt(Math.round(mae(z.actual, z.chronos2_temperature))) + " MW</b>. Hover or touch the chart for hourly values.";
+    const rows = DAYS.map((d, k) => [d].concat(SER.map(s => fmt(Math.round(d3.mean(z[s[0]].slice(k * 24, k * 24 + 24)))))));
+    table("hero-table", ["Day", "Measured, MW", "Regression with temperature, MW", "Chronos-2 with temperature, MW"], rows);
+  }
+  const drawHero = sized("hero-chart", function (W) {
+    const H = W < 520 ? 250 : 330, m = { l: 58, r: 10, t: 22, b: 30 };
+    const z = D.weeks[hero.i][hero.zone];
+    const root = d3.select("#hero-chart");
+    let svg = root.select("svg");
+    if (svg.empty()) { svg = root.append("svg"); svg.append("g").attr("class", "grid"); svg.append("g").attr("class", "lines"); svg.append("g").attr("class", "cross"); svg.append("rect").attr("class", "hit"); }
+    svg.attr("viewBox", "0 0 " + W + " " + H).attr("width", W).attr("height", H);
+    const x = d3.scaleLinear([0, 167], [m.l, W - m.r]);
+    const all = SER.flatMap(s => z[s[0]]);
+    const y = d3.scaleLinear(d3.extent(all), [H - m.b, m.t]).nice(4);
+    const g = svg.select(".grid").html("");
+    y.ticks(4).forEach(t => {
+      g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", "var(--rule)");
+      g.append("text").attr("x", m.l - 8).attr("y", y(t) + 4).attr("text-anchor", "end").text(fmt(t));
+    });
+    g.append("text").attr("x", 0).attr("y", 12).text("MW");
+    DAYS.forEach((d, k) => {
+      if (k) g.append("line").attr("x1", x(k * 24 - 0.5)).attr("x2", x(k * 24 - 0.5)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--rule)").attr("stroke-dasharray", "2 4");
+      g.append("text").attr("x", x(k * 24 + 11.5)).attr("y", H - 8).attr("text-anchor", "middle").text(d);
+    });
+    const line = d3.line().x((v, i) => x(i)).y(v => y(v));
+    const paths = svg.select(".lines").selectAll("path").data(SER, s => s[0]).join("path")
+      .attr("fill", "none").attr("stroke", s => s[1]).attr("stroke-width", 2).attr("stroke-linejoin", "round");
+    (reduce || !paths.attr("d") ? paths : paths.transition().duration(700)).attr("d", s => line(z[s[0]]));
+    const cross = svg.select(".cross").html("").attr("visibility", "hidden");
+    cross.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--muted)");
+    SER.forEach(s => cross.append("circle").attr("r", 4.5).attr("fill", s[1]).attr("stroke", "var(--surface)").attr("stroke-width", 2));
+    svg.select(".hit").attr("x", m.l).attr("y", m.t).attr("width", W - m.l - m.r).attr("height", H - m.t - m.b).attr("fill", "transparent")
+      .on("pointermove pointerdown", ev => {
+        stopHero();
+        const i = Math.max(0, Math.min(167, Math.round(x.invert(d3.pointer(ev)[0]))));
+        cross.attr("visibility", "visible"); cross.select("line").attr("x1", x(i)).attr("x2", x(i));
+        cross.selectAll("circle").attr("cx", x(i)).attr("cy", (d, k) => y(z[SER[k][0]][i]));
+        $("#hero-read").innerHTML = "<b>" + DAYS[Math.floor(i / 24)] + ", hour " + (i % 24 + 1) + " of 24.</b> Measured <b class='num'>" + fmt(z.actual[i]) +
+          " MW</b> \u00b7 regression <b class='num'>" + fmt(z.lag_regression_temperature[i]) + " MW</b> \u00b7 Chronos-2 <b class='num'>" + fmt(z.chronos2_temperature[i]) + " MW</b>";
+      })
+      .on("pointerleave", () => { cross.attr("visibility", "hidden"); heroDefault(); });
+    heroDefault();
+  });
+  function setHero() { $("#hero-week").value = String(hero.i); drawHero(); }
+  function tick() {
+    clearTimeout(hero.timer);
+    if (hero.playing && hero.inView && !document.hidden) hero.timer = setTimeout(() => { hero.i = (hero.i + 1) % D.weeks.length; setHero(); tick(); }, 2800);
+  }
+  function playLabel() { const b = $("#hero-play"); b.textContent = hero.playing ? "Pause" : "Play the weeks"; b.setAttribute("aria-pressed", String(hero.playing)); }
+  function stopHero() { if (!hero.playing) return; hero.playing = false; clearTimeout(hero.timer); playLabel(); }
+  seg("hero-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], hero.zone, v => { stopHero(); hero.zone = v; drawHero(); });
+  d3.select("#hero-week").selectAll("option").data(D.weeks).join("option").attr("value", (d, i) => i).text(d => fd(d.start));
+  $("#hero-week").addEventListener("change", e => { stopHero(); hero.i = +e.target.value; drawHero(); });
+  $("#hero-play").addEventListener("click", () => { hero.playing = !hero.playing; playLabel(); tick(); });
+  if (window.IntersectionObserver) new IntersectionObserver(es => { hero.inView = es[0].isIntersecting; tick(); }, { threshold: 0.01 }).observe($("#hero-chart"));
+  document.addEventListener("visibilitychange", tick);
+  playLabel(); tick();
+  const P = { DOM: row("chronos2_temperature", "DOM", "forecast"), JC: row("chronos2_temperature", "JC", "forecast") };
+  $("#strip-claim").textContent = f3(D.claim.ratio); $("#strip-dom").textContent = f3(P.DOM.ratio); $("#strip-jc").textContent = f3(P.JC.ratio);
+
+  /* ---------------- chapter 1: operators */
+  const ISO = { PJM: [10, 11, 24, 34, 39, 42, 51, 54], MISO: [5, 17, 18, 19, 22, 26, 27, 28, 29, 38, 55], SPP: [20, 31, 40, 46], ERCOT: [48], CAISO: [6], NYISO: [36], "ISO-NE": [9, 23, 25, 33, 44, 50] };
+  const isoOf = {}; Object.keys(ISO).forEach(k => ISO[k].forEach(i => { isoOf[i] = k; }));
+  const states = topojson.feature(US, US.objects.states).features;
+  const path = d3.geoPath();
+  let op = "PJM";
+  function opRead() {
+    const names = states.filter(s => isoOf[+s.id] === op).map(s => s.properties.name).sort();
+    $("#op-read").innerHTML = "<b>" + op + ".</b> " + (op === "PJM" ? "The largest of the seven: about 65 million people across 13 states and Washington DC. " : "") +
+      "Shaded here as " + names.length + (names.length === 1 ? " state: " : " states: ") + names.join(", ") + ".";
+  }
+  const drawUS = sized("us-map", function (W) {
+    const root = d3.select("#us-map"); let svg = root.select("svg");
+    if (svg.empty()) {
+      svg = root.append("svg").attr("viewBox", "0 0 975 610").attr("role", "img").attr("aria-label", "Map of the United States shaded by regional grid operator");
+      svg.append("g").selectAll("path").data(states).join("path").attr("d", path).attr("stroke", "var(--map-stroke)").attr("stroke-width", 1)
+        .style("cursor", d => isoOf[+d.id] ? "pointer" : "default")
+        .on("click", (ev, d) => { const k = isoOf[+d.id]; if (k) pickOp(k); })
+        .append("title").text(d => d.properties.name + ": " + (isoOf[+d.id] || "no regional operator (mostly)"));
+      svg.append("text").attr("class", "strong sans oplabel").attr("text-anchor", "middle").attr("paint-order", "stroke").attr("stroke", "var(--surface)").attr("stroke-linejoin", "round");
+    }
+    const k = 975 / W;
+    svg.selectAll("path").attr("fill", d => { const o = isoOf[+d.id]; return o === op ? "var(--map-hi)" : o ? "var(--map-iso)" : "var(--map-none)"; });
+    const c = path.centroid(topojson.merge(US, US.objects.states.geometries.filter(g => ISO[op].includes(+g.id))));
+    const fs = 15 * k, half = op.length * fs * 0.34;
+    svg.select(".oplabel").attr("x", Math.max(half, Math.min(975 - half, c[0]))).attr("y", c[1] + fs * 0.35).style("font-size", fs + "px").attr("stroke-width", 5 * k).text(op);
+  });
+  function pickOp(k) { op = k; d3.select("#op-buttons").selectAll("button").attr("aria-pressed", d => String(d === op)); drawUS(); opRead(); }
+  d3.select("#op-buttons").selectAll("button").data(Object.keys(ISO)).join("button").attr("type", "button").text(d => d)
+    .attr("aria-pressed", d => String(d === op)).on("click", (ev, d) => pickOp(d));
+  opRead();
+
+  /* ---------------- chapter 2: zones */
+  const proj = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+  sized("zone-map", function (W) {
+    const near = [34, 42, 24, 10, 11, 51, 54, 37, 36, 39, 21, 47, 9];
+    const focus = { type: "FeatureCollection", features: states.filter(s => [34, 42, 24, 10, 11, 51].includes(+s.id)) };
+    const b = path.bounds(focus), pad = 12;
+    const vw = b[1][0] - b[0][0] + 2 * pad, vh = b[1][1] - b[0][1] + 2 * pad, k = vw / W;
+    const svg = d3.select("#zone-map").html("").append("svg").attr("viewBox", [b[0][0] - pad, b[0][1] - pad, vw, vh].join(" ")).style("overflow", "hidden");
+    svg.selectAll("path").data(states.filter(s => near.includes(+s.id))).join("path").attr("d", path)
+      .attr("fill", d => [34, 51].includes(+d.id) ? "var(--map-iso)" : "var(--map-none)").attr("stroke", "var(--map-stroke)").attr("stroke-width", k);
+    Object.keys(D.zones).forEach(zone => {
+      const pts = D.zones[zone].stations.map(s => ({ name: s.name.replace("_", " "), xy: proj([s.lon, s.lat]) }));
+      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 5 * k)
+        .attr("fill", "var(--ink)").attr("stroke", "var(--surface)").attr("stroke-width", 2 * k)
+        .append("title").text(d => d.name + ": weather station for " + zone);
+      const cx = d3.mean(pts, p => p.xy[0]), cy = d3.mean(pts, p => p.xy[1]);
+      svg.append("text").attr("class", "strong sans").attr("x", cx - (zone === "JC" ? 26 * k : 30 * k)).attr("y", cy + (zone === "JC" ? 6 * k : 26 * k))
+        .attr("text-anchor", "end").style("font-size", 17 * k + "px")
+        .attr("paint-order", "stroke").attr("stroke", "var(--surface)").attr("stroke-width", 4 * k).text(zone);
+    });
+  });
+  const Z = D.zones, mult = z => Z[z].peak_mw / Z[z].mean_mw;
+  let barMode = "mw";
+  function drawBars() {
+    const top = barMode === "mw" ? d3.max(["JC", "DOM"], z => Z[z].peak_mw) : d3.max(["JC", "DOM"], mult);
+    const data = ["JC", "DOM"].map(z => ({ z: z, rows: [["Average", Z[z].mean_mw, 1, ""], ["Peak", Z[z].peak_mw, mult(z), "peak"]] }));
+    const gsel = d3.select("#zone-bars").selectAll("div.bargroup").data(data).join(en => { const g = en.append("div").attr("class", "bargroup"); g.append("b"); return g; });
+    gsel.select("b").text(d => d.z === "JC" ? "JC \u00b7 Jersey Central, New Jersey" : "DOM \u00b7 Dominion, Virginia");
+    const r = gsel.selectAll("div.barrow").data(d => d.rows).join(en => {
+      const e = en.append("div").attr("class", "barrow"); e.append("span").attr("class", "barname");
+      const t = e.append("div").attr("class", "bartrack"); t.append("div").attr("class", "bar"); t.append("span").attr("class", "barval"); return e;
+    });
+    r.select(".barname").text(d => d[0]);
+    r.select(".bar").attr("class", d => "bar " + d[3]).style("width", d => Math.max(0.5, (barMode === "mw" ? d[1] : d[2]) / top * 64) + "%");
+    r.select(".barval").text(d => barMode === "mw" ? fmt(d[1]) + " MW" : f2(d[2]) + " \u00d7");
+    $("#bar-read").innerHTML = barMode === "mw"
+      ? "On one megawatt scale. DOM's average load is about " + Math.round(Z.DOM.mean_mw / Z.JC.mean_mw) + " times JC's."
+      : "Each zone against its own average. JC's peak is <b class='num'>" + f2(mult("JC")) + "</b> times its average; DOM's is <b class='num'>" + f2(mult("DOM")) + "</b> times.";
+  }
+  seg("bar-mode", [{ label: "Megawatts", value: "mw" }, { label: "Multiple of own average", value: "x" }], barMode, v => { barMode = v; drawBars(); });
+  drawBars();
+  ["JC", "DOM"].forEach(z => { const k = z.toLowerCase();
+    $("#t-" + k + "-mean").textContent = fmt(Z[z].mean_mw); $("#t-" + k + "-peak").textContent = fmt(Z[z].peak_mw); $("#t-" + k + "-x").textContent = f2(mult(z)); });
+
+  /* ---------------- shared: ratio strip (a dot and a 90% range on one ratio axis) */
+  const KIND = {
+    model: { fill: "var(--model)", stroke: "var(--model)" }, alt: { fill: "var(--surface)", stroke: "var(--model)" },
+    base: { fill: "var(--base)", stroke: "var(--base)" }, simple: { fill: "var(--ink2)", stroke: "var(--ink2)" },
+    flag: { fill: "url(#hatch)", stroke: "var(--soft)" }, claim: { fill: "var(--surface)", stroke: "var(--ink2)" }
+  };
+  function strip(id, W, rows, dom, onPick, band) {
+    const rh = 50, m = { l: 6, r: 6, t: 26, b: 30 }, H = m.t + rows.length * rh + m.b;
+    const svg = d3.select("#" + id).html("").append("svg").attr("viewBox", "0 0 " + W + " " + H).attr("width", W).attr("height", H);
+    const x = d3.scaleLinear(dom, [m.l + 8, W - m.r - 8]);
+    if (band) {
+      svg.append("rect").attr("x", x(0.9)).attr("width", x(1.1) - x(0.9)).attr("y", m.t - 6).attr("height", H - m.t - m.b + 6).attr("fill", "var(--band)");
+      svg.append("text").attr("x", x(1)).attr("y", 14).attr("text-anchor", "middle").attr("class", "sans").text("10% bar");
+    }
+    d3.range(Math.ceil(dom[0] * 5) / 5, dom[1] + 1e-9, W < 480 && dom[1] - dom[0] > 1 ? 0.4 : 0.2).forEach(t => {
+      svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", m.t - 6).attr("y2", H - m.b).attr("stroke", "var(--rule)");
+      svg.append("text").attr("x", x(t)).attr("y", H - 10).attr("text-anchor", "middle").text(f2(t));
+    });
+    svg.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", m.t - 6).attr("y2", H - m.b).attr("stroke", "var(--base)").attr("stroke-width", 2);
+    const g = svg.selectAll("g.r").data(rows).join("g").attr("class", "r").attr("transform", (d, i) => "translate(0," + (m.t + i * rh) + ")")
+      .attr("tabindex", 0).attr("role", "button").attr("aria-label", d => d.label + ": " + f3(d.ratio) + rng(d)).style("cursor", "pointer")
+      .on("pointerenter focus click", (ev, d) => onPick(d))
+      .on("keydown", (ev, d) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onPick(d); } });
+    g.append("rect").attr("x", 0).attr("width", W).attr("height", rh).attr("fill", "transparent");
+    g.append("text").attr("class", "sans").attr("x", m.l).attr("y", 16).attr("paint-order", "stroke").attr("stroke", "var(--surface)").attr("stroke-width", 3).text(d => d.label + "  ")
+      .append("tspan").attr("class", "strong num").style("font-family", "var(--mono)").style("fill", "var(--ink)").style("font-weight", 600).text(d => f3(d.ratio));
+    g.filter(d => d.lo != null).append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("y1", 33).attr("y2", 33)
+      .attr("stroke", d => KIND[d.kind].stroke).attr("stroke-width", 2).attr("stroke-linecap", "round");
+    g.append("circle").attr("cx", d => x(d.ratio)).attr("cy", 33).attr("r", 6.5).attr("fill", d => KIND[d.kind].fill)
+      .attr("stroke", d => d.kind === "model" || d.kind === "base" || d.kind === "simple" ? "var(--surface)" : KIND[d.kind].stroke).attr("stroke-width", 2);
+  }
+
+  /* ---------------- chapter 3: methods */
+  const METHODS = [
+    { id: "naive", name: "Same hour last week", fam: "simple", rows: [["seasonal_naive", "simple"]], how: "Copies the load from 168 hours earlier. The floor any method must beat.", learns: "Nothing", temp: "No" },
+    { id: "reg", name: "Regression, no weather", fam: "simple", rows: [["lag_regression", "simple"]], how: "24 small straight-line fits, one per hour of the day: last week's load, day of week, holidays.", learns: "The past year of this zone, refitted every Monday", temp: "No" },
+    { id: "regt", name: "Regression with temperature", fam: "base", tag: "baseline", rows: [["lag_regression_temperature", "base"]], how: "The same fits plus temperature and its square, so both heat and cold can raise load.", learns: "The past year of this zone", temp: "Yes" },
+    { id: "lgbm", name: "LightGBM with temperature", fam: "simple", rows: [["lightgbm_temperature", "simple"]], how: "Hundreds of small decision trees on exactly the regression's inputs. Can find patterns a straight line cannot.", learns: "The past year of this zone", temp: "Yes" },
+    { id: "chronos", name: "Chronos-2", fam: "model", tag: "challenger", rows: [["chronos2_temperature", "model"], ["chronos2", "alt"]], how: "A neural network pretrained on a very large collection of other time series. It reads 12 weeks of the zone's load and continues the pattern. Nothing is trained on the benchmark data.", learns: "Other series, before Oct 2025", temp: "Optional: past and coming week" },
+    { id: "timesfm", name: "TimesFM 2.5", fam: "model", rows: [["timesfm25_temperature", "model"], ["timesfm25", "alt"]], how: "Another pretrained network. It has no weather input, so temperature is added outside it by a straight-line fit, with the network forecasting what is left.", learns: "Other series, before Oct 2025", temp: "Only through that outside fit" },
+    { id: "timestral", name: "Timestral", fam: "model", tag: "not out-of-sample", rows: [["timestral_temperature", "flag"]], how: "A pretrained network that accepts weather for the coming week. Published in October 2026, after most of the test weeks, so its score may include weeks it was trained on.", learns: "Other series, before Oct 2026", temp: "Yes" }
+  ];
+  const short = s => s.replace(" + temperature", ", with temperature");
+  let meth = "chronos";
+  const LEG = {
+    model: "<span><i class='dot' style='background:var(--model)'></i>Pretrained model with temperature</span>",
+    alt: "<span><i class='ring'></i>Pretrained model, no weather</span>",
+    base: "<span><i class='dot' style='background:var(--base)'></i>Regression with temperature (baseline)</span>",
+    simple: "<span><i class='dot' style='background:var(--ink2)'></i>Other simple method</span>",
+    flag: "<span><i class='hatch' style='border-radius:50%;width:12px;height:12px'></i>Pretrained model, not out-of-sample</span>"
+  };
+  function methRows() {
+    const M = METHODS.find(d => d.id === meth), out = [];
+    M.rows.forEach(r => ["DOM", "JC"].forEach(z => { const b = row(r[0], z, "forecast"); out.push({ label: z + " \u00b7 " + short(b.label), ratio: b.ratio, lo: b.lo, hi: b.hi, kind: r[1], b: b }); }));
+    return out;
+  }
+  const mPick = d => { $("#m-read").innerHTML = "<b>" + d.label + ".</b> Ratio <b class='num'>" + f3(d.ratio) + "</b>" + (d.lo == null ? ", by definition: it is the baseline." : ", 90% range " + f3(d.lo) + " to " + f3(d.hi) + ".") +
+    " Average error <span class='num'>" + fmt(Math.round(d.b.mae)) + " MW</span>." + (d.kind === "flag" ? " Only " + d.b.n_after + " of " + d.b.n + " weeks start after its weights." : ""); };
+  const drawMeth = sized("m-chart", W => strip("m-chart", W, methRows(), [0.5, 1.9], mPick, false));
+  function setMeth(id) {
+    meth = id; const M = METHODS.find(d => d.id === id);
+    d3.select("#m-buttons").selectAll("button").attr("aria-pressed", d => String(d.id === meth));
+    $("#m-answer").innerHTML = "<h3>" + M.name + (M.tag ? " <span class='tag'>" + M.tag + "</span>" : "") + "</h3><dl><dt>How it forecasts</dt><dd>" + M.how +
+      "</dd><dt>Learns from</dt><dd>" + M.learns + "</dd><dt>Uses temperature</dt><dd>" + M.temp + "</dd></dl>";
+    const kinds = M.rows.map(r => r[1]); if (!kinds.includes("base")) kinds.push("base");
+    $("#m-legend").innerHTML = kinds.map(k => k === "base" && !M.rows.some(r => r[1] === "base") ? "<span><i style='background:var(--base)'></i>Regression with temperature = 1.00</span>" : LEG[k]).join("");
+    drawMeth(); mPick(methRows()[0]);
+  }
+  d3.select("#m-buttons").selectAll("button").data(METHODS).join("button").attr("type", "button")
+    .html(d => "<i class='" + (d.fam === "model" ? "model" : d.fam === "base" ? "base" : "") + "'></i>" + d.name).on("click", (ev, d) => setMeth(d.id));
+  setMeth(meth);
+  table("m-table", ["Method", "DOM ratio (90% range)", "JC ratio (90% range)"],
+    D.board.filter(b => b.zone === "DOM" && b.regime === "forecast").map(b => { const j = row(b.model, "JC", "forecast"); return [short(b.label), f3(b.ratio) + rng(b), f3(j.ratio) + rng(j)]; }));
+
+  /* ---------------- chapter 4: the receipt */
+  let regime = "forecast", item = "DOM";
+  const VERD = { DOM: "does not transfer", JC: "undecided" };
+  const rcRows = () => [{ id: "claim", label: "Great Britain \u00b7 claimed, day ahead", ratio: D.claim.ratio, lo: D.claim.lo, hi: D.claim.hi, kind: "claim" }]
+    .concat(["DOM", "JC"].map(z => { const b = row("chronos2_temperature", z, regime); return { id: z, label: z + " \u00b7 measured, week ahead", ratio: b.ratio, lo: b.lo, hi: b.hi, kind: "model", b: b }; }));
+  function rcRead() {
+    const d = rcRows().find(r => r.id === item); let t;
+    if (item === "claim") t = "<b>Claimed.</b> In the Great Britain study, one day ahead over 960 days, Chronos-2's error was " + f3(d.ratio) + " of the regression's when both had the same weather (90% range " + f3(d.lo) + " to " + f3(d.hi) + "). The range reaches 1: a rough tie.";
+    else if (regime === "oracle") t = "<b>Secondary result.</b> With the weather that occurred in place of archived forecasts, Chronos-2's error on " + item + " was " + f3(d.ratio) + " of the regression's (90% range " + f3(d.lo) + " to " + f3(d.hi) + "). The verdict is read from forecast weather only, so this row does not change it.";
+    else if (item === "DOM") t = "<b>Does not transfer.</b> On DOM, a week ahead with archived forecast weather, Chronos-2's error was " + f3(d.ratio) + " of the regression's (90% range " + f3(d.lo) + " to " + f3(d.hi) + "). The whole range is below 0.90, so the model clears the 10% bar.";
+    else t = "<b>Undecided.</b> On JC, a week ahead with archived forecast weather, Chronos-2's error was " + f3(d.ratio) + " of the regression's (90% range " + f3(d.lo) + " to " + f3(d.hi) + "). The range crosses the 10% bar, so " + d.b.n + " weeks cannot separate a tie from a real difference.";
+    if (item !== "claim") t += " " + d.b.n_after + " of " + d.b.n + " scored weeks start after the date of the model's weights. Earlier years of the same public series may be in its training data.";
+    $("#rc-read").innerHTML = t;
+    d3.select("#rc-items").selectAll("button").attr("aria-pressed", r => String(r.id === item));
+  }
+  const drawRc = sized("rc-chart", W => strip("rc-chart", W, rcRows(), [0.5, 1.2], d => { item = d.id; rcRead(); }, true));
+  function setRc() {
+    const rows = rcRows();
+    d3.select("#rc-items").selectAll("button").data(rows, d => d.id).join("button").attr("type", "button").attr("class", "item")
+      .html(d => "<span class='what'><b>" + (d.id === "claim" ? "Claimed" : "Measured \u00b7 " + d.id) + "</b>" + (d.id === "claim" ? "Great Britain, day ahead, 960 days" : (d.id === "DOM" ? "Dominion, Virginia" : "Jersey Central, New Jersey") + ", week ahead, " + d.b.n + " weeks") +
+        "</span><span class='big'>" + f3(d.ratio) + "</span><span class='verdict'><span>90% range " + f3(d.lo) + " to " + f3(d.hi) + "</span><span class='tag'>" +
+        (d.id === "claim" ? "rough tie" : regime === "oracle" ? "secondary \u00b7 no verdict" : VERD[d.id]) + "</span></span>")
+      .on("click", (ev, d) => { item = d.id; rcRead(); });
+    $("#rc-meta").textContent = D.protocol + " \u00b7 bar " + Math.round(D.bar * 100) + "% \u00b7 " + (regime === "forecast" ? "primary comparison" : "secondary");
+    table("rc-table", ["Line", "Ratio", "90% range", "Reading"], rows.map(d => [d.label, f3(d.ratio), f3(d.lo) + " to " + f3(d.hi), d.id === "claim" ? "rough tie" : regime === "oracle" ? "secondary, no verdict" : VERD[d.id]]));
+    drawRc(); rcRead();
+  }
+  seg("rc-regime", [{ label: "Forecast weather (primary)", value: "forecast" }, { label: "Weather that occurred (secondary)", value: "oracle" }], regime, v => { regime = v; setRc(); });
+  setRc();
+
+  /* ---------------- chapter 5: by forecast day, with a data delay, without weather */
+  // Day-1 ratios for the 2-day delay row are given in results/README.md only.
+  const GAP_DAY1 = { DOM: { ratio: 0.757, lo: 0.612, hi: 0.934 }, JC: { ratio: 0.741, lo: 0.579, hi: 0.948 } };
+  const SCEN = { base: "Load visible to the cutoff", gap: "2-day data delay", nowx: "No weather" };
+  let dz = "DOM", ds = "base";
+  function dPts() {
+    const base = D.per_day[dz].map(d => ({ slot: d.day - 1, name: "Day " + d.day, set: "base", ratio: d.ratio, lo: d.lo, hi: d.hi }));
+    const wk = row("chronos2_temperature", dz, "forecast"); base.push({ slot: 7.7, name: "Whole week", set: "base", ratio: wk.ratio, lo: wk.lo, hi: wk.hi });
+    const over = [];
+    if (ds === "gap") { const g = row("chronos2_temperature_gap48", dz, "forecast"), d1 = GAP_DAY1[dz];
+      over.push({ slot: 0, name: "Day 1", set: "gap", ratio: d1.ratio, lo: d1.lo, hi: d1.hi }, { slot: 7.7, name: "Whole week", set: "gap", ratio: g.ratio, lo: g.lo, hi: g.hi }); }
+    if (ds === "nowx") { const g = row("chronos2", dz, "forecast"); over.push({ slot: 7.7, name: "Whole week", set: "nowx", ratio: g.ratio, lo: g.lo, hi: g.hi }); }
+    return { base: base, over: over };
+  }
+  const dPick = d => { $("#d-read").innerHTML = "<b>" + dz + " \u00b7 " + d.name + " \u00b7 " + SCEN[d.set].toLowerCase() + ".</b> Ratio <b class='num'>" + f3(d.ratio) + "</b>, 90% range " + f3(d.lo) + " to " + f3(d.hi) + "."; };
+  function dDefault() {
+    const p = dPts(), wk = p.base[7], d1 = p.base[0];
+    let t;
+    if (ds === "base") t = dz === "DOM" ? "<b>DOM.</b> Every day's range is below 1. The ratio is " + f3(d1.ratio) + " on day 1 and " + f3(wk.ratio) + " over the whole week."
+      : "<b>JC.</b> The ratio is " + f3(d1.ratio) + " on day 1 and " + f3(wk.ratio) + " over the whole week. The ranges for days 3 to 5 include 1.";
+    else if (ds === "gap") t = "<b>" + dz + ", load history ending 48 hours before the cutoff.</b> Day 1 moves from " + f3(d1.ratio) + " to " + f3(p.over[0].ratio) + ". The whole week moves from " + f3(wk.ratio) + " to " + f3(p.over[1].ratio) + ". The regression is unchanged: its only load input is a week old.";
+    else t = "<b>" + dz + ", Chronos-2 without temperature.</b> The whole-week ratio moves from " + f3(wk.ratio) + " to " + f3(p.over[0].ratio) + " (90% range " + f3(p.over[0].lo) + " to " + f3(p.over[0].hi) + ")." + (dz === "DOM" ? " The whole range is above 1." : " The range includes 1.");
+    $("#d-read").innerHTML = t + " Select a point for its range.";
+    $("#d-legend").innerHTML = "<span><i class='dot' style='background:var(--model)'></i>Chronos-2 with temperature, load visible to the cutoff</span>" +
+      (ds === "base" ? "" : "<span><i class='ring'></i>Chronos-2, " + (ds === "gap" ? "with temperature, 2-day data delay" : "no weather") + "</span>") +
+      "<span><i style='background:var(--base)'></i>Regression with temperature = 1.00</span><span><i class='box' style='background:var(--band)'></i>10% bar, 0.90 to 1.10</span>";
+    table("d-table", ["Point", "Series", "Ratio", "90% range"], p.base.concat(p.over).map(d => [d.name, SCEN[d.set], f3(d.ratio), f3(d.lo) + " to " + f3(d.hi)]));
+  }
+  const drawDay = sized("d-chart", function (W) {
+    const H = W < 520 ? 320 : 360, m = { l: 44, r: 8, t: 14, b: 44 }, p = dPts();
+    const svg = d3.select("#d-chart").html("").append("svg").attr("viewBox", "0 0 " + W + " " + H).attr("width", W).attr("height", H);
+    const step = (W - m.l - m.r) / 8.7, x = s => m.l + (s + 0.5) * step, y = d3.scaleLinear([0.5, 1.6], [H - m.b, m.t]);
+    svg.append("rect").attr("x", m.l).attr("width", W - m.l - m.r).attr("y", y(1.1)).attr("height", y(0.9) - y(1.1)).attr("fill", "var(--band)");
+    [0.6, 0.8, 1.0, 1.2, 1.4, 1.6].forEach(t => {
+      svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(t)).attr("y2", y(t)).attr("stroke", "var(--rule)");
+      svg.append("text").attr("x", m.l - 8).attr("y", y(t) + 4).attr("text-anchor", "end").text(f2(t));
+    });
+    svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(1)).attr("y2", y(1)).attr("stroke", "var(--base)").attr("stroke-width", 2);
+    svg.append("line").attr("x1", x(7.05)).attr("x2", x(7.05)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--rule)").attr("stroke-dasharray", "2 4");
+    p.base.forEach(d => svg.append("text").attr("x", x(d.slot)).attr("y", H - m.b + 18).attr("text-anchor", "middle").text(d.slot > 7 ? "Week" : String(d.slot + 1)));
+    svg.append("text").attr("class", "sans").attr("x", x(3)).attr("y", H - 6).attr("text-anchor", "middle").text("Forecast day");
+    svg.append("path").attr("d", d3.line().x(d => x(d.slot)).y(d => y(d.ratio))(p.base.slice(0, 7))).attr("fill", "none").attr("stroke", "var(--model)").attr("stroke-width", 2);
+    const off = Math.min(13, step * 0.3);
+    const g = svg.selectAll("g.p").data(p.base.concat(p.over)).join("g").attr("class", "p").attr("tabindex", 0).attr("role", "button").style("cursor", "pointer")
+      .attr("aria-label", d => d.name + ", " + SCEN[d.set] + ": " + f3(d.ratio) + rng(d))
+      .attr("transform", d => "translate(" + (x(d.slot) + (d.set === "base" ? (p.over.some(o => o.slot === d.slot) ? -off : 0) : off)) + ",0)")
+      .on("pointerenter focus click", (ev, d) => dPick(d));
+    g.append("rect").attr("x", -Math.max(8, step * 0.25)).attr("width", Math.max(16, step * 0.5)).attr("y", m.t).attr("height", H - m.t - m.b).attr("fill", "transparent");
+    g.append("line").attr("y1", d => y(Math.min(1.6, d.hi))).attr("y2", d => y(d.lo)).attr("stroke", "var(--model)").attr("stroke-width", 2).attr("stroke-linecap", "round");
+    g.append("circle").attr("cy", d => y(d.ratio)).attr("r", 6).attr("fill", d => d.set === "base" ? "var(--model)" : "var(--surface)")
+      .attr("stroke", d => d.set === "base" ? "var(--surface)" : "var(--model)").attr("stroke-width", 2);
+    g.filter(d => d.set !== "base" || ((d.slot === 0 || d.slot > 7) && !p.over.some(o => o.slot === d.slot))).append("text").attr("class", "strong").attr("text-anchor", d => d.slot > 7 ? "end" : "middle")
+      .attr("x", d => d.slot > 7 ? 18 : 0).attr("y", d => y(Math.min(1.6, d.hi)) - 8)
+      .attr("paint-order", "stroke").attr("stroke", "var(--surface)").attr("stroke-width", 3).text(d => f3(d.ratio));
+  });
+  function setDay() { drawDay(); dDefault(); }
+  seg("d-zone", [{ label: "DOM", value: "DOM" }, { label: "JC", value: "JC" }], dz, v => { dz = v; setDay(); });
+  seg("d-scen", [{ label: "As scored", value: "base" }, { label: "2-day data delay", value: "gap" }, { label: "No weather", value: "nowx" }], ds, v => { ds = v; setDay(); });
+  dDefault();
+
+  /* ---------------- chapter 6: weeks after the weights */
+  // The 52 scored origins and the four dropped ones are listed in protocol.yaml.
+  const DROPPED = ["2026-03-02", "2026-03-09", "2026-10-26", "2026-11-02"];
+  const WEEKS = d3.range(52).map(i => new Date(Date.UTC(2025, 10, 10 + 7 * i)).toISOString().slice(0, 10));
+  const WM = [{ id: "chronos2_temperature", name: "Chronos-2" }, { id: "timesfm25_temperature", name: "TimesFM 2.5" }, { id: "timestral_temperature", name: "Timestral" }];
+  let wm = "timestral_temperature";
+  const wState = (wk, wd) => DROPPED.includes(wk) ? "drop" : wk > wd ? "after" : "before";
+  const WTXT = { drop: "dropped, data gap at a clock change", after: "starts after the weights: unseen by the model", before: "starts before the weights: the model may have been trained on it" };
+  function wDefault() {
+    const dm = row(wm, "DOM", "forecast"), jc = row(wm, "JC", "forecast"), name = WM.find(d => d.id === wm).name;
+    $("#w-stat").innerHTML = "<b>" + dm.n_after + " of " + dm.n + "</b><span>scored weeks start after " + name + "'s weights, dated " + fd(dm.weights_date) + "</span>";
+    $("#w-read").innerHTML = "<b>" + name + " with temperature, forecast weather.</b> Ratio to the regression with temperature: DOM <b class='num'>" + f3(dm.ratio) + "</b>" + rng(dm) + ", JC <b class='num'>" + f3(jc.ratio) + "</b>" + rng(jc) + "." +
+      (dm.n_after < dm.n ? " Shown as not out-of-sample. The ratio on the weeks after the weights rests on " + dm.n_after + " week and is not reported." : " Every scored week starts after the weights.");
+    const c = d3.rollup(WEEKS, v => v.length, w => wState(w, dm.weights_date));
+    table("w-table", ["Weeks for " + name, "Count"], [["Start after the weights", c.get("after") || 0], ["Start before the weights", c.get("before") || 0], ["Dropped", c.get("drop") || 0], ["First origin", fd(WEEKS[0])], ["Last scored origin", fd(D.last_week)]]);
+  }
+  const drawW = sized("w-chart", function (W) {
+    const H = 132, m = { l: 2, r: 2, t: 34, b: 30 }, wd = row(wm, "DOM", "forecast").weights_date;
+    const svg = d3.select("#w-chart").html("").append("svg").attr("viewBox", "0 0 " + W + " " + H).attr("width", W).attr("height", H);
+    const step = (W - m.l - m.r) / 52, bw = Math.max(2, step - (step > 9 ? 3 : 1.5));
+    svg.selectAll("rect").data(WEEKS).join("rect").attr("x", (d, i) => m.l + i * step).attr("y", m.t).attr("width", bw).attr("height", H - m.t - m.b).attr("rx", Math.min(2, bw / 3))
+      .attr("fill", d => ({ after: "var(--ink)", before: "url(#hatch)", drop: "transparent" })[wState(d, wd)])
+      .attr("stroke", d => wState(d, wd) === "after" ? "none" : "var(--soft)").attr("stroke-dasharray", d => wState(d, wd) === "drop" ? "2 2" : null)
+      .on("pointerenter click", (ev, d) => { $("#w-read").innerHTML = "<b>Week of " + fd(d) + ".</b> " + WTXT[wState(d, wd)].replace(/^./, c => c.toUpperCase()) + "."; })
+      .on("pointerleave", wDefault);
+    const idx = WEEKS.findIndex(w => w > wd), before = idx === 0;
+    const mx = before ? m.l : m.l + (idx < 0 ? 52 : idx) * step - (step - bw) / 2;
+    svg.append("line").attr("x1", mx).attr("x2", mx).attr("y1", 20).attr("y2", H - m.b + 4).attr("stroke", "var(--ink)").attr("stroke-width", 2);
+    svg.append("text").attr("class", "strong sans").attr("x", before ? mx : mx + 4).attr("y", 14).attr("text-anchor", before ? "start" : "end")
+      .text("Weights dated " + fd(wd) + (before ? ", before the first week" : ""));
+    let lastX = -100;
+    WEEKS.forEach((w, i) => { const lx = m.l + i * step;
+      if ((i && w.slice(5, 7) === WEEKS[i - 1].slice(5, 7)) || lx - lastX < 70 || lx > W - 52) return;
+      lastX = lx; svg.append("text").attr("x", lx).attr("y", H - 8).text(MON[+w.slice(5, 7) - 1] + " " + w.slice(2, 4)); });
+  });
+  seg("w-model", WM.map(d => ({ label: d.name, value: d.id })), wm, v => { wm = v; drawW(); wDefault(); });
+  wDefault();
+
+  /* ---------------- chapter nav highlight (cosmetic; nothing is hidden without it) */
+  const links = Array.from(document.querySelectorAll(".chapters a"));
+  if (window.IntersectionObserver) {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + e.target.id))); }), { rootMargin: "-45% 0px -50% 0px" });
+    links.forEach(a => { const t = document.getElementById(a.getAttribute("href").slice(1)); if (t) io.observe(t); });
+  }
+})();
+</script>

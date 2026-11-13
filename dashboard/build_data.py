@@ -1,0 +1,145 @@
+"""Collect what the dashboard page shows into dashboard/data.js.
+
+    uv run --project core python dashboard/build_data.py
+
+Reads results/ and data/processed/ only; computes nothing new except display rounding.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from harness.data import Data, load_protocol  # noqa: E402
+
+LABELS = {
+    "seasonal_naive": ("Same hour last week", "simple", ""),
+    "lag_regression": ("Regression, no weather", "simple", ""),
+    "lag_regression_temperature": ("Regression + temperature", "baseline", "the baseline"),
+    "lightgbm_temperature": ("LightGBM + temperature", "simple", ""),
+    "chronos2": ("Chronos-2, no weather", "fm", ""),
+    "chronos2_temperature": ("Chronos-2 + temperature", "primary", "primary comparison"),
+    "chronos2_temperature_gap48": ("Chronos-2 + temperature, 2-day data delay", "fm", ""),
+    "timesfm25": ("TimesFM 2.5, no weather", "fm", ""),
+    "timesfm25_temperature": ("TimesFM 2.5 + temperature", "fm", ""),
+    "timestral_temperature": ("Timestral + temperature", "flagged", "not out-of-sample"),
+}
+
+
+def main() -> None:
+    proto = load_protocol()
+    res = ROOT / "results"
+    lb = pd.read_parquet(res / "leaderboard.parquet")
+    st = pd.read_parquet(res / "stats.parquet")
+    win = pd.read_parquet(res / "windows.parquet")
+    base = proto["baseline_model"]
+
+    vs = st[(st["kind"] == "vs_baseline") & (st["metric"] == "mae")].set_index(
+        ["model_a", "unique_id", "regime"]
+    )
+    board = []
+    for r in lb.itertuples():
+        label, group, note = LABELS[r.model]
+        key = (r.model, r.unique_id, r.regime)
+        board.append(
+            {
+                "model": r.model,
+                "label": label,
+                "group": group,
+                "note": note,
+                "zone": r.unique_id,
+                "regime": r.regime,
+                "mae": round(r.mae, 1),
+                "mape": round(r.mape, 2),
+                "ratio": round(r.ratio_vs_baseline, 3),
+                "lo": round(vs.loc[key, "ci90_low"], 3) if key in vs.index else None,
+                "hi": round(vs.loc[key, "ci90_high"], 3) if key in vs.index else None,
+                "n": int(r.n_windows),
+                "n_after": None
+                if pd.isna(r.n_windows_after_weights)
+                else int(r.n_windows_after_weights),
+                "weights_date": None if pd.isna(r.weights_date) else str(r.weights_date)[:10],
+            }
+        )
+
+    days = st[
+        (st["kind"] == "vs_baseline")
+        & (st["model_a"] == "chronos2_temperature")
+        & (st["regime"] == "forecast")
+        & (st["metric"] != "mae")
+    ]
+    per_day = {
+        z: [
+            {
+                "day": int(r.metric[-1]),
+                "ratio": round(r.ratio, 3),
+                "lo": round(r.ci90_low, 3),
+                "hi": round(r.ci90_high, 3),
+            }
+            for r in g.sort_values("metric").itertuples()
+        ]
+        for z, g in days.groupby("unique_id")
+    }
+
+    data = Data()
+    fc = {
+        m: pd.read_parquet(res / "forecasts" / f"{m}.parquet")
+        for m in (base, "chronos2_temperature")
+    }
+    kept = sorted(win["cutoff"].unique())
+    weeks = []
+    for cutoff in kept[::4]:
+        entry = {"start": str(pd.Timestamp(cutoff).tz_convert(proto["timezone"]).date())}
+        for zone in proto["zones"]:
+            entry[zone] = {"actual": [round(v) for v in data.actuals(zone, cutoff)]}
+            for m, df in fc.items():
+                g = df[
+                    (df["unique_id"] == zone)
+                    & (df["cutoff"] == cutoff)
+                    & (df["regime"] == "forecast")
+                ].sort_values("ds")
+                entry[zone][m] = [round(v) for v in g["y_hat"]]
+        weeks.append(entry)
+
+    zones = {}
+    last = pd.Timestamp(max(kept)) + pd.Timedelta(hours=168)
+    for zone in proto["zones"]:
+        y = data.y[zone].loc[last - pd.Timedelta(days=365) : last]
+        zones[zone] = {
+            "mean_mw": round(float(y.mean())),
+            "peak_mw": round(float(y.max())),
+            "stations": proto["weather"]["stations"][zone],
+        }
+
+    out = {
+        "built_from_commit": lb["git_commit"].dropna().unique().tolist(),
+        "protocol": "protocol-v1",
+        "bar": proto["primary_comparison"]["bar"],
+        "n_windows": int(lb["n_windows"].max()),
+        "first_week": str(pd.Timestamp(min(kept)).tz_convert(proto["timezone"]).date()),
+        "last_week": str(pd.Timestamp(max(kept)).tz_convert(proto["timezone"]).date()),
+        "board": board,
+        "per_day": per_day,
+        "weeks": weeks,
+        "zones": zones,
+        "primary_text": (res / "primary.md").read_text(),
+        # GB study, weather_study/RESULTS.md in Zenodo record 24161799 (notes/moran.md)
+        "claim": {
+            "ratio": 0.966,
+            "lo": 0.931,
+            "hi": 1.001,
+            "url": "https://zenodo.org/records/24161799",
+        },
+    }
+    (ROOT / "dashboard" / "data.js").write_text("window.DATA = " + json.dumps(out) + ";\n")
+    print("data.js:", len(board), "leaderboard rows,", len(weeks), "sample weeks")
+
+
+if __name__ == "__main__":
+    main()

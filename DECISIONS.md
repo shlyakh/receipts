@@ -31,6 +31,7 @@ Settled Thu Nov 12, 2026.
 | 20 | Saturday build order: `/judge` on You.com, `/run-candidate`, a static receipt page, rehearsal, then `/scan`, then dashboard extras. First cuts: the "judge this URL" button and a full `/scan` | The demo path must exist before anything is widened |
 | 21 | LinkedIn is out of the pipeline unless Yuri finds a better route by Saturday. A stored LinkedIn URL is an identifier only. The demo input is Zenodo record 24161799 | No compliant way to read posts; the record now holds the weather results |
 | 22 | Model weights are pinned to a Hugging Face revision. Leakage is reported per model as "N of 52 scored weeks postdate the weights" | Turns a blanket caveat into a checkable statement |
+| 23 | The dashboard is built before Saturday as a static web page (HTML, D3, data exported from `results/`), not Streamlit. It opens with the story: what load forecasting is, PJM among the US grid operators, the two zones, then the receipt, the leaderboard, the agents and the path to a product (Yuri, Nov 13) | Yuri wants to see and shape it early; a static page needs no server on stage and can be shared as a link. It is disclosed as prior work |
 
 Also fixed: `spec.yaml` names the lag regression with temperature as the baseline
 to beat; the LightGBM row uses exactly the lag regression's input columns.

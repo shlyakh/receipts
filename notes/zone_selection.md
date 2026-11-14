@@ -1,7 +1,28 @@
 # Zone selection for the protocol-v2 primary comparison
 
-Written 2026-11-13. Research note, not a decision. No forecasting model was run for it:
+Written 2026-11-13. Research note. No forecasting model was run for it:
 every number below is a description of the load series or a fact from a PJM report.
+
+**Decision (Yuri, 2026-11-13, decision 33):** AEP and AE are the protocol-v2 primary
+zones. AE was kept over PEP to preserve JC's summer-peaking shape.
+
+## How the selection was made
+
+1. Listed every PJM sub-BA that EIA-930 serves (20 zones) and downloaded hourly load for
+   each, 2023-11-01 to 2026-11-13 (`tools/zone_selection/download.py`).
+2. Checked data quality with the v1 load rules, written afresh: missing hours, zeros,
+   flagged values, held values, and how many of the 52 scored weeks each zone keeps.
+   Quality turned out identical across zones, so it does not drive the choice.
+3. Computed load statistics per zone on 2023-11-01 to 2025-10-31 only, the two years
+   before the first scored origin (`tools/zone_selection/stats.py`).
+4. Wrote the rule below, applied it, and read off one pick and one runner-up per slot.
+5. Cross-checked eight zones for level breaks and confirmed that the DOM and JC downloads
+   match the repository's processed load exactly (`tools/zone_selection/check.py`).
+6. Looked up background on territories and data-centre load in PJM reports.
+
+No forecasting model was fitted or run on any new zone at any step. The rule and its
+two thresholds were written with all 20 load series in view; that is disclosed in the
+protocol.
 
 ## Recommendation
 
@@ -220,8 +241,16 @@ PE is summer-leaning (1.26) but 39% industrial and almost as correlated with JC 
 
 ## Reproducing
 
-Scratch only, not in the repository:
-`/private/tmp/claude-501/-Users-yuri-work-research-receipts/ca4cc383-b0b6-4866-85f7-62d5bd500175/scratchpad/zones/`
-(`scripts/dl2.py` download, `scripts/stats.py` statistics, `scripts/check.py` checks,
-`out/zone_stats.csv`, `out/anomaly_corr.csv`). If the rule is adopted, the statistics
-script should move into the repository so the selection can be rerun from hashed data.
+```
+uv run --project core python tools/zone_selection/download.py   # skips files already present
+uv run --project core python tools/zone_selection/stats.py
+uv run --project core python tools/zone_selection/check.py
+```
+
+- Raw downloads: `data/zone_selection_raw/` (git-ignored, 120 files), with SHA-256 hashes
+  in `results/zone_selection/raw_manifest.json`. `stats.py` refuses to run if a file does
+  not match. This is separate from `fetch.py` and `data/raw`; the harness never reads it.
+- Outputs, committed: `results/zone_selection/zone_stats.csv` (every statistic and both
+  distances per zone), `anomaly_corr.csv`, `shapes.csv`, `pjm_zones.json`.
+- Rerun on 2026-11-13 from the repository: the three output files are identical to the
+  ones the research produced, and the rule returns AEP (1.56) and AE (2.12).

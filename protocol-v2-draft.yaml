@@ -31,22 +31,48 @@ primary_comparison:
     source). A primary on those zones and weeks would not be a prediction.
 
 zones:
-  OPEN: which zones carry the primary comparison
-  recommended: >
-    AEP (for DOM) and AE (for JC), from the rule in notes/zone_selection.md: for each
-    development zone, the PJM sub-BA in EIA-930 closest to it on seven load statistics
-    over 2023-11-01 to 2025-10-31 (before the first scored origin), excluding DOM and JC,
-    zones whose daily load anomaly correlates 0.95 or more with the development zone,
-    zones under 1,000 MW mean load and zones failing the v1 load rules. Runner-ups, used
-    only if a pick fails a gate for data reasons: AP and PE. DOM and JC are reported as
-    development results.
+  status: decided (Yuri, 2026-11-13, decision 33)
+  primary: [AEP, AE]
+  development: [DOM, JC]        # reported, never read as the primary result
+  rule: >
+    For each development zone, the primary zone is the PJM sub-BA in EIA-930 with the
+    smallest standardised distance to it on seven load statistics over 2023-11-01 to
+    2025-10-31 (before the first scored origin): log mean load, growth of shoulder-month
+    load, summer/winter peak ratio, summer/shoulder and winter/shoulder mean ratios,
+    weekday/weekend ratio, mean daily minimum/maximum. Excluded: DOM and JC, zones whose
+    daily load anomaly correlates 0.95 or more with the development zone, zones under
+    1,000 MW mean load, zones failing the v1 load rules.
+  selected:
+    AEP:
+      name: American Electric Power
+      matches: DOM
+      distance: 1.56
+      runner_up: AP             # used only if AEP fails a gate for data reasons
+      # PJM's own weather stations for the zone, approximate city coordinates, for the
+      # dashboard map only. The protocol's weather points are not fixed yet.
+      pjm_weather_stations:
+        - {name: columbus, lat: 39.96, lon: -83.00}
+        - {name: fort_wayne, lat: 41.08, lon: -85.14}
+        - {name: akron_canton, lat: 40.92, lon: -81.44}
+        - {name: charleston_wv, lat: 38.35, lon: -81.63}
+        - {name: roanoke, lat: 37.27, lon: -79.94}
+    AE:
+      name: Atlantic City Electric
+      matches: JC
+      distance: 2.12
+      runner_up: PE
+      pjm_weather_stations:
+        - {name: atlantic_city, lat: 39.36, lon: -74.42}
+  record: >
+    notes/zone_selection.md (the process and the reasons), tools/zone_selection/ (download,
+    statistics, checks), results/zone_selection/ (statistics per zone, correlations, daily
+    shapes, hashes of the raw downloads).
   disclosed: >
     The rule and its thresholds were written on 2026-11-13 with the load of all 20 zones
     in view (descriptive statistics only; no model was run on any new zone). AE borders
     JC (anomaly correlation 0.93); with the limit at 0.90 the JC pick would be PEP, which
-    is not summer-peaking.
+    is not summer-peaking. Yuri chose AE to keep the summer-peaking shape.
   not_done_yet: weather points for AEP and AE; AIFS and ERA5 coverage at those points
-  alternative: keep DOM and JC and label the whole of v2 as a re-analysis, not a test
 
 origins:
   retrospective: the 52 scored origins of protocol-v1, on the new zones
@@ -153,8 +179,9 @@ secondary_rows:
 
 # ------------------------------------------------------------------ before the tag
 to_do_before_tag:
-  - settle the OPEN items (zones, humidity/solar/wind in v2 or v2.x, who runs the panel)
-  - write the zone rule and the zones it selects (notes/zone_selection.md), before any model runs on them
+  - settle the OPEN items (humidity/solar/wind in v2 or v2.x, who runs the panel)
+  - fix the weather points for AEP and AE and check ERA5 and AIFS coverage there
+  - fetch.py pulls AEP and AE load into data/raw with hashes
   - export_inputs writes the calendar table; lookahead tests cover the new rows
   - gate runs of every row on the gate origins, from a committed tree
   - outcome sentences written in advance for the primary comparison

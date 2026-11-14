@@ -173,7 +173,7 @@ a { color: var(--model); }
   <span class="eyebrow">Our benchmark</span>
   <h2>Two PJM zones that behave differently</h2>
   <div class="split">
-    <div class="panel"><svg id="zonemap" role="img" aria-label="Map of the mid-Atlantic with the weather stations used for the JC and DOM zones"></svg></div>
+    <div class="panel"><svg id="zonemap" role="img" aria-label="Map of the eastern United States with the weather stations for the JC and DOM zones, and for AEP and AE, the two zones chosen for the next test"></svg></div>
     <div class="stack">
       <p>PJM is split into about twenty delivery zones. We forecast two of them, one hour at a time, a full week ahead.</p>
       <div class="facts">
@@ -181,6 +181,8 @@ a { color: var(--model); }
         <div class="fact"><b id="dom-mean"></b><span><strong>DOM</strong>, Dominion, Virginia. Average load; peak <span id="dom-peak"></span>. Large and growing, with heavy data-centre demand.</span></div>
       </div>
       <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather stations per zone (the dots). We test with the forecast that was available at the time, and with weather analysed after the fact. The Weather tab adds ERA5, the reference record of past weather, and two more forecast sources.</p>
+      <p><strong>Next test: two new zones.</strong> We have now seen every model on JC and DOM, so the next version of the test is read on two zones no model has been run on. They were picked by a written rule, as the closest matches on load statistics from before the test year: <strong>AEP</strong> (<span id="aep-name"></span>, Indiana to Virginia) for DOM, at <span id="aep-mean"></span> MW average and growing, and <strong>AE</strong> (<span id="ae-name"></span>, southern New Jersey) for JC, at <span id="ae-mean"></span> MW with a summer peak <span id="ae-sw"></span> times its winter peak.</p>
+      <p class="note"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--map-pjm)" aria-hidden="true"></span> JC and DOM: the weather points we use. <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--base)" aria-hidden="true"></span> AEP and AE: PJM's own weather stations for those zones; our weather points for them are not fixed yet.</p>
       <p class="note">Load: EIA hourly data. Weather: Open-Meteo. States are shaded; each zone covers part of its state, and zone boundaries are not drawn in this prototype.</p>
     </div>
   </div>
@@ -526,6 +528,12 @@ a { color: var(--model); }
       svg.append("text").attr("class", "iso").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle").attr("data-base", k === "PJM" ? 20 : 15)
         .attr("style", "font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
     });
+    const dots = [...Object.entries(D.zones).map(([k, z]) => [k, z, false]), ...Object.entries(D.next_zones || {}).map(([k, z]) => [k, z, true])]
+      .map(([k, z, next]) => ({ k, next, xy: proj([d3.mean(z.stations, s => s.lon), d3.mean(z.stations, s => s.lat)]) }));
+    svg.selectAll("circle.zone").data(dots).join("circle").attr("class", "zone").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 5)
+      .attr("fill", d => d.next ? "var(--base)" : "#fff").attr("stroke", d => d.next ? "#fff" : "#10202c").attr("stroke-width", 1.5)
+      .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.k + "</b><br>" + (d.next ? "zone chosen for the next test" : "zone in the current benchmark")))
+      .on("mouseleave", hideTip);
     // labels are in map units; keep them at least about 9px on screen when the map is drawn small
     function sizeLabels() { const k = 975 / widthOf(svg.node(), 975);
       svg.selectAll("text.iso").style("font-size", function () { return Math.max(+this.dataset.base, +this.dataset.base / 15 * 10 * k) + "px"; })
@@ -534,11 +542,11 @@ a { color: var(--model); }
   })();
 
   (function zoneMap() {
-    const keep = [34, 42, 24, 10, 11, 51, 54, 37, 36, 39, 21, 47, 9];
+    const keep = [34, 42, 24, 10, 11, 51, 54, 37, 36, 39, 21, 47, 9, 18, 26, 17, 45, 13, 25, 44, 50, 33];
     const region = states.filter(s => keep.includes(+s.id));
-    const focus = states.filter(s => [34, 42, 24, 10, 11, 51].includes(+s.id));
+    const focus = states.filter(s => [34, 42, 24, 10, 11, 51, 54, 39, 18].includes(+s.id));
     const b = path.bounds({ type: "FeatureCollection", features: focus }), pad = 14;
-    const x0 = b[0][0] - pad, y0 = b[0][1] - pad, w = b[1][0] - b[0][0] + 2 * pad, h = b[1][1] - b[0][1] + 2 * pad;
+    const x0 = b[0][0] - pad, y0 = b[0][1] - pad, w = b[1][0] - b[0][0] + 2 * pad + 22, h = b[1][1] - b[0][1] + 2 * pad;
     const svg = d3.select("#zonemap").attr("viewBox", [x0, y0, w, h].join(" "));
     const u = w / 420;
     svg.selectAll("path").data(region).join("path").attr("d", path)
@@ -554,10 +562,23 @@ a { color: var(--model); }
       svg.append("text").attr("x", cx + (zone === "JC" ? 16 * u : -34 * u)).attr("y", cy + (zone === "JC" ? 2 * u : 22 * u))
         .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink)").text(zone);
     });
+    // zones chosen for protocol-v2: PJM's stations, in the second colour
+    Object.entries(D.next_zones || {}).forEach(([zone, z]) => {
+      const pts = z.stations.map(s => ({ ...s, xy: proj([s.lon, s.lat]) }));
+      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4.5 * u)
+        .attr("fill", "var(--base)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
+        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace(/_/g, " ") + "</b><br>PJM weather station for " + zone + " (next test)"))
+        .on("mouseleave", hideTip);
+      svg.append("text").attr("x", pts[0].xy[0] + 9 * u).attr("y", pts[0].xy[1] + 5 * u)
+        .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink)").text(zone);
+    });
   })();
 
   d3.select("#jc-mean").text(fmt(D.zones.JC.mean_mw) + " MW"); d3.select("#jc-peak").text(fmt(D.zones.JC.peak_mw) + " MW");
   d3.select("#dom-mean").text(fmt(D.zones.DOM.mean_mw) + " MW"); d3.select("#dom-peak").text(fmt(D.zones.DOM.peak_mw) + " MW");
+  if (D.next_zones) { const N = D.next_zones;
+    d3.select("#aep-name").text(N.AEP.name); d3.select("#aep-mean").text(fmt(N.AEP.mean_mw));
+    d3.select("#ae-name").text(N.AE.name); d3.select("#ae-mean").text(fmt(N.AE.mean_mw)); d3.select("#ae-sw").text(N.AE.summer_winter_peak.toFixed(1)); }
   d3.select("#n-weeks").text(D.n_windows);
   ["JC", "DOM"].forEach(z => { const v = D.zones[z], k = z.toLowerCase();
     d3.select("#why-" + k + "-size").text(fmt(v.mean_mw) + " MW average");

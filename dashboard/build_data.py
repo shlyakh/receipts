@@ -121,6 +121,23 @@ def main() -> None:
             "stations": proto["weather"]["stations"][zone],
         }
 
+    # Zones chosen for protocol-v2 (decision 33): display only, nothing has been run on them.
+    draft = yaml.safe_load((ROOT / "protocol-v2-draft.yaml").read_text())
+    zstats = pd.read_csv(ROOT / "results" / "zone_selection" / "zone_stats.csv", index_col=0)
+    next_zones = {
+        z: {
+            "name": v["name"],
+            "matches": v["matches"],
+            "mean_mw": round(float(zstats.loc[z, "mean_y2"])),  # Nov 2024 to Oct 2025
+            "peak_mw": round(
+                float(max(zstats.loc[z, "peak_summer"], zstats.loc[z, "peak_winter"]))
+            ),
+            "summer_winter_peak": round(float(zstats.loc[z, "sw_peak_ratio"]), 2),
+            "stations": v["pjm_weather_stations"],
+        }
+        for z, v in draft["zones"]["selected"].items()
+    }
+
     # What the scan found: the latest candidates file per provider, and every hit with
     # the reason it was kept or dropped (paraphrased notes only).
     scan = {}
@@ -168,6 +185,7 @@ def main() -> None:
         "per_day": per_day,
         "weeks": weeks,
         "zones": zones,
+        "next_zones": next_zones,
         "primary_text": (res / "primary.md").read_text(),
         # Chronos-2 with temperature against the field's standard benchmark (protocol-v1.1)
         "vs_standard": {

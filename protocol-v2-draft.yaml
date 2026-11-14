@@ -33,9 +33,19 @@ primary_comparison:
 zones:
   OPEN: which zones carry the primary comparison
   recommended: >
-    New PJM zones chosen by a rule written here before any model runs on them (for
-    example: every zone in the EIA-930 PJM sub-BA list other than DOM and JC whose scored
-    weeks pass the v1 load rules). DOM and JC are reported as development results.
+    AEP (for DOM) and AE (for JC), from the rule in notes/zone_selection.md: for each
+    development zone, the PJM sub-BA in EIA-930 closest to it on seven load statistics
+    over 2023-11-01 to 2025-10-31 (before the first scored origin), excluding DOM and JC,
+    zones whose daily load anomaly correlates 0.95 or more with the development zone,
+    zones under 1,000 MW mean load and zones failing the v1 load rules. Runner-ups, used
+    only if a pick fails a gate for data reasons: AP and PE. DOM and JC are reported as
+    development results.
+  disclosed: >
+    The rule and its thresholds were written on 2026-11-13 with the load of all 20 zones
+    in view (descriptive statistics only; no model was run on any new zone). AE borders
+    JC (anomaly correlation 0.93); with the limit at 0.90 the JC pick would be PEP, which
+    is not summer-peaking.
+  not_done_yet: weather points for AEP and AE; AIFS and ERA5 coverage at those points
   alternative: keep DOM and JC and label the whole of v2 as a re-analysis, not a test
 
 origins:

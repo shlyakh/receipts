@@ -25,7 +25,7 @@ primary_comparison:
   baseline: vanilla_benchmark_trend      # the field's standard, decision 26
   challenger: chronos2_temperature
   regime: forecast_aifs
-  calendar_inputs: see calendar.primary_pair (OPEN)
+  covariates: temperature only on both sides; calendar and other extras are secondary rows
   note: >
     We have already seen this pair on DOM and JC (0.94 to 1.04 under every weather
     source). A primary on those zones and weeks would not be a prediction.
@@ -40,11 +40,43 @@ zones:
 
 origins:
   retrospective: the 52 scored origins of protocol-v1, on the new zones
-  prospective_panel:
-    OPEN: whether to start it with v2 or later (decision 27)
-    recommended: >
-      Forecasts are stored before each week begins; the comparison is read once at each
-      fixed checkpoint (13, 26 and 52 weeks) and at no other time.
+  prospective_panel: see the prospective_panel block (starts with v2; Yuri, Nov 13 2026)
+
+# ------------------------------------------------------------------ prospective panel
+prospective_panel:
+  status: decided (Yuri, 2026-11-13) as an addition to v2; it never replaces the retrospective result
+  what_it_is: >
+    A forecast log kept in advance. Every Monday, before the week's load exists, the
+    harness runs each registered model once for the coming 168 hours and commits the
+    forecasts. When the week's load has been published, the stored forecasts are scored
+    against it. Nothing about a model, its settings or its inputs can be adjusted after
+    seeing the answer, because the answer did not exist when the forecast was stored.
+  why: >
+    The retrospective backtest scores weeks that are already in the past: a model's
+    weights may postdate them, and we choose rows knowing roughly how they behave. The
+    panel removes both problems and is the only fair test for models released after
+    today (decision 27).
+  how_it_differs_from_the_backtest:
+    weather: >
+      Only the forecast regime exists (the AIFS forecast available at the issue time).
+      No lead matching from an archive and no perfect-weather row, since the actual
+      weather is not known yet.
+    load_history: >
+      What EIA has published at the issue time, which lags by 1 to 2 days. The idealised
+      cutoff of the backtest does not apply; the gap is recorded per week.
+    proof_of_timing: the forecast file is committed and pushed before the week starts; the commit time is the evidence
+  procedure:
+    - Monday, before 00:00 America/New_York (or as soon after as the weather run allows, recorded): fetch load and the AIFS forecast, hash them, run every registered row once, commit forecasts
+    - the following week, once EIA load for the forecast week is complete: score the stored forecasts; a late or missing forecast is a dropped week, listed, never back-filled
+    - new models may join at any Monday; their panel starts that week and they are compared only on the weeks they share
+  reading: >
+    The primary pair's ratio and 90% interval are read at fixed checkpoints, after 13,
+    26 and 52 scored weeks, and at no other time, with the same 10% bar and verdict
+    rule. A weekly running chart may be shown, labelled "not a reading". With 13 weeks
+    the interval will be wide; "inconclusive" is the expected first reading.
+  zones: the v2 primary zones plus DOM and JC
+  rows: every row registered in this file
+  open: who or what runs it each Monday (a scheduled job on the laptop, or a hosted runner)
 
 # ------------------------------------------------------------------ calendar
 calendar:
@@ -63,31 +95,44 @@ calendar:
       own: >
         features the method builds itself; the row lists them and says whether they
         include holidays (for Vanilla, month, weekday and hour, no holidays)
-  rows_added:
-    vanilla_benchmark_trend_holiday: >
-      Vanilla with trend plus the harness holiday and year-end indicators. The cited
-      extension is rung 5 in BASELINES.md.
-    chronos2_temperature_calendar: >
-      Chronos-2 with temperature plus the harness table as known-future covariates
-      (holiday and year-end numeric, day of week and hour categorical).
-  primary_pair:
-    OPEN: whether the primary pair carries holiday inputs
-    recommended: >
-      No. Primary stays Vanilla with trend against Chronos-2 with temperature, neither
-      with holiday inputs, so the two sides are matched and both are the published,
-      off-the-shelf forms. The holiday-matched pair
-      (vanilla_benchmark_trend_holiday vs chronos2_temperature_calendar) and each
-      method with against without calendar are registered secondaries.
-    alternative: >
-      Make the holiday-matched pair primary. Risk: on the gate weeks the calendar made
-      Chronos-2 worse (notes/calendar_inputs.md), so the primary would test "Chronos-2
-      with our covariate encoding" and not the model as released.
+  treatment: >
+    Decided (Yuri, 2026-11-13): the calendar is handled as a known-future covariate, in
+    the same group as humidity, solar and wind. See extra_covariates.
   expected_size: >
     Small. 12 federal holidays are 3.6% of the scored hours; Chronos-2 with temperature
-    is 7% worse on them on DOM and 4% better on JC (notes/calendar_inputs.md).
+    is 7% worse on them on DOM and 4% better on JC (notes/calendar_inputs.md). On the
+    gate weeks the calendar made Chronos-2 worse.
   pre_registered_breakdown: >
     Error on federal-holiday hours and on other hours, per row, reported and not read
     against the bar.
+
+# ------------------------------------------------------------------ extra covariates
+extra_covariates:
+  what: >
+    Known-future inputs beyond temperature, each supplied by the harness as one table so
+    every model gets identical values (rule 3): calendar (the harness table above),
+    humidity (dew point), solar radiation and wind speed.
+  primary_pair: >
+    Unchanged: Vanilla with trend against Chronos-2 with temperature, temperature only on
+    both sides. Extra covariates enter as registered secondary rows.
+  rows_added:
+    chronos2_temperature_calendar: temperature plus the calendar table
+    chronos2_all_covariates: temperature, calendar, humidity, solar and wind
+    vanilla_benchmark_trend_holiday: >
+      Vanilla with trend plus the harness holiday and year-end indicators (rung 5 in
+      BASELINES.md)
+    lightgbm_competition_all_covariates: the v1.3 row plus humidity, solar and wind columns
+  registered_comparisons:
+    - each row with extra covariates against the same method with temperature only
+    - chronos2_all_covariates against lightgbm_competition_all_covariates
+  not_verified: >
+    Whether ERA5 and the archived AIFS forecasts serve dew point, solar radiation and
+    wind at every lead day for the scored weeks (REFERENCE.md lists this as unverified
+    for the v1 source). Rows for a variable that is not available at every lead are
+    not registered.
+  OPEN: >
+    Whether humidity, solar and wind are registered in v2 itself or in a later v2.x, once
+    their availability is verified. The calendar rows do not depend on that.
 
 # ------------------------------------------------------------------ other rows (secondary)
 secondary_rows:
@@ -98,8 +143,8 @@ secondary_rows:
 
 # ------------------------------------------------------------------ before the tag
 to_do_before_tag:
-  - settle the three OPEN items
-  - write the zone rule and list the zones it selects, before fetching their load
+  - settle the OPEN items (zones, humidity/solar/wind in v2 or v2.x, who runs the panel)
+  - write the zone rule and the zones it selects (notes/zone_selection.md), before any model runs on them
   - export_inputs writes the calendar table; lookahead tests cover the new rows
   - gate runs of every row on the gate origins, from a committed tree
   - outcome sentences written in advance for the primary comparison

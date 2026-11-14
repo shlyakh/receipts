@@ -8,8 +8,8 @@ the repository, the repository wins.
 
 - Everything is committed and pushed to `main`. Tags: `protocol-v1`, `protocol-v1.1`,
   `protocol-v1.2`, `protocol-v1.3`.
-- The only uncommitted file is `.github/workflows/pages.yml` (automatic dashboard
-  deploys). Pushing it needs `gh auth refresh -s workflow` from Yuri.
+- `.github/workflows/pages.yml` deploys the dashboard automatically on a push to `main`
+  that touches `dashboard/`.
 - After a reboot, local Langfuse needs restarting: run `tools/start_langfuse.sh`
   (starts Docker Desktop if needed, then the containers in `/Users/yuri/work/langfuse`,
   and waits until http://localhost:3000 answers).
@@ -50,9 +50,11 @@ the repository, the repository wins.
    zones** chosen by a stated rule before any model runs on them, with DOM and JC as
    development results and a **prospective weekly panel** (forecast before the week
    happens, read at fixed checkpoints such as 13, 26, 52 weeks) alongside. Not decided.
-   A draft is in `protocol-v2-draft.yaml` with three items marked OPEN: the zones, the
-   prospective panel, and whether the primary pair carries holiday inputs (decision 30,
-   `notes/calendar_inputs.md`). Nothing has been run under it.
+   A draft is in `protocol-v2-draft.yaml`. Decided on Nov 13: calendar is a known-future
+   covariate beside humidity, solar and wind, as secondary rows (decisions 30, 31); the
+   prospective panel starts with v2 (decision 32). Still open: the zones
+   (`notes/zone_selection.md`), whether humidity, solar and wind are in v2 or v2.x, and
+   who runs the panel each Monday. Nothing has been run under it.
 2. **TabPFN attribution.** Its licence asks for "Built with PriorLabs-TabPFN" where
    results are published. Needed on the dashboard if that row is shown.
 3. **Blogs and newsletters for the scan.** A verified list is in

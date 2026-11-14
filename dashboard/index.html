@@ -161,11 +161,11 @@ a { color: var(--model); }
   <div class="split">
     <div class="stack">
       <p>Power cannot be stored cheaply at grid scale, so supply must match demand every hour. Grid operators decide days ahead which power plants will run. They decide from a forecast of demand, called <strong>load</strong>.</p>
-      <p>Seven regional operators run the wholesale grid for most of the United States. <strong>PJM</strong> is the largest: about 65 million people across 13 states and Washington DC.</p>
+      <p>Seven regional operators run the wholesale grid for about two thirds of the country's electricity customers. In the Northwest, Southwest and Southeast there is no regional operator: each utility runs its own area. <strong>PJM</strong> is the largest operator: about 65 million people across 13 states and Washington DC.</p>
       <p>A forecast that is too low means expensive last-minute power. One that is too high means plants paid to stand by. A few percent of error is real money, which is why every new forecasting model gets attention.</p>
-      <p class="note">Map shaded by state for readability. Real operator territories cut across state lines: PJM also covers parts of Illinois, Indiana, Michigan, Kentucky, North Carolina and Tennessee.</p>
+      <p class="note">Map shaded by state for readability: darker states have a regional operator (named in bold), lighter states do not (region names in italics). Real territories cut across state lines: PJM also covers parts of Illinois, Indiana, Michigan, Kentucky, North Carolina and Tennessee.</p>
     </div>
-    <div class="panel"><svg id="usmap" viewBox="0 0 975 610" role="img" aria-label="Map of US grid operators with PJM highlighted"></svg></div>
+    <div class="panel"><svg id="usmap" viewBox="0 0 975 610" role="img" aria-label="Map of the United States: the seven regional grid operators, with PJM highlighted, and the three regions where utilities run their own areas"></svg></div>
   </div>
 </section>
 
@@ -511,6 +511,9 @@ a { color: var(--model); }
   const ISO = { CAISO: [6], ERCOT: [48], NYISO: [36], "ISO-NE": [9, 23, 25, 33, 44, 50],
     PJM: [10, 11, 24, 34, 39, 42, 51, 54], MISO: [5, 17, 18, 19, 22, 26, 27, 28, 29, 38, 55], SPP: [20, 31, 40, 46] };
   const isoOf = {}; Object.entries(ISO).forEach(([k, ids]) => ids.forEach(i => isoOf[i] = k));
+  // States with no regional operator: utilities run their own areas. Grouped as EIA groups them, by state.
+  const REGION = { Northwest: [53, 41, 16, 30, 56, 49, 32, 8], Southwest: [4, 35], Southeast: [47, 21, 37, 45, 13, 1, 12] };
+  const regionOf = {}; Object.entries(REGION).forEach(([k, ids]) => ids.forEach(i => regionOf[i] = k));
   const states = topojson.feature(US, US.objects.states).features;
   const path = d3.geoPath();
   const proj = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
@@ -526,7 +529,8 @@ a { color: var(--model); }
     svg.selectAll("path").data(states).join("path").attr("d", path)
       .attr("fill", d => { const k = isoOf[+d.id]; return k === "PJM" ? "var(--map-pjm)" : k ? "var(--map-iso)" : "var(--map-none)"; })
       .attr("stroke", "var(--map-stroke)").attr("stroke-width", 1)
-      .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.properties.name + "</b><br>" + (isoOf[+d.id] || "No regional operator (mostly)")))
+      .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.properties.name + "</b><br>" + (isoOf[+d.id] ? isoOf[+d.id] + ", a regional operator"
+        : regionOf[+d.id] ? regionOf[+d.id] + ": no regional operator; utilities run their own areas" : "Its own separate grid")))
       .on("mouseleave", hideTip);
     const off = { "ISO-NE": [38, -6], NYISO: [-8, -4], PJM: [-6, 6] };
     Object.keys(ISO).forEach(k => {
@@ -534,6 +538,12 @@ a { color: var(--model); }
       const c = path.centroid(merged), o = off[k] || [0, 0];
       svg.append("text").attr("class", "iso").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle").attr("data-base", k === "PJM" ? 20 : 15)
         .attr("style", "font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
+    });
+    Object.keys(REGION).forEach(k => {
+      const c = path.centroid(topojson.merge(US, US.objects.states.geometries.filter(g => REGION[k].includes(+g.id))));
+      const o = { Southeast: [10, 26], Northwest: [-10, 0] }[k] || [0, 0];
+      svg.append("text").attr("class", "iso").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle").attr("data-base", 13)
+        .attr("style", "font-weight:500;font-style:italic;fill:var(--ink-2);pointer-events:none").text(k);
     });
     svg.selectAll("path.zone").data(zoneShapes).join("path").attr("class", "zone").attr("d", d => path(d.shape))
       .attr("fill", d => isNext(d.zone) ? "var(--base)" : "#fff").attr("fill-opacity", d => isNext(d.zone) ? 0.9 : 0.6)

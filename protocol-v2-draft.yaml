@@ -19,6 +19,12 @@ weather:
   primary_regime: forecast_aifs      # ECMWF AIFS Single, lead-matched as in v1.2
   secondary_regimes: [oracle_era5, forecast_gfs, forecast_ifs]
   variables: temperature only (decision 17 stands)
+  weather_points: >
+    Decision 36. A zone's temperature is the mean over its weather points. A weather point
+    is an ERA5 grid cell (0.25 degree), named by its cell centre; it is not a weather
+    station, and the word "station" is kept for PJM's real stations only. The cells for
+    AEP and AE, and whether DOM and JC are re-pointed to cells under v2, are not fixed
+    yet (notes/zone_geography.md, in progress).
 
 # ------------------------------------------------------------------ primary comparison
 primary_comparison:
@@ -72,7 +78,7 @@ zones:
     in view (descriptive statistics only; no model was run on any new zone). AE borders
     JC (anomaly correlation 0.93); with the limit at 0.90 the JC pick would be PEP, which
     is not summer-peaking. Yuri chose AE to keep the summer-peaking shape.
-  not_done_yet: weather points for AEP and AE; AIFS and ERA5 coverage at those points
+  not_done_yet: weather points (ERA5 grid cells) for AEP and AE; AIFS coverage at those cells
 
 origins:
   retrospective: the 52 scored origins of protocol-v1, on the new zones
@@ -112,7 +118,7 @@ prospective_panel:
     the interval will be wide; "inconclusive" is the expected first reading.
   zones: the v2 primary zones plus DOM and JC
   rows: every row registered in this file
-  open: who or what runs it each Monday; options and a recommendation in notes/prospective_panel_plan.md
+  runner: a scheduled GitHub Actions workflow (decision 35); plan in notes/prospective_panel_plan.md, not built
 
 # ------------------------------------------------------------------ calendar
 calendar:
@@ -173,7 +179,7 @@ secondary_rows:
 
 # ------------------------------------------------------------------ before the tag
 to_do_before_tag:
-  - settle the OPEN item (who runs the panel) and the panel's data-gap rule
+  - write the panel's data-gap rule
   - fix the weather points for AEP and AE and check ERA5 and AIFS coverage there
   - fetch.py pulls AEP and AE load into data/raw with hashes
   - export_inputs writes the calendar table; lookahead tests cover the new rows

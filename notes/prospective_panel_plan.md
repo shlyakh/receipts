@@ -57,7 +57,7 @@ Rough size: two to three days of work, most of it the live fetch and the data-ga
 | Claude scheduled agent (Cowork or a cloud routine) | Can check the output, write the weekly summary and raise problems in plain words | An agent should not be the thing that produces the forecast: the run must be a fixed script. Each run costs tokens. Whether it can hold the model environments and weights is not verified |
 | Small cloud machine or container job on a schedule | Most reliable; the natural step if the project moves to the cloud anyway | A few dollars a month; the most setup; needs an account, secrets and monitoring |
 
-**Recommendation.** GitHub Actions runs the fixed script and pushes the forecasts. The
+**Decided (Yuri, 2026-11-13, decision 35): GitHub Actions.** It runs the fixed script and pushes the forecasts. The
 laptop job is kept as a documented manual fallback. A Claude scheduled agent, if wanted,
 only reads the result on Monday morning and reports. A cloud machine replaces GitHub
 Actions later if scheduled runs prove unreliable or the rows outgrow the runner.
@@ -71,13 +71,29 @@ control (a public timestamping service); not needed to start.
 Monday is two days away and Saturday is the hackathon, so a counted week is not
 realistic: `protocol-v2` will not be tagged and none of the pieces above exist.
 
-- **Nov 16: no counted run.** If time allows on Sunday, a hand-run dry run on DOM and JC
-  with the existing rows, saved under `results/panel_dryrun/` and labelled as not part
-  of the panel. Its purpose is to learn the real timings: how late EIA load is on a
-  Sunday night and which AIFS run is being served.
+- **Nov 16: no counted run.** A dry run is planned for Sunday Nov 15 (Yuri: plan only for
+  now, not scheduled and not built). See "Dry run, Sunday Nov 15" below.
 - **First counted week:** the first Monday after `protocol-v2` is tagged and the runner
   has completed one dry run without a hand fix. Earliest plausible: Nov 23 or Nov 30.
 - **Checkpoints** then fall 13, 26 and 52 scored weeks after that Monday.
+
+## Dry run, Sunday Nov 15 (planned, not scheduled)
+
+Purpose: learn the real timings and find what breaks, before anything counts. It is not
+part of the panel and its forecasts are never scored into it.
+
+| Step | What | Check |
+|---|---|---|
+| 1 | Sunday about 18:00 New York: pull DOM and JC load from EIA up to now | Last hour received per zone; how many hours short of Monday 00:00 |
+| 2 | Pull the temperature forecast for Mon to Sun at the existing six weather points from Open-Meteo's forecast endpoint, AIFS named | Which run is served, whether all 168 hours are present |
+| 3 | Run two existing rows by hand: Vanilla with trend and Chronos-2 with temperature (its 48-hour-gap mode if load is short) | Runtime; what the regression needs when recent load is missing |
+| 4 | Save under `results/panel_dryrun/2026-11-16/` with a hash manifest, commit and push before midnight | Time of the push |
+| 5 | Repeat step 1 at 23:00 | How much more load EIA published in five hours |
+
+Zones: DOM and JC only (AEP and AE have no weather points or data pull yet). Runs by
+hand on the laptop; the GitHub Actions workflow is written afterwards, from what the dry
+run shows. Needs about two hours of work on Sunday, and step 2 needs a small script that
+does not exist.
 
 ## Not verified
 

@@ -27,10 +27,10 @@ https://api.eia.gov/v2/electricity/rto/region-sub-ba-data/data/
 
 - Oracle regime (v1): `https://archive-api.open-meteo.com/v1/archive`, hourly
   `temperature_2m`, requested without a `models` parameter. **Correction (verified
-  2026-11-13): this is ECMWF IFS 9 km analysis, not ERA5.** At all six stations the
+  2026-11-13): this is ECMWF IFS 9 km analysis, not ERA5.** At all six weather points the
   stored files equal `models=ecmwf_ifs` at every hour of 2019, 2023 and 2025-09 to
   2026-11 and carry the `ecmwf_ifs` grid coordinates; they differ from `models=era5`
-  by 1.1 to 1.7 °C RMSE per station (zone series 0.9 °C DOM, 1.3 °C JC). The words
+  by 1.1 to 1.7 °C RMSE per point (zone series 0.9 °C DOM, 1.3 °C JC). The words
   "reanalysis" and "ERA5" for the v1 `oracle` regime in `protocol.yaml` (and the label
   `oracle` itself, read as "true weather") are a known misnomer; the frozen file is not
   edited (DEVIATIONS.md, 2026-11-13).
@@ -50,7 +50,9 @@ https://api.eia.gov/v2/electricity/rto/region-sub-ba-data/data/
   `wind_speed_10m`, `shortwave_radiation` and `dew_point_2m` at lead days 1 to 7,
   download and hash them for a later protocol version, but do not use them.
 
-Station points (a judgment call, not an official PJM mapping; write the final list
+Weather points (not weather stations: each is a latitude and longitude queried on the
+weather model's grid; `protocol.yaml` calls them `stations`, a frozen misnomer. A judgment
+call, not an official PJM mapping; write the final list
 into `protocol.yaml`):
 
 | Zone | Points (lat, lon) |

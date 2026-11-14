@@ -54,21 +54,22 @@ zones:
       matches: DOM
       distance: 1.56
       runner_up: AP             # used only if AEP fails a gate for data reasons
-      # PJM's own weather stations for the zone, approximate city coordinates, for the
-      # dashboard map only. The protocol's weather points are not fixed yet.
-      pjm_weather_stations:
-        - {name: columbus, lat: 39.96, lon: -83.00}
-        - {name: fort_wayne, lat: 41.08, lon: -85.14}
-        - {name: akron_canton, lat: 40.92, lon: -81.44}
-        - {name: charleston_wv, lat: 38.35, lon: -81.63}
-        - {name: roanoke, lat: 37.27, lon: -79.94}
+      # PROPOSED, not decided: the ERA5 grid cells nearest PJM's stations for the zone,
+      # with PJM's weights (2026 Long-Term Load Forecast Supplement, Table 3). lat/lon is
+      # the cell centre; station is the PJM station the cell was found from.
+      weather_points_proposed:
+        - {name: columbus, station: CMH, lat: 40.00, lon: -83.00, weight: 0.234}
+        - {name: fort_wayne, station: FWA, lat: 41.00, lon: -85.25, weight: 0.227}
+        - {name: charleston_wv, station: CRW, lat: 38.50, lon: -81.50, weight: 0.226}
+        - {name: roanoke, station: ROA, lat: 37.25, lon: -80.00, weight: 0.162}
+        - {name: akron_canton, station: CAK, lat: 41.00, lon: -81.50, weight: 0.151}
     AE:
       name: Atlantic City Electric
       matches: JC
       distance: 2.12
       runner_up: PE
-      pjm_weather_stations:
-        - {name: atlantic_city, lat: 39.36, lon: -74.42}
+      weather_points_proposed:
+        - {name: atlantic_city_airport, station: ACY, lat: 39.50, lon: -74.50, weight: 1.0}
   record: >
     notes/zone_selection.md (the process and the reasons), tools/zone_selection/ (download,
     statistics, checks), results/zone_selection/ (statistics per zone, correlations, daily
@@ -78,7 +79,10 @@ zones:
     in view (descriptive statistics only; no model was run on any new zone). AE borders
     JC (anomaly correlation 0.93); with the limit at 0.90 the JC pick would be PEP, which
     is not summer-peaking. Yuri chose AE to keep the summer-peaking shape.
-  not_done_yet: weather points (ERA5 grid cells) for AEP and AE; AIFS coverage at those cells
+  OPEN: >
+    The weather points for AEP and AE (proposed above; notes/zone_geography.md), whether
+    the zone mean uses PJM's weights or is unweighted as in v1 (0.16 C RMSE apart for AEP
+    over 2025), and whether DOM and JC keep their v1 points (recommended: keep).
 
 origins:
   retrospective: the 52 scored origins of protocol-v1, on the new zones

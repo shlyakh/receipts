@@ -173,7 +173,7 @@ a { color: var(--model); }
   <span class="eyebrow">Our benchmark</span>
   <h2>Two PJM zones that behave differently</h2>
   <div class="split">
-    <div class="panel"><svg id="zonemap" role="img" aria-label="Map of the eastern United States with the weather points for the JC and DOM zones, and PJM's weather stations for AEP and AE, the two zones chosen for the next test"></svg></div>
+    <div class="panel"><svg id="zonemap" role="img" aria-label="Map of the eastern United States with the areas of four PJM zones shaded by county: JC and DOM, the current benchmark, and AEP and AE, chosen for the next test, each with its weather points"></svg></div>
     <div class="stack">
       <p>PJM is split into about twenty delivery zones. We forecast two of them, one hour at a time, a full week ahead.</p>
       <div class="facts">
@@ -182,8 +182,8 @@ a { color: var(--model); }
       </div>
       <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather points per zone (the dots). A weather point is a place we picked inside the zone, read from the weather model's grid; it is not a weather station. We test with the forecast that was available at the time, and with weather analysed after the fact. The Weather tab adds ERA5, the reference record of past weather, and two more forecast sources.</p>
       <p><strong>Next test: two new zones.</strong> We have now seen every model on JC and DOM, so the next version of the test is read on two zones no model has been run on. They were picked by a written rule, as the closest matches on load statistics from before the test year: <strong>AEP</strong> (<span id="aep-name"></span>, Indiana to Virginia) for DOM, at <span id="aep-mean"></span> MW average and growing, and <strong>AE</strong> (<span id="ae-name"></span>, southern New Jersey) for JC, at <span id="ae-mean"></span> MW with a summer peak <span id="ae-sw"></span> times its winter peak.</p>
-      <p class="note"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--map-pjm)" aria-hidden="true"></span> JC and DOM: the weather points we use. <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--base)" aria-hidden="true"></span> AEP and AE: PJM's own weather stations for those zones; our weather points for them are not fixed yet.</p>
-      <p class="note">Load: EIA hourly data. Weather: Open-Meteo. States are shaded; each zone covers part of its state, and zone boundaries are not drawn in this prototype.</p>
+      <p class="note"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--map-pjm)" aria-hidden="true"></span> JC and DOM, the current benchmark. <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--base)" aria-hidden="true"></span> AEP and AE, the next test. Shaded areas are the zones; dots are weather points. For AEP and AE the points are proposed: the weather-model grid cells nearest the airports PJM uses for those zones.</p>
+      <p class="note">Load: EIA hourly data. Weather: Open-Meteo. Zone areas are drawn by county, from EIA's list of the counties each zone's main utility serves. A county shared by two utilities is drawn for one, and co-operatives and city utilities inside a zone are not mapped separately.</p>
     </div>
   </div>
   <div class="panel stack">
@@ -407,6 +407,7 @@ a { color: var(--model); }
 <script src="vendor/d3.min.js"></script>
 <script src="vendor/topojson.min.js"></script>
 <script src="us.js"></script>
+<script src="zones.js"></script>
 <script src="data.js"></script>
 <script>
 (function () {
@@ -513,6 +514,12 @@ a { color: var(--model); }
   const states = topojson.feature(US, US.objects.states).features;
   const path = d3.geoPath();
   const proj = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+  // Zone areas by county (zones.js). Current benchmark zones in the map blue, next-test zones in the second colour.
+  const ZN = window.ZONES || {}, CT = window.COUNTIES;
+  const isNext = z => !!(D.next_zones && D.next_zones[z]);
+  const zoneShapes = CT ? Object.keys(ZN).map(z => { const ids = new Set(ZN[z].fips);
+    return { zone: z, n: ZN[z].fips.length, name: ZN[z].name, shape: topojson.merge(CT, CT.objects.counties.geometries.filter(g => ids.has(String(g.id)))) }; }) : [];
+  const zoneTip = d => "<b>" + d.zone + "</b>, " + d.name + "<br>" + d.n + " counties served by its main utility<br>" + (isNext(d.zone) ? "chosen for the next test" : "in the current benchmark");
 
   (function usMap() {
     const svg = d3.select("#usmap");
@@ -528,12 +535,10 @@ a { color: var(--model); }
       svg.append("text").attr("class", "iso").attr("x", c[0] + o[0]).attr("y", c[1] + o[1]).attr("text-anchor", "middle").attr("data-base", k === "PJM" ? 20 : 15)
         .attr("style", "font-weight:600;fill:" + (k === "PJM" ? "#fff" : "var(--ink)") + ";pointer-events:none").text(k);
     });
-    const dots = [...Object.entries(D.zones).map(([k, z]) => [k, z, false]), ...Object.entries(D.next_zones || {}).map(([k, z]) => [k, z, true])]
-      .map(([k, z, next]) => ({ k, next, xy: proj([d3.mean(z.stations, s => s.lon), d3.mean(z.stations, s => s.lat)]) }));
-    svg.selectAll("circle.zone").data(dots).join("circle").attr("class", "zone").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 5)
-      .attr("fill", d => d.next ? "var(--base)" : "#fff").attr("stroke", d => d.next ? "#fff" : "#10202c").attr("stroke-width", 1.5)
-      .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.k + "</b><br>" + (d.next ? "zone chosen for the next test" : "zone in the current benchmark")))
-      .on("mouseleave", hideTip);
+    svg.selectAll("path.zone").data(zoneShapes).join("path").attr("class", "zone").attr("d", d => path(d.shape))
+      .attr("fill", d => isNext(d.zone) ? "var(--base)" : "#fff").attr("fill-opacity", d => isNext(d.zone) ? 0.9 : 0.6)
+      .on("mousemove", (ev, d) => showTip(ev, zoneTip(d))).on("mouseleave", hideTip);
+    svg.selectAll("text.iso").raise();
     // labels are in map units; keep them at least about 9px on screen when the map is drawn small
     function sizeLabels() { const k = 975 / widthOf(svg.node(), 975);
       svg.selectAll("text.iso").style("font-size", function () { return Math.max(+this.dataset.base, +this.dataset.base / 15 * 10 * k) + "px"; })
@@ -544,33 +549,27 @@ a { color: var(--model); }
   (function zoneMap() {
     const keep = [34, 42, 24, 10, 11, 51, 54, 37, 36, 39, 21, 47, 9, 18, 26, 17, 45, 13, 25, 44, 50, 33];
     const region = states.filter(s => keep.includes(+s.id));
-    const focus = states.filter(s => [34, 42, 24, 10, 11, 51, 54, 39, 18].includes(+s.id));
-    const b = path.bounds({ type: "FeatureCollection", features: focus }), pad = 14;
+    const b = path.bounds({ type: "GeometryCollection", geometries: zoneShapes.map(d => d.shape) }), pad = 16;
     const x0 = b[0][0] - pad, y0 = b[0][1] - pad, w = b[1][0] - b[0][0] + 2 * pad + 22, h = b[1][1] - b[0][1] + 2 * pad;
     const svg = d3.select("#zonemap").attr("viewBox", [x0, y0, w, h].join(" "));
     const u = w / 420;
-    svg.selectAll("path").data(region).join("path").attr("d", path)
-      .attr("fill", d => [34, 51].includes(+d.id) ? "var(--map-iso)" : "var(--map-none)")
-      .attr("stroke", "var(--map-stroke)").attr("stroke-width", u);
-    Object.entries(D.zones).forEach(([zone, z]) => {
+    svg.selectAll("path.st").data(region).join("path").attr("class", "st").attr("d", path).attr("fill", "var(--map-none)");
+    svg.selectAll("path.zone").data(zoneShapes).join("path").attr("class", "zone").attr("d", d => path(d.shape))
+      .attr("fill", d => isNext(d.zone) ? "var(--base)" : "var(--map-pjm)").attr("fill-opacity", 0.42)
+      .on("mousemove", (ev, d) => showTip(ev, zoneTip(d))).on("mouseleave", hideTip);
+    svg.append("path").attr("d", path(topojson.mesh(US, US.objects.states))).attr("fill", "none")
+      .attr("stroke", "var(--map-stroke)").attr("stroke-width", u).attr("pointer-events", "none");
+    const lab = { JC: [12, -6], DOM: [-34, 22], AEP: [9, 5], AE: [10, 6] };
+    const all = [...Object.entries(D.zones).map(([k, z]) => [k, z, false]), ...Object.entries(D.next_zones || {}).map(([k, z]) => [k, z, true])];
+    all.forEach(([zone, z, next]) => {
       const pts = z.stations.map(s => ({ ...s, xy: proj([s.lon, s.lat]) }));
-      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4.5 * u)
-        .attr("fill", "var(--map-pjm)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
-        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace("_", " ") + "</b><br>weather point for " + zone))
+      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4 * u)
+        .attr("fill", next ? "var(--base)" : "var(--map-pjm)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
+        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace(/_/g, " ") + "</b><br>" + (next ? "proposed weather point for " : "weather point for ") + zone + (d.weight ? "<br>weight " + d.weight : "")))
         .on("mouseleave", hideTip);
-      const cx = d3.mean(pts, p => p.xy[0]), cy = d3.min(pts, p => p.xy[1]);
-      svg.append("text").attr("x", cx + (zone === "JC" ? 16 * u : -34 * u)).attr("y", cy + (zone === "JC" ? 2 * u : 22 * u))
-        .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink)").text(zone);
-    });
-    // zones chosen for protocol-v2: PJM's stations, in the second colour
-    Object.entries(D.next_zones || {}).forEach(([zone, z]) => {
-      const pts = z.stations.map(s => ({ ...s, xy: proj([s.lon, s.lat]) }));
-      svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4.5 * u)
-        .attr("fill", "var(--base)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
-        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace(/_/g, " ") + "</b><br>PJM weather station for " + zone + " (next test)"))
-        .on("mouseleave", hideTip);
-      svg.append("text").attr("x", pts[0].xy[0] + 9 * u).attr("y", pts[0].xy[1] + 5 * u)
-        .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink)").text(zone);
+      const anchor = next ? pts[0].xy : [d3.mean(pts, q => q.xy[0]), d3.min(pts, q => q.xy[1])], o = lab[zone] || [9, 5];
+      svg.append("text").attr("class", "halo").attr("x", anchor[0] + o[0] * u).attr("y", anchor[1] + o[1] * u)
+        .attr("style", "font-size:" + 15 * u + "px;font-weight:600;fill:var(--ink);pointer-events:none").text(zone);
     });
   })();
 

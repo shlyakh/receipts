@@ -126,6 +126,13 @@ prospective_panel:
     the interval will be wide; "inconclusive" is the expected first reading.
   zones: the v2 primary zones plus DOM and JC
   rows: every row registered in this file
+  data_gap_rule: >
+    Proposed, to be confirmed before the first counted week. Each model sees load only up
+    to the last hour EIA had published when the job started (recorded per zone). A model
+    that reads recent load forecasts from that hour through the end of the week, and only
+    the 168 scored hours are kept (as the 48-hour-gap Chronos-2 row of protocol-v1 does).
+    A model with no load input after training (Vanilla, LightGBM competition) forecasts
+    the 168 hours directly. No model is given load that was published later.
   runner: a scheduled GitHub Actions workflow (decision 35); plan in notes/prospective_panel_plan.md, not built
 
 # ------------------------------------------------------------------ calendar
@@ -187,7 +194,7 @@ secondary_rows:
 
 # ------------------------------------------------------------------ before the tag
 to_do_before_tag:
-  - write the panel's data-gap rule
+  - confirm the panel's data-gap rule (prospective_panel.data_gap_rule)
   - weighted zone mean in the weather processing; pull ERA5 and AIFS at the six AEP and AE cells
   - fetch.py pulls AEP and AE load into data/raw with hashes
   - export_inputs writes the calendar table; lookahead tests cover the new rows

@@ -118,9 +118,6 @@ the four v1.2 sources). Results in `results/models_v13/` and the section
   uv run --project core python -m harness.v13 score scored
   ```
 
-  Or run `tools/run_tabpfn_scored.sh`, which does these steps, keeps the Mac awake,
-  logs to `data/logs/` and returns to `main` when it stops.
-
   Then commit `results/models_v13/forecasts/tabpfn_ts_v2_temperature.parquet` and the
   rescored files. CPU-only is part of the registered definition; using the Mac GPU would
   need a new protocol version.

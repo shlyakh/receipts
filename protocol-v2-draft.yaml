@@ -1,0 +1,105 @@
+# DRAFT of protocol-v2. Not frozen, not tagged, nothing run under it. Written 2026-11-13.
+# Items marked OPEN are Yuri's to decide; each carries a recommendation. Until the tag
+# protocol-v2 exists, code written for it runs on gate origins only (CLAUDE.md rule 12).
+version: protocol-v2
+status: draft
+based_on: protocol-v1.3
+why_a_new_version: >
+  protocol-v1 named its baseline before the search for the field's standards and used
+  weather labels that turned out wrong. v1.1 to v1.3 corrected this with secondary rows
+  only. v2 names a new primary comparison, which v1 cannot do.
+
+# ------------------------------------------------------------------ carried over
+unchanged_from_v1: >
+  Horizon (168 hours), issue time (Monday 00:00 America/New_York), load source and rules,
+  metrics, the whole-week paired bootstrap (2,000 draws, seed 20261112, 90% interval), the
+  10% bar and the verdict rule, the idealised information set and its caveat.
+weather:
+  truth_and_history: ERA5 (Open-Meteo models=era5), decision 28
+  primary_regime: forecast_aifs      # ECMWF AIFS Single, lead-matched as in v1.2
+  secondary_regimes: [oracle_era5, forecast_gfs, forecast_ifs]
+  variables: temperature only (decision 17 stands)
+
+# ------------------------------------------------------------------ primary comparison
+primary_comparison:
+  baseline: vanilla_benchmark_trend      # the field's standard, decision 26
+  challenger: chronos2_temperature
+  regime: forecast_aifs
+  calendar_inputs: see calendar.primary_pair (OPEN)
+  note: >
+    We have already seen this pair on DOM and JC (0.94 to 1.04 under every weather
+    source). A primary on those zones and weeks would not be a prediction.
+
+zones:
+  OPEN: which zones carry the primary comparison
+  recommended: >
+    New PJM zones chosen by a rule written here before any model runs on them (for
+    example: every zone in the EIA-930 PJM sub-BA list other than DOM and JC whose scored
+    weeks pass the v1 load rules). DOM and JC are reported as development results.
+  alternative: keep DOM and JC and label the whole of v2 as a re-analysis, not a test
+
+origins:
+  retrospective: the 52 scored origins of protocol-v1, on the new zones
+  prospective_panel:
+    OPEN: whether to start it with v2 or later (decision 27)
+    recommended: >
+      Forecasts are stored before each week begins; the comparison is read once at each
+      fixed checkpoint (13, 26 and 52 weeks) and at no other time.
+
+# ------------------------------------------------------------------ calendar
+calendar:
+  requirement: >
+    Decision 30. The calendar is known in advance, so any model may use it. The harness
+    writes one calendar table and every model that takes calendar inputs gets exactly
+    that table. Every leaderboard row states its calendar inputs.
+  harness_table:   # local time at the start of the hour, harness.data.calendar
+    columns: [hour, day_of_week, us_federal_holiday, year_end_24dec_to_2jan]
+    delivered_in: data/model_inputs/<set>*.parquet, beside y and T
+  row_label:
+    field: calendar
+    values:
+      none: no calendar input (the model sees the load history and timestamps only)
+      harness: the harness table, as covariates or columns
+      own: features the method builds itself; the row lists them and says whether they
+        include holidays (Vanilla: month, weekday, hour, no holidays)
+  rows_added:
+    vanilla_benchmark_trend_holiday: >
+      Vanilla with trend plus the harness holiday and year-end indicators. The cited
+      extension is rung 5 in BASELINES.md.
+    chronos2_temperature_calendar: >
+      Chronos-2 with temperature plus the harness table as known-future covariates
+      (holiday and year-end numeric, day of week and hour categorical).
+  primary_pair:
+    OPEN: whether the primary pair carries holiday inputs
+    recommended: >
+      No. Primary stays Vanilla with trend against Chronos-2 with temperature, neither
+      with holiday inputs, so the two sides are matched and both are the published,
+      off-the-shelf forms. The holiday-matched pair
+      (vanilla_benchmark_trend_holiday vs chronos2_temperature_calendar) and each
+      method with against without calendar are registered secondaries.
+    alternative: >
+      Make the holiday-matched pair primary. Risk: on the gate weeks the calendar made
+      Chronos-2 worse (notes/calendar_inputs.md), so the primary would test "Chronos-2
+      with our covariate encoding" and not the model as released.
+  expected_size: >
+    Small. 12 federal holidays are 3.6% of the scored hours; Chronos-2 with temperature
+    is 7% worse on them on DOM and 4% better on JC (notes/calendar_inputs.md).
+  pre_registered_breakdown: >
+    Error on federal-holiday hours and on other hours, per row, reported and not read
+    against the bar.
+
+# ------------------------------------------------------------------ other rows (secondary)
+secondary_rows:
+  - lag_regression_temperature          # the v1 baseline, for continuity
+  - lightgbm_competition
+  - tabpfn_ts_v2_temperature            # if its v1.3 scored run has finished
+  - chronos2                            # univariate
+
+# ------------------------------------------------------------------ before the tag
+to_do_before_tag:
+  - settle the three OPEN items
+  - write the zone rule and list the zones it selects, before fetching their load
+  - export_inputs writes the calendar table; lookahead tests cover the new rows
+  - gate runs of every row on the gate origins, from a committed tree
+  - outcome sentences written in advance for the primary comparison
+  - dated line in DEVIATIONS.md, then tag protocol-v2 and score once

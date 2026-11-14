@@ -50,6 +50,9 @@ the repository, the repository wins.
    zones** chosen by a stated rule before any model runs on them, with DOM and JC as
    development results and a **prospective weekly panel** (forecast before the week
    happens, read at fixed checkpoints such as 13, 26, 52 weeks) alongside. Not decided.
+   A draft is in `protocol-v2-draft.yaml` with three items marked OPEN: the zones, the
+   prospective panel, and whether the primary pair carries holiday inputs (decision 30,
+   `notes/calendar_inputs.md`). Nothing has been run under it.
 2. **TabPFN attribution.** Its licence asks for "Built with PriorLabs-TabPFN" where
    results are published. Needed on the dashboard if that row is shown.
 3. **Blogs and newsletters for the scan.** A verified list is in

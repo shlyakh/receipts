@@ -53,9 +53,9 @@ the repository, the repository wins.
    A draft is in `protocol-v2-draft.yaml`. Decided on Nov 13: calendar is a known-future
    covariate beside humidity, solar and wind, as secondary rows (decisions 30, 31); the
    prospective panel starts with v2 (decision 32); primary zones AEP and AE (decision 33,
-   `notes/zone_selection.md`). Still open: whether humidity, solar and wind are in v2 or
-   v2.x, who runs the panel each Monday, and the weather points for AEP and AE. Nothing
-   has been run under it.
+   `notes/zone_selection.md`); humidity, solar and wind wait for v2.x (decision 34). Still
+   open: who runs the panel each Monday (`notes/prospective_panel_plan.md`, a plan, not
+   built) and the weather points for AEP and AE. Nothing has been run under it.
 2. **TabPFN attribution.** Its licence asks for "Built with PriorLabs-TabPFN" where
    results are published. Needed on the dashboard if that row is shown.
 3. **Blogs and newsletters for the scan.** A verified list is in

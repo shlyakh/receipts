@@ -60,8 +60,9 @@ calendar:
     values:
       none: no calendar input (the model sees the load history and timestamps only)
       harness: the harness table, as covariates or columns
-      own: features the method builds itself; the row lists them and says whether they
-        include holidays (Vanilla: month, weekday, hour, no holidays)
+      own: >
+        features the method builds itself; the row lists them and says whether they
+        include holidays (for Vanilla, month, weekday and hour, no holidays)
   rows_added:
     vanilla_benchmark_trend_holiday: >
       Vanilla with trend plus the harness holiday and year-end indicators. The cited

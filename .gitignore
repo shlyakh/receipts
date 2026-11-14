@@ -14,3 +14,4 @@ nohup.out
 data/model_inputs/
 data/feeds/
 runs/*.jsonl
+data/logs/

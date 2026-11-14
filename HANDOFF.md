@@ -10,8 +10,9 @@ the repository, the repository wins.
   `protocol-v1.2`, `protocol-v1.3`.
 - The only uncommitted file is `.github/workflows/pages.yml` (automatic dashboard
   deploys). Pushing it needs `gh auth refresh -s workflow` from Yuri.
-- After a reboot, local Langfuse needs restarting: start Docker, then
-  `docker compose up -d` in `/Users/yuri/work/langfuse`.
+- After a reboot, local Langfuse needs restarting: run `tools/start_langfuse.sh`
+  (starts Docker Desktop if needed, then the containers in `/Users/yuri/work/langfuse`,
+  and waits until http://localhost:3000 answers).
 
 ## Where the dashboard lives
 

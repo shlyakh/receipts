@@ -133,7 +133,7 @@ def main() -> None:
                 float(max(zstats.loc[z, "peak_summer"], zstats.loc[z, "peak_winter"]))
             ),
             "summer_winter_peak": round(float(zstats.loc[z, "sw_peak_ratio"]), 2),
-            "stations": v["weather_points_proposed"],
+            "stations": v["weather_points"],
         }
         for z, v in draft["zones"]["selected"].items()
     }

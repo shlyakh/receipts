@@ -23,8 +23,8 @@ weather:
     Decision 36. A zone's temperature is the mean over its weather points. A weather point
     is an ERA5 grid cell (0.25 degree), named by its cell centre; it is not a weather
     station, and the word "station" is kept for PJM's real stations only. The cells for
-    AEP and AE, and whether DOM and JC are re-pointed to cells under v2, are not fixed
-    yet (notes/zone_geography.md, in progress).
+    AEP and AE are listed under zones.selected (decision 37); DOM and JC keep their v1
+    points.
 
 # ------------------------------------------------------------------ primary comparison
 primary_comparison:
@@ -54,10 +54,10 @@ zones:
       matches: DOM
       distance: 1.56
       runner_up: AP             # used only if AEP fails a gate for data reasons
-      # PROPOSED, not decided: the ERA5 grid cells nearest PJM's stations for the zone,
+      # Decided (decision 37): the ERA5 grid cells that hold PJM's stations for the zone,
       # with PJM's weights (2026 Long-Term Load Forecast Supplement, Table 3). lat/lon is
       # the cell centre; station is the PJM station the cell was found from.
-      weather_points_proposed:
+      weather_points:
         - {name: columbus, station: CMH, lat: 40.00, lon: -83.00, weight: 0.234}
         - {name: fort_wayne, station: FWA, lat: 41.00, lon: -85.25, weight: 0.227}
         - {name: charleston_wv, station: CRW, lat: 38.50, lon: -81.50, weight: 0.226}
@@ -68,7 +68,7 @@ zones:
       matches: JC
       distance: 2.12
       runner_up: PE
-      weather_points_proposed:
+      weather_points:
         - {name: atlantic_city_airport, station: ACY, lat: 39.50, lon: -74.50, weight: 1.0}
   record: >
     notes/zone_selection.md (the process and the reasons), tools/zone_selection/ (download,
@@ -79,10 +79,14 @@ zones:
     in view (descriptive statistics only; no model was run on any new zone). AE borders
     JC (anomaly correlation 0.93); with the limit at 0.90 the JC pick would be PEP, which
     is not summer-peaking. Yuri chose AE to keep the summer-peaking shape.
-  OPEN: >
-    The weather points for AEP and AE (proposed above; notes/zone_geography.md), whether
-    the zone mean uses PJM's weights or is unweighted as in v1 (0.16 C RMSE apart for AEP
-    over 2025), and whether DOM and JC keep their v1 points (recommended: keep).
+  zone_temperature: >
+    Decision 37 (Yuri, 2026-11-13). AEP and AE: the weighted mean over the zone's weather
+    points, with PJM's weights as listed; requests are made at the cell centre. DOM and
+    JC keep their protocol-v1 points and unweighted mean (DOM's points already match
+    PJM's three stations; JC is the one zone not on PJM's mapping, recorded as such).
+    Source of stations and weights: PJM 2026 Long-Term Load Forecast Supplement, Table 3
+    (notes/zone_geography.md).
+  not_done_yet: weighted zone mean in the weather processing; ERA5 and AIFS pulls at the six cells
 
 origins:
   retrospective: the 52 scored origins of protocol-v1, on the new zones
@@ -184,7 +188,7 @@ secondary_rows:
 # ------------------------------------------------------------------ before the tag
 to_do_before_tag:
   - write the panel's data-gap rule
-  - fix the weather points for AEP and AE and check ERA5 and AIFS coverage there
+  - weighted zone mean in the weather processing; pull ERA5 and AIFS at the six AEP and AE cells
   - fetch.py pulls AEP and AE load into data/raw with hashes
   - export_inputs writes the calendar table; lookahead tests cover the new rows
   - gate runs of every row on the gate origins, from a committed tree

@@ -182,7 +182,7 @@ a { color: var(--model); }
       </div>
       <p>Temperature is the main driver in both, so every model gets the same temperature: the average of three weather points per zone (the dots). A weather point is a place we picked inside the zone, read from the weather model's grid; it is not a weather station. We test with the forecast that was available at the time, and with weather analysed after the fact. The Weather tab adds ERA5, the reference record of past weather, and two more forecast sources.</p>
       <p><strong>Next test: two new zones.</strong> We have now seen every model on JC and DOM, so the next version of the test is read on two zones no model has been run on. They were picked by a written rule, as the closest matches on load statistics from before the test year: <strong>AEP</strong> (<span id="aep-name"></span>, Indiana to Virginia) for DOM, at <span id="aep-mean"></span> MW average and growing, and <strong>AE</strong> (<span id="ae-name"></span>, southern New Jersey) for JC, at <span id="ae-mean"></span> MW with a summer peak <span id="ae-sw"></span> times its winter peak.</p>
-      <p class="note"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--map-pjm)" aria-hidden="true"></span> JC and DOM, the current benchmark. <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--base)" aria-hidden="true"></span> AEP and AE, the next test. Shaded areas are the zones; dots are weather points. For AEP and AE the points are proposed: the weather-model grid cells nearest the airports PJM uses for those zones.</p>
+      <p class="note"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--map-pjm)" aria-hidden="true"></span> JC and DOM, the current benchmark. <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--base)" aria-hidden="true"></span> AEP and AE, the next test. Shaded areas are the zones; dots are weather points. For AEP and AE the points are the weather-model grid cells that hold the airports PJM uses for those zones, averaged with PJM's weights.</p>
       <p class="note">Load: EIA hourly data. Weather: Open-Meteo. Zone areas are drawn by county, from EIA's list of the counties each zone's main utility serves. A county shared by two utilities is drawn for one, and co-operatives and city utilities inside a zone are not mapped separately.</p>
     </div>
   </div>
@@ -565,7 +565,7 @@ a { color: var(--model); }
       const pts = z.stations.map(s => ({ ...s, xy: proj([s.lon, s.lat]) }));
       svg.selectAll(null).data(pts).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", 4 * u)
         .attr("fill", next ? "var(--base)" : "var(--map-pjm)").attr("stroke", "var(--panel)").attr("stroke-width", 1.5 * u)
-        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace(/_/g, " ") + "</b><br>" + (next ? "proposed weather point for " : "weather point for ") + zone + (d.weight ? "<br>weight " + d.weight : "")))
+        .on("mousemove", (ev, d) => showTip(ev, "<b>" + d.name.replace(/_/g, " ") + "</b><br>" + "weather point for " + zone + (d.weight ? "<br>weight " + d.weight : "")))
         .on("mouseleave", hideTip);
       const anchor = next ? pts[0].xy : [d3.mean(pts, q => q.xy[0]), d3.min(pts, q => q.xy[1])], o = lab[zone] || [9, 5];
       svg.append("text").attr("class", "halo").attr("x", anchor[0] + o[0] * u).attr("y", anchor[1] + o[1] * u)

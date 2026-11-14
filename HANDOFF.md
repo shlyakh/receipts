@@ -54,8 +54,10 @@ the repository, the repository wins.
    covariate beside humidity, solar and wind, as secondary rows (decisions 30, 31); the
    prospective panel starts with v2 (decision 32); primary zones AEP and AE (decision 33,
    `notes/zone_selection.md`); humidity, solar and wind wait for v2.x (decision 34). Still
-   open: who runs the panel each Monday (`notes/prospective_panel_plan.md`, a plan, not
-   built) and the weather points for AEP and AE. Nothing has been run under it.
+   open: nothing for Yuri; to build before the tag: weighted zone mean, data pulls for AEP
+   and AE, the calendar rows, gate runs. The panel runs on GitHub Actions (decision 35;
+   `notes/prospective_panel_plan.md`, a plan, not built); weather points are ERA5 grid
+   cells with PJM's weights (decisions 36, 37). Nothing has been run under it.
 2. **TabPFN attribution.** Its licence asks for "Built with PriorLabs-TabPFN" where
    results are published. Needed on the dashboard if that row is shown.
 3. **Blogs and newsletters for the scan.** A verified list is in

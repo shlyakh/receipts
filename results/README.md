@@ -301,6 +301,86 @@ shown for scale: it is the error of calling the IFS analysis "true".
 - The information set is idealised as in v1: ERA5 is published about five days late.
 - One year, two zones, six grid points.
 
+## Competition-grade LightGBM (protocol-v1.3, secondary)
+
+Scored once on Fri Nov 13, 2026, at commit `3bdc471`, the commit tagged `protocol-v1.3`,
+from a clean tree at that commit. The run had no crash and nothing was rerun or adjusted.
+Every number in this section is **secondary**: none changes the primary comparison or
+its sentences above. Files: `models_v13/` (`leaderboard.csv`, `stats.csv`,
+`windows.parquet`, `dropped_windows.csv`, `forecasts/`), written by `harness/v13.py`,
+which the earlier scorers never read. All v1, v1.1 and v1.2 results files were checked
+byte-identical after this run.
+
+**The row.** `lightgbm_competition` follows the feature design of a published
+competition entry (BigDEAL Challenge 2022, https://arxiv.org/abs/2305.05575), in our own
+code. It uses no lagged load. Its 91 features are calendar terms (with holiday name and
+days to and from a holiday) and temperature: the current value, lags of 1 to 48 hours,
+rolling statistics over 3 hours to 30 days, and daily and month-hour aggregates. The
+target is log load with a linear trend removed. It is refitted at every origin on 730 days,
+and the horizon is forecast directly with the regime's temperature. It is **untuned**:
+LightGBM defaults plus 1,000 trees at rate 0.05, fixed before any run
+(`protocol-v1.3.yaml`). Runtime about 3.5 s per window on the laptop CPU.
+
+Windows are exactly those the existing scoring kept: 48 per zone, 45 in `forecast_aifs`.
+Intervals are 90%, paired whole-week bootstrap, 2,000 draws, seed 20261112. The reading
+applies the v1 verdict rule and 10% bar to a ratio A / B: "A better" (whole interval
+below 0.90), "tie" (inside 0.90 to 1.10), "B better" (above 1.10), "inconclusive".
+
+**TabPFN-TS with v2 weights (`tabpfn_ts_v2_temperature`) is registered in the same
+version but not yet scored.** Its CPU runtime is about 5 minutes per window, about 50
+hours for all six regimes. It will be run once, later, at the same tag, with no change
+to its definition. Its weights carry the Prior Labs License attribution clause ("Built
+with PriorLabs-TabPFN"), which any publication of its results must include.
+
+DOM, MAE in MW (columns: LightGBM, Chronos-2 with temperature, lag regression with
+temperature, Vanilla with trend):
+
+| Regime | Weeks | LightGBM | Chronos-2 | Lag reg. | Vanilla + trend | LightGBM / lag regression | Reading | LightGBM / Vanilla + trend | Reading | Chronos-2 / LightGBM | Reading |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `oracle` | 48 | 476 | 519 | 782 | 478 | 0.609 (0.544 to 0.684) | A better | 0.997 (0.886 to 1.114) | inconclusive | 1.089 (0.946 to 1.268) | inconclusive |
+| `forecast` | 48 | 715 | 734 | 1,005 | 776 | 0.711 (0.651 to 0.777) | A better | 0.921 (0.872 to 0.972) | inconclusive | 1.026 (0.947 to 1.116) | inconclusive |
+| `oracle_era5` | 48 | 451 | 497 | 720 | 476 | 0.627 (0.553 to 0.707) | A better | 0.948 (0.845 to 1.054) | inconclusive | 1.102 (0.944 to 1.293) | inconclusive |
+| `forecast_gfs` | 48 | 727 | 743 | 1,008 | 793 | 0.721 (0.664 to 0.783) | A better | 0.916 (0.870 to 0.965) | inconclusive | 1.022 (0.950 to 1.108) | inconclusive |
+| `forecast_ifs` | 48 | 739 | 745 | 987 | 771 | 0.748 (0.671 to 0.836) | A better | 0.958 (0.890 to 1.024) | inconclusive | 1.009 (0.935 to 1.096) | tie |
+| `forecast_aifs` | 45 | 601 | 640 | 890 | 643 | 0.675 (0.613 to 0.744) | A better | 0.935 (0.869 to 0.999) | inconclusive | 1.065 (0.973 to 1.166) | inconclusive |
+
+JC, MAE in MW:
+
+| Regime | Weeks | LightGBM | Chronos-2 | Lag reg. | Vanilla + trend | LightGBM / lag regression | Reading | LightGBM / Vanilla + trend | Reading | Chronos-2 / LightGBM | Reading |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `oracle` | 48 | 141 | 167 | 239 | 166 | 0.590 (0.511 to 0.679) | A better | 0.851 (0.770 to 0.951) | inconclusive | 1.183 (1.024 to 1.359) | inconclusive |
+| `forecast` | 48 | 204 | 218 | 267 | 219 | 0.766 (0.658 to 0.884) | A better | 0.934 (0.869 to 1.000) | inconclusive | 1.067 (0.966 to 1.173) | inconclusive |
+| `oracle_era5` | 48 | 130 | 159 | 226 | 155 | 0.573 (0.503 to 0.652) | A better | 0.835 (0.750 to 0.933) | inconclusive | 1.228 (1.046 to 1.423) | inconclusive |
+| `forecast_gfs` | 48 | 207 | 215 | 267 | 215 | 0.777 (0.662 to 0.896) | A better | 0.963 (0.900 to 1.026) | tie | 1.038 (0.944 to 1.143) | inconclusive |
+| `forecast_ifs` | 48 | 205 | 213 | 274 | 217 | 0.748 (0.625 to 0.892) | A better | 0.946 (0.879 to 1.019) | inconclusive | 1.037 (0.953 to 1.130) | inconclusive |
+| `forecast_aifs` | 45 | 175 | 184 | 239 | 185 | 0.732 (0.651 to 0.820) | A better | 0.949 (0.873 to 1.030) | inconclusive | 1.048 (0.952 to 1.146) | inconclusive |
+
+- **An untuned, competition-style LightGBM is at least level with Chronos-2 with
+  temperature.** Its point error is lower than Chronos-2's in all 12 zone-regime cells:
+  1 to 6% lower with forecast weather, 8 to 19% lower with actual weather. No cell is
+  decided in either direction except DOM `forecast_ifs`, a tie; JC `oracle_era5` comes
+  closest to "LightGBM better" (interval 1.046 to 1.423).
+- **It beats the frozen baseline in every cell, beyond the 10% bar** (0.57 to 0.78). With
+  forecast weather its lead over the lag regression is about the same as Chronos-2's
+  (DOM `forecast`: 0.711 against Chronos-2's 0.730).
+- **Against Vanilla with trend** it is ahead in every cell (0.84 to 1.00); every interval
+  crosses 0.90, so none lies wholly below it; JC `forecast_gfs` is a tie and the rest are
+  inconclusive. Its gain over Vanilla is largest with actual weather on JC (0.84 to 0.85).
+- **The existing `lightgbm_temperature` row was a weak representative.** With the regression's
+  six inputs it was 1.228 of Vanilla with trend on DOM (forecast regime); built like a
+  competition entry it is 0.921. The learner is the same; the features, the two-year
+  window and the detrended target together make the difference (their shares are not
+  separated here).
+- Read against this row, the GB study's "rough tie" between a foundation model and a
+  temperature model transfers in the weak sense that Chronos-2 is not ahead in any of the
+  12 cells: one is a tie and the other eleven are inconclusive, with LightGBM's point
+  error lower in all of them.
+
+Caveats: one year and two zones. The LightGBM settings were fixed from the literature,
+not tuned; tuning (done by the competition entry) could only help it. Chronos-2 sees load
+up to the cutoff; this LightGBM sees none, so their information sets differ in Chronos-2's
+favour.
+
 ## Leaderboard
 
 Mean absolute error over each 168-hour window, averaged over 48 windows, in MW.

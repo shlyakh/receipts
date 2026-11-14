@@ -1,0 +1,75 @@
+{
+ "run_id": "20261114T020627_run-candidate_claude_gb-demand-weather-zero-shot-backtest_e365",
+ "skill": "run-candidate",
+ "provider": "claude",
+ "args": [
+  "gb-demand-weather-zero-shot-backtest"
+ ],
+ "note": "Headless pipeline run. If the model row this scorecard needs is already in results/leaderboard.csv, write the receipt (step 5) and report. If it is not, do NOT download weights, change code or run any model: stop and report which model row is missing and which steps of the skill a person has to run.",
+ "model_requested": null,
+ "git_commit": "38a9153",
+ "started_at": "2026-11-14T02:06:27+00:00",
+ "wall_seconds": 24.2,
+ "exit_code": 0,
+ "timed_out": false,
+ "session_id": "a8a4bd81-9227-452b-954e-a29597801d3b",
+ "is_error": false,
+ "num_turns": 6,
+ "total_cost_usd": 0.6509874,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 34762,
+  "cache_read_input_tokens": 134057,
+  "output_tokens": 1698,
+  "output_tokens_details": {
+   "thinking_tokens": 162
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 34762,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 736,
+    "cache_read_input_tokens": 46965,
+    "cache_creation_input_tokens": 729,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 729
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "model_usage": {
+  "claude-fable-5-2": {
+   "inputTokens": 8,
+   "outputTokens": 1698,
+   "cacheReadInputTokens": 134057,
+   "cacheCreationInputTokens": 34762,
+   "webSearchRequests": 0,
+   "costUSD": 0.6509874,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 162,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 34762,
+   "canonicalModel": "claude-fable-5-2",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "tool_calls": {
+  "Read": 3,
+  "Bash": 2
+ }
+}

@@ -1,221 +1,265 @@
 {
-  "candidate_id": "tsfm-load-covariate-uncertainty",
-  "title": "Benchmarking Time Series Foundation Models for Load Forecasting Under Covariate Uncertainty",
-  "spec_version": "spec-v1",
-  "discovered_via": {
-    "url": "https://arxiv.org/abs/2610.07232",
-    "provider": "claude",
-    "retrieved_at": "2026-11-13T16:12:17Z"
+ "candidate_id": "tsfm-load-covariate-uncertainty",
+ "title": "Benchmarking Time Series Foundation Models for Load Forecasting Under Covariate Uncertainty",
+ "spec_version": "spec-v1",
+ "discovered_via": {
+  "url": "https://arxiv.org/abs/2610.07232",
+  "provider": "claude",
+  "retrieved_at": "2026-11-13T16:12:17Z"
+ },
+ "candidate_type": "paper",
+ "primary_sources": [
+  {
+   "url": "https://arxiv.org/abs/2610.07232",
+   "kind": "arxiv",
+   "paraphrase": "arXiv record (v1, 2026-10-05; accepted to IEEE PES Grid Edge 2027). Four trained-from-scratch and four foundation models on three load datasets; Chronos-2 is best when future covariates are exact or well forecast and degrades as they get noisier, where TimesNet holds up better. No code link.",
+   "evidence_id": "287e89a61882"
   },
-  "candidate_type": "paper",
-  "primary_sources": [
-    {
-      "url": "https://arxiv.org/abs/2610.07232",
-      "kind": "arxiv",
-      "paraphrase": "arXiv record (v1, 2026-10-05; accepted to IEEE PES Grid Edge 2027). Four trained-from-scratch and four foundation models on three load datasets; Chronos-2 is best when future covariates are exact or well forecast and degrades as they get noisier, where TimesNet holds up better. No code link.",
-      "evidence_id": "287e89a61882"
-    },
-    {
-      "url": "https://arxiv.org/html/2610.07232",
-      "kind": "arxiv",
-      "paraphrase": "Full text. Hourly load for ISO-NE, an anonymous North American utility and CAISO; one-year test split; day-ahead task; MAE and MAPE. Covariate uncertainty is simulated by adding Gaussian noise (lambda times ARIMA residual sd) to true future covariates. Tables IV and V give the numbers; no intervals, seeds, code or data release.",
-      "evidence_id": "57bd4ef90bb0"
-    },
-    {
-      "url": "https://huggingface.co/api/models/amazon/chronos-2/commits/main",
-      "kind": "hf_card",
-      "paraphrase": "Commit history of amazon/chronos-2, the study's central model: weights added in commit 95a9710e on 2025-10-30; later commits change only the README and tags. The repository lists the licence as apache-2.0.",
-      "evidence_id": "d67e199eeeac"
-    }
+  {
+   "url": "https://arxiv.org/html/2610.07232",
+   "kind": "arxiv",
+   "paraphrase": "Full text. Hourly load for ISO-NE, an anonymous North American utility and CAISO; one-year test split; day-ahead task; MAE and MAPE. Covariate uncertainty is simulated by adding Gaussian noise (lambda times ARIMA residual sd) to true future covariates. Tables IV and V give the numbers; no intervals, seeds, code or data release.",
+   "evidence_id": "57bd4ef90bb0"
+  },
+  {
+   "url": "https://huggingface.co/api/models/amazon/chronos-2/commits/main",
+   "kind": "hf_card",
+   "paraphrase": "Commit history of amazon/chronos-2, the study's central model: weights added in commit 95a9710e on 2025-10-30; later commits change only the README and tags. The repository lists the licence as apache-2.0.",
+   "evidence_id": "d67e199eeeac"
+  }
+ ],
+ "claims": [
+  {
+   "text": "Chronos-2 is the most accurate model, zero-shot and fine-tuned, when future covariates are exact or well forecast, but degrades as covariate forecasts get noisier, where TimesNet is more robust.",
+   "metric": null,
+   "value": null,
+   "dataset": "ISO-NE, NAU, CAISO",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 0,
+   "ci90": null
+  },
+  {
+   "text": "ISO-NE, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 1.92% against TimesNet 1.91%.",
+   "metric": "MAPE",
+   "value": 1.92,
+   "dataset": "ISO-NE",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (1.91%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "ISO-NE, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 2.80% against TimesNet 2.19%.",
+   "metric": "MAPE",
+   "value": 2.8,
+   "dataset": "ISO-NE",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.19%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "ISO-NE, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 9.14% against TimesNet 5.17%.",
+   "metric": "MAPE",
+   "value": 9.14,
+   "dataset": "ISO-NE",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (5.17%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "NAU, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 2.31% against TimesNet 2.24%.",
+   "metric": "MAPE",
+   "value": 2.31,
+   "dataset": "NAU (anonymous North American utility)",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.24%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "NAU, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 2.62% against TimesNet 2.47%.",
+   "metric": "MAPE",
+   "value": 2.62,
+   "dataset": "NAU (anonymous North American utility)",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.47%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "NAU, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 5.47% against TimesNet 5.33%.",
+   "metric": "MAPE",
+   "value": 5.47,
+   "dataset": "NAU (anonymous North American utility)",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (5.33%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "CAISO, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 2.47% against TimesNet 2.40%.",
+   "metric": "MAPE",
+   "value": 2.47,
+   "dataset": "CAISO",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.40%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "CAISO, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 3.25% against TimesNet 2.50%.",
+   "metric": "MAPE",
+   "value": 3.25,
+   "dataset": "CAISO",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.50%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "CAISO, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 5.65% against TimesNet 3.72%.",
+   "metric": "MAPE",
+   "value": 5.65,
+   "dataset": "CAISO",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (3.72%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "ISO-NE, exact future covariates: fine-tuned Chronos-2 MAPE 1.67%, the best of all models.",
+   "metric": "MAPE",
+   "value": 1.67,
+   "dataset": "ISO-NE",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (1.91%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "NAU, exact future covariates: fine-tuned Chronos-2 MAPE 1.99%, the best of all models.",
+   "metric": "MAPE",
+   "value": 1.99,
+   "dataset": "NAU (anonymous North American utility)",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.24%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "CAISO, exact future covariates: fine-tuned Chronos-2 MAPE 2.13%, the best of all models.",
+   "metric": "MAPE",
+   "value": 2.13,
+   "dataset": "CAISO",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet with the same future covariates (2.40%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  },
+  {
+   "text": "ISO-NE, load history only: Chronos-2 zero-shot MAPE 3.44%, the lowest zero-shot value; TimesNet 4.02%.",
+   "metric": "MAPE",
+   "value": 3.44,
+   "dataset": "ISO-NE",
+   "horizon": "day-ahead (hours not stated)",
+   "baseline": "TimesNet, history only (4.02%)",
+   "baseline_same_inputs": "yes",
+   "test_window_days": 365,
+   "citation_idx": 1,
+   "ci90": null
+  }
+ ],
+ "relevance": {
+  "target_match": 3,
+  "horizon_match": 2,
+  "covariates_match": 3,
+  "rationale": "Hourly electric load at system or utility level (3). The task is day-ahead, not week-ahead (2). Temperature is a known-future input for all three datasets, tested both exact and degraded, which is the oracle-versus-forecast split of our two regimes (3)."
+ },
+ "checks": {
+  "pre_registered": "no",
+  "training_overlap_risk": "low",
+  "independent_replication": "unknown",
+  "notes": "pre_registered: the paper mentions no pre-registration and has one arXiv version. training_overlap_risk is about our run: the amazon/chronos-2 weights file was committed on 2025-10-30 (commit 95a9710e), before the first scored week (2025-11-10), so all scored weeks start after it. independent_replication: two searches found no replication and no author code. Central model: Chronos-2 (headline claim); TimesNet, Informer, DLinear, PatchTST, TimesFM 2.5, Moirai 2.0 and TiRex are the others. Evidence is weak by the spec: numbers without code or data, no intervals or seeds, although the test split is about one year and TimesNet and Informer got the same future covariates as Chronos-2 (the other foundation models ran univariate). Unverified: the numeric horizon (only 'day-ahead' is stated); the Chronos-2 checkpoint revision and context length the authors used; how the day-ahead demand forecast covariate on ISO-NE was perturbed; the authors' statement that the datasets are absent from pre-training corpora. Table values were read from the arXiv HTML through a fetch summary, twice with the same result, not from the PDF. On ISO-NE the covariates include the operator's own day-ahead demand forecast, so those numbers are not a temperature-only comparison. The covariate noise is synthetic Gaussian noise, not archived weather forecasts as in our forecast regime."
+ },
+ "evidence_strength": "weak",
+ "license": "Apache-2.0",
+ "license_ok_for_commercial": true,
+ "runnable_class": "direct_adapter",
+ "label": "ACCEPT_RUN",
+ "label_reason": "On-target study (hourly load, temperature as a known-future input, exact versus degraded covariates) with a primary source, and its headline model, Chronos-2 with covariates, is already runnable on our benchmark in both weather regimes. The published evidence itself is weak (no code, data release or intervals), and the TimesNet side of the comparison cannot be re-measured with a model in runnable_models.",
+ "implementation_hint": "Chronos-2 zero-shot with temperature via models/chronos2.py, weights amazon/chronos-2 (weights commit 95a9710e2596287d08352589f42634fa5abdf0a7, 2025-10-30). Compare its oracle and forecast regime rows: the paper's lambda 0 corresponds to oracle, its noisy cases loosely to forecast. TimesNet (trained from scratch) and fine-tuned Chronos-2 are not in runnable_models; TimesFM 2.5 could be added univariate via models_ff/run_ff.py.",
+ "receipt": {
+  "claimed": "Zero-shot Chronos-2 with future covariates is the most accurate model when those covariates are exact or well forecast (MAPE 1.92% to 2.47% across three load datasets, about level with TimesNet at 1.91% to 2.40%), and it loses accuracy as the covariates get noisier, where TimesNet holds up better.",
+  "measured": [
+   {
+    "zone": "DOM",
+    "regime": "forecast",
+    "error_ratio": 0.73,
+    "ci90": [
+     0.665,
+     0.805
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "forecast",
+    "error_ratio": 0.817,
+    "ci90": [
+     0.686,
+     0.96
+    ]
+   },
+   {
+    "zone": "DOM",
+    "regime": "oracle",
+    "error_ratio": 0.663,
+    "ci90": [
+     0.579,
+     0.759
+    ]
+   },
+   {
+    "zone": "JC",
+    "regime": "oracle",
+    "error_ratio": 0.698,
+    "ci90": [
+     0.589,
+     0.824
+    ]
+   }
   ],
-  "claims": [
-    {
-      "text": "Chronos-2 is the most accurate model, zero-shot and fine-tuned, when future covariates are exact or well forecast, but degrades as covariate forecasts get noisier, where TimesNet is more robust.",
-      "metric": null,
-      "value": null,
-      "dataset": "ISO-NE, NAU, CAISO",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 0,
-      "ci90": null
-    },
-    {
-      "text": "ISO-NE, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 1.92% against TimesNet 1.91%.",
-      "metric": "MAPE",
-      "value": 1.92,
-      "dataset": "ISO-NE",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (1.91%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "ISO-NE, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 2.80% against TimesNet 2.19%.",
-      "metric": "MAPE",
-      "value": 2.8,
-      "dataset": "ISO-NE",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.19%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "ISO-NE, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 9.14% against TimesNet 5.17%.",
-      "metric": "MAPE",
-      "value": 9.14,
-      "dataset": "ISO-NE",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (5.17%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "NAU, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 2.31% against TimesNet 2.24%.",
-      "metric": "MAPE",
-      "value": 2.31,
-      "dataset": "NAU (anonymous North American utility)",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.24%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "NAU, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 2.62% against TimesNet 2.47%.",
-      "metric": "MAPE",
-      "value": 2.62,
-      "dataset": "NAU (anonymous North American utility)",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.47%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "NAU, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 5.47% against TimesNet 5.33%.",
-      "metric": "MAPE",
-      "value": 5.47,
-      "dataset": "NAU (anonymous North American utility)",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (5.33%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "CAISO, exact future covariates (lambda 0): Chronos-2 zero-shot MAPE 2.47% against TimesNet 2.40%.",
-      "metric": "MAPE",
-      "value": 2.47,
-      "dataset": "CAISO",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.40%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "CAISO, noisy future covariates (lambda 1): Chronos-2 zero-shot MAPE 3.25% against TimesNet 2.50%.",
-      "metric": "MAPE",
-      "value": 3.25,
-      "dataset": "CAISO",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.50%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "CAISO, very noisy future covariates (lambda 5): Chronos-2 zero-shot MAPE 5.65% against TimesNet 3.72%.",
-      "metric": "MAPE",
-      "value": 5.65,
-      "dataset": "CAISO",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (3.72%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "ISO-NE, exact future covariates: fine-tuned Chronos-2 MAPE 1.67%, the best of all models.",
-      "metric": "MAPE",
-      "value": 1.67,
-      "dataset": "ISO-NE",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (1.91%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "NAU, exact future covariates: fine-tuned Chronos-2 MAPE 1.99%, the best of all models.",
-      "metric": "MAPE",
-      "value": 1.99,
-      "dataset": "NAU (anonymous North American utility)",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.24%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "CAISO, exact future covariates: fine-tuned Chronos-2 MAPE 2.13%, the best of all models.",
-      "metric": "MAPE",
-      "value": 2.13,
-      "dataset": "CAISO",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet with the same future covariates (2.40%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    },
-    {
-      "text": "ISO-NE, load history only: Chronos-2 zero-shot MAPE 3.44%, the lowest zero-shot value; TimesNet 4.02%.",
-      "metric": "MAPE",
-      "value": 3.44,
-      "dataset": "ISO-NE",
-      "horizon": "day-ahead (hours not stated)",
-      "baseline": "TimesNet, history only (4.02%)",
-      "baseline_same_inputs": "yes",
-      "test_window_days": 365,
-      "citation_idx": 1,
-      "ci90": null
-    }
-  ],
-  "relevance": {
-    "target_match": 3,
-    "horizon_match": 2,
-    "covariates_match": 3,
-    "rationale": "Hourly electric load at system or utility level (3). The task is day-ahead, not week-ahead (2). Temperature is a known-future input for all three datasets, tested both exact and degraded, which is the oracle-versus-forecast split of our two regimes (3)."
-  },
-  "checks": {
-    "pre_registered": "no",
-    "training_overlap_risk": "low",
-    "independent_replication": "unknown",
-    "notes": "pre_registered: the paper mentions no pre-registration and has one arXiv version. training_overlap_risk is about our run: the amazon/chronos-2 weights file was committed on 2025-10-30 (commit 95a9710e), before the first scored week (2025-11-10), so all scored weeks start after it. independent_replication: two searches found no replication and no author code. Central model: Chronos-2 (headline claim); TimesNet, Informer, DLinear, PatchTST, TimesFM 2.5, Moirai 2.0 and TiRex are the others. Evidence is weak by the spec: numbers without code or data, no intervals or seeds, although the test split is about one year and TimesNet and Informer got the same future covariates as Chronos-2 (the other foundation models ran univariate). Unverified: the numeric horizon (only 'day-ahead' is stated); the Chronos-2 checkpoint revision and context length the authors used; how the day-ahead demand forecast covariate on ISO-NE was perturbed; the authors' statement that the datasets are absent from pre-training corpora. Table values were read from the arXiv HTML through a fetch summary, twice with the same result, not from the PDF. On ISO-NE the covariates include the operator's own day-ahead demand forecast, so those numbers are not a temperature-only comparison. The covariate noise is synthetic Gaussian noise, not archived weather forecasts as in our forecast regime."
-  },
-  "evidence_strength": "weak",
-  "license": "Apache-2.0",
-  "license_ok_for_commercial": true,
-  "runnable_class": "direct_adapter",
-  "label": "ACCEPT_RUN",
-  "label_reason": "On-target study (hourly load, temperature as a known-future input, exact versus degraded covariates) with a primary source, and its headline model, Chronos-2 with covariates, is already runnable on our benchmark in both weather regimes. The published evidence itself is weak (no code, data release or intervals), and the TimesNet side of the comparison cannot be re-measured with a model in runnable_models.",
-  "implementation_hint": "Chronos-2 zero-shot with temperature via models/chronos2.py, weights amazon/chronos-2 (weights commit 95a9710e2596287d08352589f42634fa5abdf0a7, 2025-10-30). Compare its oracle and forecast regime rows: the paper's lambda 0 corresponds to oracle, its noisy cases loosely to forecast. TimesNet (trained from scratch) and fine-tuned Chronos-2 are not in runnable_models; TimesFM 2.5 could be added univariate via models_ff/run_ff.py.",
-  "receipt": null
+  "horizon_mismatch": "The paper is day-ahead on ISO-NE, an anonymous North American utility and CAISO over a one-year test split, compared against TimesNet trained from scratch, with covariate error simulated as Gaussian noise (and on ISO-NE the operator's own demand forecast among the covariates); ours is week-ahead (168 h) on PJM zones JC and DOM over 48 scored weeks with temperature only, compared against the temperature-only regression, with covariate error coming from archived weather forecasts. TimesNet and fine-tuned Chronos-2 were not run, so the robustness comparison with TimesNet is not measured; the paper's exact-covariate case corresponds to our oracle regime and its noisy cases only loosely to our forecast regime.",
+  "n_windows": 48,
+  "n_windows_after_weights": 48,
+  "verdict": "partially"
+ }
 }

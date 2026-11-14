@@ -1,0 +1,233 @@
+{
+  "candidate_id": "chronos2-covariate-grid-load",
+  "title": "Assessing Covariate-Informed Grid Load Forecasting with a Time-Series Foundation Model",
+  "spec_version": "spec-v1",
+  "discovered_via": {
+    "url": "https://arxiv.org/abs/2609.06656",
+    "provider": "claude",
+    "retrieved_at": "2026-11-14T02:04:02Z"
+  },
+  "candidate_type": "paper",
+  "primary_sources": [
+    {
+      "url": "https://arxiv.org/abs/2609.06656",
+      "kind": "arxiv",
+      "paraphrase": "arXiv record (v1, 2026-09-06; presented at IJCNN 2026). Chronos-2 on ISO New England and ENTSO-E load against task-specific deep models: fine-tuning helps a lot and it does well at short horizons, but zero-shot it trails those models and its error grows faster with horizon. No code link.",
+      "evidence_id": "0daa14332d79"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.06656v1",
+      "kind": "arxiv",
+      "paraphrase": "Full text. Daily series (ENTSO-E as daily peak), one-year test splits, horizons of 30, 60 and 90 days, 30-day history, MAPE. Calendar and weather covariates over history and horizon; TCN, LSTM and Transformer baselines trained per dataset. Tables III and IV give means over five seeds; no intervals, code or data statement. Hourly week-ahead is left as future work.",
+      "evidence_id": "d5d1d6b70b0c"
+    },
+    {
+      "url": "https://huggingface.co/api/models/amazon/chronos-2/commits/main",
+      "kind": "hf_card",
+      "paraphrase": "Commit history of amazon/chronos-2, the study's central model: weights and config added in commit 95a9710e on 2025-10-30; later commits are README, tag and deployment-guide changes by title. The repository's metadata lists the licence as apache-2.0.",
+      "evidence_id": "d67e199eeeac"
+    }
+  ],
+  "claims": [
+    {
+      "text": "Fine-tuning on task history improves Chronos-2 with covariates substantially and makes it competitive at the shortest horizon; zero-shot it trails task-specific deep models and its error grows faster with horizon.",
+      "metric": null,
+      "value": null,
+      "dataset": "ISO New England and ENTSO-E, daily",
+      "horizon": "30, 60 and 90 days ahead, daily steps",
+      "baseline": "TCN, LSTM and Transformer trained per dataset with the same covariates",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 0,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 30 days: Chronos-2 zero-shot MAPE 6.71% against the trained Transformer at 4.13%.",
+      "metric": "MAPE",
+      "value": 6.71,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "Transformer trained on the dataset with the same covariates (4.13%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 60 days: Chronos-2 zero-shot MAPE 10.61% against the trained Transformer at 5.06%.",
+      "metric": "MAPE",
+      "value": 10.61,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "60 days ahead, daily steps, error averaged over days 1 to 60",
+      "baseline": "Transformer trained on the dataset with the same covariates (5.06%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 90 days: Chronos-2 zero-shot MAPE 15.78% against the trained Transformer at 5.5%.",
+      "metric": "MAPE",
+      "value": 15.78,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "90 days ahead, daily steps, error averaged over days 1 to 90",
+      "baseline": "Transformer trained on the dataset with the same covariates (5.5%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 30 days: fully fine-tuned Chronos-2 MAPE 4.06% against the trained Transformer at 4.13%.",
+      "metric": "MAPE",
+      "value": 4.06,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "Transformer trained on the dataset with the same covariates (4.13%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 60 days: fully fine-tuned Chronos-2 MAPE 5.19% against the trained Transformer at 5.06%.",
+      "metric": "MAPE",
+      "value": 5.19,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "60 days ahead, daily steps, error averaged over days 1 to 60",
+      "baseline": "Transformer trained on the dataset with the same covariates (5.06%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, with covariates, 90 days: fully fine-tuned Chronos-2 MAPE 5.36% against the trained Transformer at 5.5%.",
+      "metric": "MAPE",
+      "value": 5.36,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "90 days ahead, daily steps, error averaged over days 1 to 90",
+      "baseline": "Transformer trained on the dataset with the same covariates (5.5%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 30 days: Chronos-2 zero-shot MAPE 5.63% against the trained TCN at 4.52%.",
+      "metric": "MAPE",
+      "value": 5.63,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "TCN trained on the dataset with the same covariates (4.52%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 60 days: Chronos-2 zero-shot MAPE 6.57% against the trained TCN at 4.51%.",
+      "metric": "MAPE",
+      "value": 6.57,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "60 days ahead, daily steps, error averaged over days 1 to 60",
+      "baseline": "TCN trained on the dataset with the same covariates (4.51%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 90 days: Chronos-2 zero-shot MAPE 7.67% against the trained TCN at 4.43%.",
+      "metric": "MAPE",
+      "value": 7.67,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "90 days ahead, daily steps, error averaged over days 1 to 90",
+      "baseline": "TCN trained on the dataset with the same covariates (4.43%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 30 days: fully fine-tuned Chronos-2 MAPE 4.31% against the trained TCN at 4.52%.",
+      "metric": "MAPE",
+      "value": 4.31,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "TCN trained on the dataset with the same covariates (4.52%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 60 days: fully fine-tuned Chronos-2 MAPE 4.66% against the trained TCN at 4.51%.",
+      "metric": "MAPE",
+      "value": 4.66,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "60 days ahead, daily steps, error averaged over days 1 to 60",
+      "baseline": "TCN trained on the dataset with the same covariates (4.51%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, with covariates, 90 days: fully fine-tuned Chronos-2 MAPE 4.86% against the trained TCN at 4.43%.",
+      "metric": "MAPE",
+      "value": 4.86,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "90 days ahead, daily steps, error averaged over days 1 to 90",
+      "baseline": "TCN trained on the dataset with the same covariates (4.43%)",
+      "baseline_same_inputs": "yes",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ISO-NE, load history only, 30 days: Chronos-2 zero-shot MAPE 11.41%, against 6.71% with calendar and weather covariates.",
+      "metric": "MAPE",
+      "value": 11.41,
+      "dataset": "ISO New England, 8 zones, daily load (test year 2021)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "Chronos-2 zero-shot with covariates (6.71%)",
+      "baseline_same_inputs": "no",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    },
+    {
+      "text": "ENTSO-E, load history only, 30 days: Chronos-2 zero-shot MAPE 5.78%, against 5.63% with calendar and weather covariates.",
+      "metric": "MAPE",
+      "value": 5.78,
+      "dataset": "ENTSO-E, 6 countries, daily peak load (test year 2019)",
+      "horizon": "30 days ahead, daily steps, error averaged over days 1 to 30",
+      "baseline": "Chronos-2 zero-shot with covariates (5.63%)",
+      "baseline_same_inputs": "no",
+      "test_window_days": 365,
+      "citation_idx": 1,
+      "ci90": null
+    }
+  ],
+  "relevance": {
+    "target_match": 2,
+    "horizon_match": 1,
+    "covariates_match": 3,
+    "rationale": "Electric load at zone and country level, but daily (ENTSO-E as daily peak), not hourly; the scale has no exact slot for daily load, so 2. Horizons are 30 to 90 days in daily steps, far from a 168-hour week (1). Temperature and other weather are supplied over the forecast horizon as known-future inputs (3), though the paper does not say whether they are observed or forecast values."
+  },
+  "checks": {
+    "pre_registered": "no",
+    "training_overlap_risk": "low",
+    "independent_replication": "unknown",
+    "notes": "pre_registered: the paper mentions no pre-registration and has one arXiv version. training_overlap_risk is about our run: the amazon/chronos-2 weights were committed on 2025-10-30 (commit 95a9710e, identified by its title; model.safetensors is in the repository's file list but the commit's own file list was not inspected), before the first scored week (2025-11-10), so all scored weeks start after it. independent_replication: two searches found no replication and no author code. Central model: Chronos-2 (zero-shot, LoRA and full fine-tuning); TCN, LSTM and Transformer trained per dataset are the others. Evidence is weak by the spec: numbers without code, although the source data are public, each test split is 365 days and five seeds were run; tables give means only. baseline_same_inputs is 'yes' because the baselines are described as taking the target and covariate series with the same 30-day history; the paper does not explicitly confirm an identical covariate set or calendar encoding, and the baselines were trained on years of the target series while zero-shot Chronos-2 was not. Unverified: how ISO-NE load was aggregated to daily; whether future weather is observed or forecast (not stated); the Chronos-2 checkpoint revision; whether the datasets overlap Chronos-2 pre-training data (the ENTSO-E set comes from fev-bench; not discussed); which cells the paper marks as best. Table values were read from the arXiv HTML through two fetch summaries that agree, not from the PDF. The text says full fine-tuning always beats LoRA, but two table cells without covariates show the reverse by 0.05 points. Authors are at GE Vernova research. The write-up is CC BY-NC-SA; the licence field is that of the Chronos-2 weights."
+  },
+  "evidence_strength": "weak",
+  "license": "Apache-2.0",
+  "license_ok_for_commercial": true,
+  "runnable_class": "direct_adapter",
+  "label": "ACCEPT_STAGE3",
+  "label_reason": "Sourced study of our primary-comparison model, Chronos-2 with weather covariates, on electric load, but its headline comparison (fine-tuned Chronos-2 against deep models trained per dataset, daily data, 30 to 90 days ahead) cannot be re-measured with a model in runnable_models: it needs fine-tuning and trained baselines, which is work beyond an adapter. Only its side findings (zero-shot gain from covariates, error growth with horizon) map onto rows we already have, and the published numbers come without code or intervals.",
+  "implementation_hint": "Runnable today: Chronos-2 zero-shot with temperature via models/chronos2.py, weights amazon/chronos-2 (weights commit 95a9710e2596287d08352589f42634fa5abdf0a7, 2025-10-30); its with-temperature and univariate rows and the error by lead hour within 168 h are the nearest analogue of the paper's zero-shot findings. Not in runnable_models: LoRA or full fine-tuning of Chronos-2, and the TCN, LSTM and Transformer baselines trained per dataset; a daily 30 to 90 day protocol would also be a new protocol version.",
+  "receipt": null
+}
